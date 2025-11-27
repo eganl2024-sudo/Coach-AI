@@ -1,0 +1,4 @@
+drill_id,drill_name,category,description,players_min,players_max,duration_minutes,difficulty,intensity
+TECH_100,Quick Passing Triangle,Technical,Three players pass in triangle formation,3,12,10,beginner,low
+WARM_100,Jogging with Ball Control,Warmup,Light jogging while controlling soccer ball,4,20,8,beginner,low
+SSG_100,2v2 Mini Games,Small Sided Games,Small sided game focusing on quick decisions,4,16,15,intermediate,medium

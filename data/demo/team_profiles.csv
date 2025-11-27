@@ -1,0 +1,4 @@
+team_id,team_name,age_group,skill_level,typical_roster_size,notes,created_date,formation,play_style,key_players,focus_areas,injuries,upcoming_match,season_objectives,upcoming_match_date,upcoming_match_time,upcoming_match_opponent
+team_a,Team A,U14,intermediate,16,Demo team for testing,2025-11-18,4-3-3,Direct Play,Sarah Cara|Bol Bol,Finishing|Passing|Conditioning,Jill Joyful - Out (Foot),Game 11/22/25,Player Development,2025-11-22,18:00,Kev's Kaptains
+team_b,Team B,U16,advanced,18,Demo team for testing,2025-11-18,4-2-3-1,Direct Play,Dinho|KK,Passing|Set Pieces|Transition|Leadership|Mental Toughness,Ross - Vagina (IR),,Tournament Prep,2025-11-21,18:00,nan
+team_c,Team C,U12,beginner,12,Demo team for testing,2025-11-18,,,,,,,,,,

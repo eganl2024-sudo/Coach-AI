@@ -1,0 +1,80 @@
+{
+  "templates": [
+    {
+      "name": "Technical Tuesday",
+      "description": "90-min technical focus with warmup, technical drills, tactical work, and SSGs",
+      "config": {
+        "total_time": 90,
+        "categories": [
+          "Warmup",
+          "Technical",
+          "Tactical",
+          "Small Sided Games",
+          "Cool Down"
+        ],
+        "equipment": {
+          "cones": true,
+          "goals": true,
+          "balls": true,
+          "pinnies": true,
+          "flags": false,
+          "hurdles": false,
+          "poles": false,
+          "ladder": false
+        }
+      },
+      "created_date": "2025-11-17 20:31:17",
+      "team_id": "u16_girls"
+    },
+    {
+      "name": "Conditioning Focus",
+      "description": "Fitness-focused session with high-intensity conditioning drills",
+      "config": {
+        "total_time": 75,
+        "categories": [
+          "Warmup",
+          "Conditioning",
+          "Small Sided Games",
+          "Cool Down"
+        ],
+        "equipment": {
+          "cones": true,
+          "goals": true,
+          "balls": true,
+          "pinnies": true,
+          "flags": true,
+          "hurdles": true,
+          "poles": true,
+          "ladder": true
+        }
+      },
+      "created_date": "2025-11-17 20:34:44",
+      "team_id": "u16_girls"
+    },
+    {
+      "name": "U14 Weekly Practice",
+      "description": "Standard 75-min practice for U14 team - focus on fundamentals",
+      "config": {
+        "total_time": 75,
+        "categories": [
+          "Warmup",
+          "Technical",
+          "Small Sided Games",
+          "Cool Down"
+        ],
+        "equipment": {
+          "cones": true,
+          "goals": true,
+          "balls": true,
+          "pinnies": true,
+          "flags": false,
+          "hurdles": false,
+          "poles": false,
+          "ladder": false
+        }
+      },
+      "created_date": "2025-11-17 20:35:15",
+      "team_id": "u14_boys"
+    }
+  ]
+}

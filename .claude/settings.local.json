@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python test_backend_changes.py:*)",
+      "Bash(python test_phase2_backend.py:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
