@@ -3,6 +3,8 @@ data/production/
 
 # Temporary files
 temp/
+.venv/
+venv/
 
 # Python
 __pycache__/
@@ -20,3 +22,12 @@ __pycache__/
 # IDE
 .vscode/
 .idea/
+
+# Local logs and temp artifacts
+*.tmp
+*.log
+temp_session_detail_bytes.tmp
+
+# OS junk
+.DS_Store
+Thumbs.db
