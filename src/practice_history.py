@@ -50,11 +50,19 @@ def get_cached_recency(df: pd.DataFrame) -> dict:
 """Practice history tracking, sanitization, and template helpers."""
 
 def get_recent_drill_usage(df: pd.DataFrame) -> dict:
-    """Return a dictionary mapping drill_id to usage count from the practice history DataFrame."""
+    """Return a dictionary mapping drill_id to usage count from COMPLETED sessions only."""
     if df is None or df.empty or "drills_used" not in df.columns:
         return {}
+
+    # Only count completed sessions for recency (exclude planned sessions)
+    if "status" in df.columns:
+        completed_df = df[(df["status"] == "completed") | (df["status"].isna())]
+    else:
+        # Backward compatibility: assume all sessions are completed if no status column
+        completed_df = df
+
     usage = {}
-    for drills in df["drills_used"].dropna():
+    for drills in completed_df["drills_used"].dropna():
         for drill_id in str(drills).split("|"):
             drill_id = drill_id.strip()
             if drill_id:
@@ -97,6 +105,8 @@ HISTORY_COLUMNS = [
     "session_structure",
     "team_id",
     "team_name",
+    "status",
+    "session_id",
 ]
 
 
@@ -167,6 +177,15 @@ def load_practice_history(team_id: str, data_path: Path | str, _mtime=None) -> p
 
     if "is_favorite" in df.columns:
         df["is_favorite"] = df["is_favorite"].fillna(False).astype(bool)
+
+    # Ensure status column exists (default to "completed" for backward compatibility)
+    if "status" not in df.columns:
+        df["status"] = "completed"
+
+    # Ensure session_id column exists
+    if "session_id" not in df.columns:
+        import uuid
+        df["session_id"] = [str(uuid.uuid4()) for _ in range(len(df))]
 
     df = sanitize_text_fields(df)
     return df
@@ -316,7 +335,7 @@ def save_practice_session(
     session_obj: PracticeSession,
     data_path: Path | str,
     session_dict: Dict | None = None,
-) -> bool:
+) -> tuple[bool, str | None]:
     """
     Save a generated PracticeSession to the team's practice history.
 
@@ -330,9 +349,11 @@ def save_practice_session(
         session_dict: Optional pre-built row dictionary; if None, built from session_obj
 
     Returns:
-        True if successfully saved, False otherwise
+        Tuple of (success: bool, status: str | None) where status is "planned" or "completed"
     """
     try:
+        from datetime import date as date_cls
+
         # Load existing history for this team
         history_df = load_practice_history(team_id, data_path)
 
@@ -345,9 +366,19 @@ def save_practice_session(
         import uuid
         session_id = getattr(session_obj, "session_id", None) or str(uuid.uuid4())
 
+        # Determine session status: planned if future date, completed if past/today
+        session_date_str = str(getattr(session_obj, "session_date", ""))
+        try:
+            session_date = pd.to_datetime(session_date_str).date()
+        except Exception:
+            session_date = date_cls.today()
+
+        today = date_cls.today()
+        status = "planned" if session_date > today else "completed"
+
         new_row = {
             "session_id": session_id,
-            "session_date": str(getattr(session_obj, "session_date", "")),
+            "session_date": session_date_str,
             "session_name": session_dict.get(
                 "session_name",
                 getattr(session_obj, "session_name", f"Practice {session_obj.session_date}"),
@@ -368,6 +399,7 @@ def save_practice_session(
             "session_structure": json.dumps(_session_to_payload_dict(session_obj)),
             "team_id": team_id,
             "team_name": getattr(session_obj, "team_name", ""),
+            "status": status,
         }
 
         # Append to history
@@ -376,11 +408,11 @@ def save_practice_session(
 
         # Save back to disk
         save_practice_history(history_df, data_path, team_id)
-        return True
+        return True, status
 
     except Exception as exc:
         print(f"Error saving practice session: {exc}")
-        return False
+        return False, None
 
 
 def _session_to_payload_dict(session: PracticeSession) -> Dict:

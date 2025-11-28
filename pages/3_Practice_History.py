@@ -253,7 +253,7 @@ elif time_window == "Last 30 days":
     start_30 = today - timedelta(days=29)
     days = [start_30 + timedelta(days=i) for i in range(30)]
     events_by_day = pre_day_df["date_norm"].value_counts().to_dict()
-    # Build practice/game counts for dot indicators
+    # Build practice/game counts for dot indicators - ONLY from completed sessions
     practice_by_day = {}
     game_by_day = {}
     type_col = None
@@ -261,7 +261,14 @@ elif time_window == "Last 30 days":
         if col in pre_day_df.columns:
             type_col = col
             break
-    for _, row in pre_day_df.iterrows():
+
+    # Filter to only completed sessions for dot indicators
+    if "status" in pre_day_df.columns:
+        completed_df = pre_day_df[(pre_day_df["status"] == "completed") | (pre_day_df["status"].isna())]
+    else:
+        completed_df = pre_day_df
+
+    for _, row in completed_df.iterrows():
         d = row.get("date_norm")
         if pd.isna(d):
             continue

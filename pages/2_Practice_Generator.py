@@ -399,17 +399,17 @@ def _save_session_to_history(session):
     }
 
     try:
-        saved = practice_history.save_practice_session(
+        success, status = practice_history.save_practice_session(
             team_id=team_id,
             session_dict=payload,
             data_path=st.session_state.data_path,
             session_obj=session,
         )
     except Exception as exc:
-        return False, f"Failed to save: {exc}"
+        return False, f"Failed to save practice session: {exc}"
 
-    if not saved:
-        return False, "Could not write to practice history."
+    if not success:
+        return False, "Could not write practice to history file. Please check file permissions."
 
     try:
         practice_history.update_drill_library_usage(
