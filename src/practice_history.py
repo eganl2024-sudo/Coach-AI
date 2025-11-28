@@ -448,22 +448,28 @@ def save_practice_session(
             print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
             raise
 
-        # Append to history - reorder columns to match HISTORY_COLUMNS
+        # Append to history - reorder columns to match existing history_df
         try:
             print(f"[HISTORY] Creating DataFrame from new row...")
             new_df = pd.DataFrame([new_row])
             print(f"[HISTORY] New DataFrame created with columns: {list(new_df.columns)}")
 
-            # Select columns in the correct order, adding any missing columns from history_df
-            all_columns = list(history_df.columns) if not history_df.empty else HISTORY_COLUMNS
-            print(f"[HISTORY] Target columns: {all_columns}")
+            # Use the columns from the existing history_df, or HISTORY_COLUMNS if history is empty
+            if not history_df.empty:
+                target_columns = list(history_df.columns)
+                print(f"[HISTORY] Using existing columns from history_df: {target_columns}")
+            else:
+                target_columns = HISTORY_COLUMNS
+                print(f"[HISTORY] Using default HISTORY_COLUMNS: {target_columns}")
 
-            for col in HISTORY_COLUMNS:
+            # Add any missing columns to new_df with None values
+            for col in target_columns:
                 if col not in new_df.columns:
-                    print(f"[HISTORY] Adding missing column: {col}")
+                    print(f"[HISTORY] Adding missing column to new_row: {col}")
                     new_df[col] = None
 
-            new_df = new_df[all_columns]
+            # Select only the target columns in order
+            new_df = new_df[target_columns]
             print(f"[HISTORY] DataFrame reordered successfully")
 
             history_df = pd.concat([history_df, new_df], ignore_index=True)
