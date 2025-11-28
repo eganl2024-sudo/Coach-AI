@@ -466,7 +466,29 @@ st.divider()
 st.markdown("## Match Plan & Coach Notes")
 st.caption("Capture how you want this team to set up for the next match.")
 
-# Upcoming match banner row
+# Calculate match data for banner and form
+current_match_date = team_row.get('upcoming_match_date')
+upcoming_match_date_default = stored_profile.get("upcoming_match_date") or current_match_date
+kickoff_time_default = stored_profile.get("kickoff_time") or team_row.get('upcoming_match_time')
+upcoming_opponent_default = stored_profile.get("upcoming_opponent") or team_row.get('upcoming_match_opponent', '')
+
+kickoff_time_readonly = ""
+upcoming_opponent_readonly = ""
+if next_match_row is not None:
+    upcoming_match_date_default = next_match_row.get("event_date", upcoming_match_date_default)
+    upcoming_opponent_readonly = str(next_match_row.get("opponent", "") or "").strip()
+    raw_time = next_match_row.get("start_time", "")
+    if pd.notna(raw_time) and str(raw_time).strip():
+        try:
+            if isinstance(raw_time, str):
+                parsed = pd.to_datetime(raw_time).time()
+            else:
+                parsed = getattr(raw_time, "time", lambda: raw_time)()
+            kickoff_time_readonly = parsed.strftime("%I:%M %p").lstrip("0")
+        except Exception:
+            kickoff_time_readonly = str(raw_time)
+
+# Render upcoming match banner row
 today_ts = pd.Timestamp.today().normalize()
 next_seven = today_ts + pd.Timedelta(days=7)
 match_row = None
@@ -515,27 +537,6 @@ with st.container():
             key="preferred_formation",
             help="Select the formation you run most often.",
         )
-
-        current_match_date = team_row.get('upcoming_match_date')
-        upcoming_match_date_default = stored_profile.get("upcoming_match_date") or current_match_date
-        kickoff_time_default = stored_profile.get("kickoff_time") or team_row.get('upcoming_match_time')
-        upcoming_opponent_default = stored_profile.get("upcoming_opponent") or team_row.get('upcoming_match_opponent', '')
-
-        kickoff_time_readonly = ""
-        upcoming_opponent_readonly = ""
-        if next_match_row is not None:
-            upcoming_match_date_default = next_match_row.get("event_date", upcoming_match_date_default)
-            upcoming_opponent_readonly = str(next_match_row.get("opponent", "") or "").strip()
-            raw_time = next_match_row.get("start_time", "")
-            if pd.notna(raw_time) and str(raw_time).strip():
-                try:
-                    if isinstance(raw_time, str):
-                        parsed = pd.to_datetime(raw_time).time()
-                    else:
-                        parsed = getattr(raw_time, "time", lambda: raw_time)()
-                    kickoff_time_readonly = parsed.strftime("%I:%M %p").lstrip("0")
-                except Exception:
-                    kickoff_time_readonly = str(raw_time)
 
         match_date_value = None
         if upcoming_match_date_default is not None and upcoming_match_date_default != "":

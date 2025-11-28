@@ -4,7 +4,8 @@
       "Bash(python test_backend_changes.py:*)",
       "Bash(python test_phase2_backend.py:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(python -m py_compile:*)"
     ],
     "deny": [],
     "ask": []
