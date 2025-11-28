@@ -382,6 +382,9 @@ def _build_export_payload(session):
 
 def _save_session_to_history(session):
     """Persist the session to practice history using the shared helper."""
+    import traceback
+    from pathlib import Path
+
     team = st.session_state.get("selected_team") or {}
     team_id = team.get("team_id")
     if not team_id:
@@ -399,17 +402,28 @@ def _save_session_to_history(session):
     }
 
     try:
+        data_path = st.session_state.data_path
+        print(f"[SAVE] Writing to data_path: {data_path}")
+        print(f"[SAVE] Team ID: {team_id}")
+        print(f"[SAVE] Session date: {session.session_date}")
+
         success, status = practice_history.save_practice_session(
             team_id=team_id,
             session_dict=payload,
-            data_path=st.session_state.data_path,
+            data_path=data_path,
             session_obj=session,
         )
+        print(f"[SAVE] Result: success={success}, status={status}")
     except Exception as exc:
-        return False, f"Failed to save practice session: {exc}"
+        error_msg = f"Failed to save practice session: {exc}"
+        print(f"[ERROR] {error_msg}")
+        print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
+        return False, error_msg
 
     if not success:
-        return False, "Could not write practice to history file. Please check file permissions."
+        error_msg = f"Could not write practice to history file. Status returned: {status}"
+        print(f"[ERROR] {error_msg}")
+        return False, error_msg
 
     try:
         practice_history.update_drill_library_usage(

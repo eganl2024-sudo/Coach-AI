@@ -193,9 +193,42 @@ def load_practice_history(team_id: str, data_path: Path | str, _mtime=None) -> p
 
 def save_practice_history(df: pd.DataFrame, data_path: Path | str, team_id: str) -> None:
     """Persist a practice history dataframe to CSV."""
+    import os
+    import traceback
+
     path = _history_path(data_path, team_id)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    df.to_csv(path, index=False)
+
+    try:
+        # Ensure directory exists
+        print(f"[FILE] Creating directory: {path.parent}")
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Check directory is writable
+        if not os.access(path.parent, os.W_OK):
+            raise PermissionError(f"Directory not writable: {path.parent}")
+
+        print(f"[FILE] Writing CSV to: {path}")
+        print(f"[FILE] File size will be ~{len(df) * 100} bytes with {len(df)} rows")
+
+        df.to_csv(path, index=False)
+
+        # Verify file was written
+        if not path.exists():
+            raise FileNotFoundError(f"File was not created after writing: {path}")
+
+        file_size = os.path.getsize(path)
+        print(f"[FILE] Successfully wrote {file_size} bytes to {path}")
+
+    except PermissionError as e:
+        error_msg = f"Permission denied writing to {path}. Check if file is open in Excel or another program."
+        print(f"[ERROR] {error_msg}")
+        print(f"[ERROR] {traceback.format_exc()}")
+        raise PermissionError(error_msg) from e
+    except Exception as e:
+        error_msg = f"Failed to write practice history to {path}: {e}"
+        print(f"[ERROR] {error_msg}")
+        print(f"[ERROR] {traceback.format_exc()}")
+        raise
 
 
 def set_session_favorite_df(df: pd.DataFrame, session_id: str, favorite: bool) -> pd.DataFrame:
@@ -413,11 +446,16 @@ def save_practice_session(
         history_df = pd.concat([history_df, new_df], ignore_index=True)
 
         # Save back to disk
+        print(f"[HISTORY] About to save {len(history_df)} rows for team {team_id}")
+        print(f"[HISTORY] Data path: {data_path}")
         save_practice_history(history_df, data_path, team_id)
+        print(f"[HISTORY] Successfully saved practice session with status={status}")
         return True, status
 
     except Exception as exc:
-        print(f"Error saving practice session: {exc}")
+        import traceback
+        print(f"[ERROR] Error saving practice session: {exc}")
+        print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
         return False, None
 
 
