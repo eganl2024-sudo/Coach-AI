@@ -405,6 +405,35 @@ st.caption("Week-by-week view of games, training, and events for this team.")
 upcoming_df = schedule.load_team_schedule(team_id, st.session_state.data_path)
 _render_week_view(upcoming_df)
 
+# Load practice history and build a mapping of session_date -> session row
+# This enables us to show "Practice Details" button for dates with saved sessions
+history_mtime = practice_history.get_history_mtime(team_id, st.session_state.data_path)
+history_df = practice_history.load_practice_history(team_id, st.session_state.data_path, history_mtime)
+
+# Filter to planned/completed sessions and ensure session_date is a date object
+if not history_df.empty:
+    if "status" in history_df.columns:
+        history_df = history_df[
+            (history_df["status"].isin(["planned", "completed"])) |
+            (history_df["status"].isna())
+        ]
+    history_df["session_date"] = pd.to_datetime(history_df["session_date"]).dt.date
+
+    # For each date, keep the most recent session (last row when sorted)
+    history_by_date = (
+        history_df
+        .sort_values("session_date")
+        .groupby("session_date")
+        .tail(1)
+    )
+
+    planned_sessions_by_date = {
+        row["session_date"]: row
+        for _, row in history_by_date.iterrows()
+    }
+else:
+    planned_sessions_by_date = {}
+
 st.markdown("## This Week's Practices")
 practice_types = {"practice", "film", "lift", "recovery", "walkthrough"}
 today_norm = pd.Timestamp.today().normalize()
@@ -444,6 +473,11 @@ else:
         meta_parts = [p for p in [loc_disp, notes_disp] if p]
         meta_line = " | ".join(meta_parts)
 
+        # Check if there's a saved session for this date
+        event_date_as_date = pd.to_datetime(date_val).date() if pd.notna(date_val) else None
+        saved_row = planned_sessions_by_date.get(event_date_as_date) if event_date_as_date else None
+        has_saved_practice = saved_row is not None
+
         # Full-width card with integrated button
         with st.container():
             col_left, col_right = st.columns([4.5, 1.5])
@@ -466,8 +500,10 @@ else:
                 )
 
             with col_right:
-                # Vertical spacing to align button with card
+                # Vertical spacing to align buttons with card
                 st.markdown("<div style='height: 0.35rem;'></div>", unsafe_allow_html=True)
+
+                # Generate Practice button (always visible)
                 if st.button(
                     "⚽ Generate Practice",
                     key=f"gen_practice_{idx}",
@@ -488,6 +524,20 @@ else:
 
                     # Navigate to Practice Generator
                     st.switch_page("pages/2_Practice_Generator.py")
+
+                # Practice Details button (only if a session exists for this date)
+                if has_saved_practice:
+                    st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+                    session_id = saved_row["session_id"]
+                    if st.button(
+                        "📋 Practice Details",
+                        key=f"details_practice_{idx}",
+                        help="View and edit the saved practice for this date",
+                        use_container_width=True,
+                    ):
+                        # Set reuse_session_id to load the saved session
+                        st.session_state.reuse_session_id = session_id
+                        st.switch_page("pages/2_Practice_Generator.py")
 
         # Subtle divider between cards
         st.markdown(
