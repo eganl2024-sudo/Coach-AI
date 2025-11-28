@@ -382,13 +382,10 @@ def _build_export_payload(session):
 
 def _save_session_to_history(session):
     """Persist the session to practice history using the shared helper."""
-    import traceback
-    from pathlib import Path
-
     team = st.session_state.get("selected_team") or {}
     team_id = team.get("team_id")
     if not team_id:
-        return False, "No team selected."
+        raise ValueError("No team selected.")
 
     session_name = session.config.session_notes or f"Session {session.session_date}"
     payload = {
@@ -401,30 +398,21 @@ def _save_session_to_history(session):
         "categories": session.selected_categories,
     }
 
-    try:
-        data_path = st.session_state.data_path
-        print(f"[SAVE] Writing to data_path: {data_path}")
-        print(f"[SAVE] Team ID: {team_id}")
-        print(f"[SAVE] Session date: {session.session_date}")
+    data_path = st.session_state.data_path
+    print(f"[SAVE] Writing to data_path: {data_path}")
+    print(f"[SAVE] Team ID: {team_id}")
+    print(f"[SAVE] Session date: {session.session_date}")
 
-        success, status = practice_history.save_practice_session(
-            team_id=team_id,
-            session_dict=payload,
-            data_path=data_path,
-            session_obj=session,
-        )
-        print(f"[SAVE] Result: success={success}, status={status}")
-    except Exception as exc:
-        error_msg = f"Failed to save practice session: {exc}"
-        print(f"[ERROR] {error_msg}")
-        print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
-        return False, error_msg
+    # Call save and let any exceptions propagate up
+    practice_history.save_practice_session(
+        team_id=team_id,
+        session_dict=payload,
+        data_path=data_path,
+        session_obj=session,
+    )
+    print(f"[SAVE] Practice session saved successfully")
 
-    if not success:
-        error_msg = f"Could not write practice to history file. Status returned: {status}"
-        print(f"[ERROR] {error_msg}")
-        return False, error_msg
-
+    # Update drill usage (non-critical)
     try:
         practice_history.update_drill_library_usage(
             payload["drills_used"],
@@ -434,12 +422,11 @@ def _save_session_to_history(session):
     except Exception:
         pass
 
+    # Clear cache (non-critical)
     try:
         practice_history.load_practice_history.clear()
     except Exception:
         pass
-
-    return True, "Saved to Past Sessions."
 
 
 def _recompute_session_details(session):
@@ -1670,12 +1657,15 @@ if st.session_state.get("practice_config"):
                 saving = st.session_state.get("saving_session", False)
                 if st.button("Save Practice", disabled=saving):
                     st.session_state.saving_session = True
-                    ok, msg = _save_session_to_history(session)
-                    st.session_state.saving_session = False
-                    if ok:
-                        st.success(msg)
-                    else:
-                        st.error(msg)
+                    try:
+                        _save_session_to_history(session)
+                        st.success("Practice saved.")
+                    except Exception as e:
+                        import traceback
+                        st.error(f"Could not write practice to history file: {e!r}")
+                        st.code(traceback.format_exc())
+                    finally:
+                        st.session_state.saving_session = False
 
             with actions[1]:
                 st.download_button(

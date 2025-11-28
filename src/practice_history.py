@@ -368,7 +368,7 @@ def save_practice_session(
     session_obj: PracticeSession,
     data_path: Path | str,
     session_dict: Dict | None = None,
-) -> tuple[bool, str | None]:
+) -> None:
     """
     Save a generated PracticeSession to the team's practice history.
 
@@ -381,8 +381,8 @@ def save_practice_session(
         data_path: Path to the data directory
         session_dict: Optional pre-built row dictionary; if None, built from session_obj
 
-    Returns:
-        Tuple of (success: bool, status: str | None) where status is "planned" or "completed"
+    Raises:
+        Exception: If the save operation fails; the exception message describes the error.
     """
     try:
         from datetime import date as date_cls
@@ -480,7 +480,6 @@ def save_practice_session(
             print(f"[HISTORY] Data path: {data_path}")
             save_practice_history(history_df, data_path, team_id)
             print(f"[HISTORY] Successfully saved practice session with status={status}")
-            return True, status
         except Exception as e:
             print(f"[ERROR] Failed during save_practice_history: {e}")
             import traceback
@@ -491,7 +490,7 @@ def save_practice_session(
         import traceback
         print(f"[ERROR] Error saving practice session: {exc}")
         print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
-        return False, None
+        raise
 
 
 def _session_to_payload_dict(session: PracticeSession) -> Dict:
