@@ -685,7 +685,7 @@ if submitted:
     key_players_value = "|".join([item.strip() for item in key_players_input.splitlines() if item.strip()])
     injuries_value = "|".join([item.strip() for item in injuries_input.splitlines() if item.strip()])
     profile_payload = {
-        "preferred_formation": formation,
+        "preferred_formation": preferred_formation_value,
         "play_style_identity": play_style_value,
         "custom_play_style": play_style_custom_value,
         "season_objective": season_objectives_value,
@@ -696,9 +696,9 @@ if submitted:
         "key_players_notes": key_players_input,
         "injury_notes": injuries_input,
         "general_notes": notes_input.strip(),
-        "upcoming_match_date": match_date.isoformat() if match_date else "",
-        "kickoff_time": match_time,
-        "upcoming_opponent": upcoming_opponent.strip(),
+        "upcoming_match_date": upcoming_match_date_value.isoformat() if upcoming_match_date_value else "",
+        "kickoff_time": kickoff_time_readonly,
+        "upcoming_opponent": upcoming_opponent_readonly,
     }
     try:
         team_profile.save_team_profile(profile_data_path, team_id, profile_payload)
