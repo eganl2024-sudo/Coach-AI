@@ -1104,58 +1104,7 @@ if st.session_state.get("practice_config"):
                 unsafe_allow_html=True,
             )
 
-        # Additional details in expander if needed
-        with st.expander("Session notes & tags", expanded=False):
-            if config_data.get("session_notes"):
-                st.markdown(f"**Coach Notes:** {config_data['session_notes']}")
-            if config_data.get("focus_tags"):
-                focus_pills = " ".join(
-                    f"<span style='background-color:#e8f4fd; padding:4px 8px; border-radius:6px; margin-right:4px; font-size:12px; border:1px solid #b3d9e8;'>{tag}</span>"
-                    for tag in config_data["focus_tags"]
-                )
-                st.markdown(f"<div style='margin-top:8px;'><strong>Focus Tags:</strong><br/>{focus_pills}</div>", unsafe_allow_html=True)
-
-        with st.expander("Recency watchlist (advanced)", expanded=False):
-            if config_data.get("recent_usage"):
-                name_map = {}
-                try:
-                    df = st.session_state.get("drills_df")
-                    if df is not None and "drill_id" in df.columns:
-                        name_col = "drill_name" if "drill_name" in df.columns else ("name" if "name" in df.columns else None)
-                        if name_col:
-                            name_map = df.set_index("drill_id")[name_col].to_dict()
-                except Exception:
-                    name_map = {}
-                rows = []
-                for drill, sessions in config_data["recent_usage"].items():
-                    label = name_map.get(drill, drill)
-                    row = {"Drill": label, "Sessions Ago": sessions}
-                    if ui_session.is_developer_mode():
-                        row["ID"] = drill
-                    rows.append(row)
-                recency_df = pd.DataFrame(rows)
-
-                # Sort toggle
-                sort_mode = st.radio(
-                    "Sort by",
-                    options=["Most recent first", "Least recent first"],
-                    index=0,
-                    horizontal=True,
-                    key="recency_sort_mode"
-                )
-
-                # Apply sorting
-                if sort_mode == "Most recent first":
-                    recency_sorted = recency_df.sort_values("Sessions Ago", ascending=True)
-                else:
-                    recency_sorted = recency_df.sort_values("Sessions Ago", ascending=False)
-
-                st.dataframe(recency_sorted, use_container_width=True, hide_index=True, height=200)
-            else:
-                st.write("No recent drills logged for this team.")
-
         st.divider()
-        st.caption("Need tweaks? Jump to other pages via the sidebar.")
         if st.button("Reset"):
             st.session_state.pop("practice_config", None)
             st.session_state.pop("current_session", None)
