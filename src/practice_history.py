@@ -495,6 +495,12 @@ def save_practice_session(
 
 def _session_to_payload_dict(session: PracticeSession) -> Dict:
     """Convert a PracticeSession to a serializable dictionary for storage."""
+    # Helper to convert BlockDurationSummary objects to dicts
+    def _serialize_block_duration(block_duration):
+        if hasattr(block_duration, '__dict__'):
+            return block_duration.__dict__
+        return block_duration
+
     return {
         "session_id": getattr(session, "session_id", ""),
         "team_id": getattr(session, "team_id", ""),
@@ -531,7 +537,9 @@ def _session_to_payload_dict(session: PracticeSession) -> Dict:
         "category_summary": getattr(session, "category_summary", {}),
         "intensity_summary": getattr(session, "intensity_summary", {}),
         "manual_adjustments": getattr(session, "manual_adjustments", {}),
-        "block_duration_summaries": getattr(session, "block_duration_summaries", []),
+        "block_duration_summaries": [
+            _serialize_block_duration(b) for b in getattr(session, "block_duration_summaries", [])
+        ],
         "template_notes": getattr(session, "template_notes", []),
         "warnings": getattr(session, "warnings", []),
     }
