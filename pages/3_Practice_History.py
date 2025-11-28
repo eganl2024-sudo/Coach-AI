@@ -56,16 +56,6 @@ for col in ["avg_intensity_score", "intensity_level"]:
     if col not in history_df.columns:
         history_df[col] = None if col == "avg_intensity_score" else ""
 
-if "season_segment" not in history_df.columns:
-    history_df["season_segment"] = history_df["session_date"].apply(practice_history.infer_season_segment)
-else:
-    history_df["season_segment"] = history_df["season_segment"].fillna("").astype(str)
-    mask_missing = history_df["season_segment"].str.strip().eq("")
-    if mask_missing.any():
-        history_df.loc[mask_missing, "season_segment"] = history_df.loc[mask_missing, "session_date"].apply(
-            practice_history.infer_season_segment
-        )
-
 if len(history_df) == 0:
     if history_load_error:
         st.info(history_load_error)
