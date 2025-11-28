@@ -559,7 +559,16 @@ if 'data_path' not in st.session_state:
     st.session_state.data_path = config.get_data_path()
 
 # Initialize session_date once per session (default to today)
-if "session_date" not in st.session_state:
+# Check if Practice Generator was invoked from Team Hub with a target date
+if st.session_state.get("generator_target_date") is not None:
+    target_date = st.session_state.generator_target_date
+    try:
+        st.session_state.session_date = pd.to_datetime(target_date).date()
+    except (TypeError, ValueError):
+        st.session_state.session_date = dt.date.today()
+    # Clear the flag
+    st.session_state.pop("generator_target_date", None)
+elif "session_date" not in st.session_state:
     st.session_state.session_date = dt.date.today()
 
 block_templates = data_loader.load_session_templates(st.session_state.data_path)
@@ -679,37 +688,43 @@ with profile_container:
     if not team_profile_context:
         st.warning("This team does not have profile details set. Visit the Team Hub to capture play style, focus tags, and injuries.")
     else:
-        col_profile1, col_profile2, col_profile3, col_profile4 = st.columns([1.1, 1.5, 1.5, 1])
+        col_style, col_tags, col_objective, col_formation = st.columns([1, 1.3, 1.3, 1])
 
-        # Play Style & Formation (left)
-        with col_profile1:
+        # Play Style (left)
+        with col_style:
             st.markdown(
                 f"""
                 <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Play Style</strong></div>
-                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{team_profile_context.get("play_style") or "—"}</div>
-                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Formation</strong></div>
-                <div style="font-size:14px; font-weight:500;">{team_profile_context.get("formation") or "—"}</div>
+                <div style="font-size:14px; font-weight:500;">{team_profile_context.get("play_style") or "—"}</div>
                 """,
                 unsafe_allow_html=True,
             )
 
-        # Focus Tags (as pills)
-        with col_profile2:
+        # Focus Tags (as pills with edit button)
+        with col_tags:
             focus_tags_list = team_profile_context.get("focus_tags", [])
-            if focus_tags_list:
-                pills_html = " ".join(
-                    f"<span style='background-color:#eef2ff; padding:5px 10px; border-radius:6px; margin-right:4px; margin-bottom:4px; font-size:12px; border:1px solid #d5dce3; display:inline-block;'>{tag}</span>"
-                    for tag in focus_tags_list
-                )
-                st.markdown(
-                    f"<div style='font-size:13px; color:#666; margin-bottom:6px;'><strong>Focus Tags</strong></div><div>{pills_html}</div>",
-                    unsafe_allow_html=True,
-                )
-            else:
-                st.markdown("<div style='font-size:13px; color:#666; margin-bottom:4px;'><strong>Focus Tags</strong></div><div style='font-size:14px;'>—</div>", unsafe_allow_html=True)
+            col_tag_preview, col_tag_btn = st.columns([3, 1])
+
+            with col_tag_preview:
+                if focus_tags_list:
+                    pills_html = " ".join(
+                        f"<span style='background-color:#eef2ff; padding:5px 10px; border-radius:6px; margin-right:4px; margin-bottom:4px; font-size:12px; border:1px solid #d5dce3; display:inline-block;'>{tag}</span>"
+                        for tag in focus_tags_list
+                    )
+                    st.markdown(
+                        f"<div style='font-size:13px; color:#666; margin-bottom:6px;'><strong>Focus Tags</strong></div><div>{pills_html}</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown("<div style='font-size:13px; color:#666; margin-bottom:4px;'><strong>Focus Tags</strong></div><div style='font-size:14px;'>—</div>", unsafe_allow_html=True)
+
+            with col_tag_btn:
+                if st.button("✏️ Edit", key="edit_focus_tags_top", help="Edit focus tags"):
+                    st.session_state["open_focus_tags_expander"] = True
+                    st.rerun()
 
         # Season Objective (with wrapping text)
-        with col_profile3:
+        with col_objective:
             season_obj = team_profile_context.get("season_objectives") or "—"
             st.markdown(
                 f"""
@@ -719,17 +734,27 @@ with profile_container:
                 unsafe_allow_html=True,
             )
 
-        # Additional info
-        with col_profile4:
-            if team_profile_context.get("injuries"):
-                injury_pills = " ".join(
-                    f"<span style='background-color:#fee2e2; padding:3px 8px; border-radius:5px; margin-right:3px; margin-bottom:3px; font-size:11px; border:1px solid #fca5a5; display:inline-block;'>{inj}</span>"
-                    for inj in team_profile_context["injuries"]
-                )
-                st.markdown(
-                    f"<div style='font-size:12px; color:#666; margin-bottom:4px;'><strong>Injuries</strong></div><div>{injury_pills}</div>",
-                    unsafe_allow_html=True,
-                )
+        # Formation (right)
+        with col_formation:
+            st.markdown(
+                f"""
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Formation</strong></div>
+                <div style="font-size:14px; font-weight:500;">{team_profile_context.get("formation") or "—"}</div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Show injuries if present
+        injuries = team_profile_context.get("injuries", [])
+        if injuries:
+            injury_pills = " ".join(
+                f"<span style='background-color:#fee2e2; padding:3px 8px; border-radius:5px; margin-right:3px; margin-bottom:3px; font-size:11px; border:1px solid #fca5a5; display:inline-block;'>{inj}</span>"
+                for inj in injuries
+            )
+            st.markdown(
+                f"<div style='margin-top:8px; font-size:12px; color:#666; margin-bottom:4px;'><strong>Injuries</strong></div><div>{injury_pills}</div>",
+                unsafe_allow_html=True,
+            )
 
         # Match info below
         if team_profile_context.get("upcoming_match", {}).get("opponent"):
@@ -804,7 +829,20 @@ else:
         col1, col2 = st.columns(2)
 
         with col1:
-            duration = st.slider("Duration (minutes)", min_value=45, max_value=120, value=90, step=5)
+            # Check if a default duration was set from Team Hub
+            default_duration = st.session_state.get("generator_default_duration", 90)
+            if default_duration is not None:
+                try:
+                    default_duration = int(default_duration)
+                    default_duration = max(45, min(120, default_duration))  # Clamp to valid range
+                except (TypeError, ValueError):
+                    default_duration = 90
+                # Clear the flag
+                st.session_state.pop("generator_default_duration", None)
+            else:
+                default_duration = 90
+
+            duration = st.slider("Duration (minutes)", min_value=45, max_value=120, value=default_duration, step=5)
             raw_roster_size = st.session_state.selected_team.get('typical_roster_size')
             try:
                 roster_size = int(raw_roster_size)
@@ -856,11 +894,17 @@ else:
             help="Blend Team Hub focus tags, play style, and injuries into drill scoring for this session."
         )
 
-        focus_tags = st.multiselect(
-            "Focus Tags (optional)",
-            options=available_tags,
-            help="Filter to drills that match these tags. Use focus tags from Team Hub for best results."
-        )
+        # Focus Tags expander with state-based opening
+        focus_tags_expanded = st.session_state.get("open_focus_tags_expander", False)
+        with st.expander("Focus tags (optional)", expanded=focus_tags_expanded):
+            focus_tags = st.multiselect(
+                "Select tags to filter drills",
+                options=available_tags,
+                help="Filter to drills that match these tags. Use focus tags from Team Hub for best results."
+            )
+            # Clear the expander state flag after reading
+            if focus_tags_expanded:
+                st.session_state["open_focus_tags_expander"] = False
 
         favorites_only = st.checkbox(
             "Use favorites only",
@@ -1064,7 +1108,23 @@ if st.session_state.get("practice_config"):
                         row["ID"] = drill
                     rows.append(row)
                 recency_df = pd.DataFrame(rows)
-                st.dataframe(recency_df, use_container_width=True, hide_index=True, height=200)
+
+                # Sort toggle
+                sort_mode = st.radio(
+                    "Sort by",
+                    options=["Most recent first", "Least recent first"],
+                    index=0,
+                    horizontal=True,
+                    key="recency_sort_mode"
+                )
+
+                # Apply sorting
+                if sort_mode == "Most recent first":
+                    recency_sorted = recency_df.sort_values("Sessions Ago", ascending=True)
+                else:
+                    recency_sorted = recency_df.sort_values("Sessions Ago", ascending=False)
+
+                st.dataframe(recency_sorted, use_container_width=True, hide_index=True, height=200)
             else:
                 st.write("No recent drills logged for this team.")
 

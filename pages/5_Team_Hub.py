@@ -422,7 +422,7 @@ if upcoming_df is not None and not upcoming_df.empty and "event_date" in upcomin
 if pr_df is None or pr_df.empty:
     st.info("No practices scheduled for the next 7 days.")
 else:
-    for _, row in pr_df.iterrows():
+    for idx, row in pr_df.iterrows():
         date_val = row.get("event_date")
         date_disp = ""
         if pd.notna(date_val):
@@ -443,16 +443,38 @@ else:
         notes_disp = str(row.get("notes", "") or "").strip()
         meta_parts = [p for p in [loc_disp, notes_disp] if p]
         meta_line = " | ".join(meta_parts)
-        st.markdown(
-            f"""
-            <div style="border:1px solid #e5e5e5; border-radius:8px; padding:0.6rem 0.75rem; margin-bottom:0.5rem;">
-                <div style="font-weight:700;">{date_disp} {time_disp}</div>
-                <div style="font-size:0.9rem; margin-top:0.15rem;">{type_disp}</div>
-                <div style="font-size:0.85rem; color:#666; margin-top:0.15rem;">{meta_line}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+
+        # Layout with info + generate button
+        col_info, col_btn = st.columns([4, 1])
+
+        with col_info:
+            st.markdown(
+                f"""
+                <div style="border:1px solid #e5e5e5; border-radius:8px; padding:0.6rem 0.75rem; margin-bottom:0.5rem;">
+                    <div style="font-weight:700;">{date_disp} {time_disp}</div>
+                    <div style="font-size:0.9rem; margin-top:0.15rem;">{type_disp}</div>
+                    <div style="font-size:0.85rem; color:#666; margin-top:0.15rem;">{meta_line}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        with col_btn:
+            if st.button("⚽ Gen", key=f"gen_practice_{idx}", help="Generate practice for this date"):
+                # Extract duration from duration field or default to 90
+                inferred_duration = 90
+                if "duration_minutes" in row and pd.notna(row["duration_minutes"]):
+                    try:
+                        inferred_duration = int(row["duration_minutes"])
+                    except (TypeError, ValueError):
+                        inferred_duration = 90
+
+                # Store values for Practice Generator to read
+                st.session_state.generator_target_date = date_val
+                st.session_state.generator_default_duration = inferred_duration
+
+                # Navigate to Practice Generator
+                st.switch_page("pages/2_⚽_Practice_Generator.py")
 
 formation_options = ["4-3-3", "4-4-2", "3-5-2", "4-2-3-1", "4-1-4-1", "Custom"]
 raw_formation = team_row.get('formation', '')
@@ -640,16 +662,7 @@ if season_choice == "Custom":
     )
     season_objectives_value = season_custom_value.strip()
 
-# Row 3: Practice schedule
-st.markdown("<a id='anchor_practice_schedule'></a>", unsafe_allow_html=True)
-practice_schedule = st.text_input(
-    "Typical practice pattern (e.g., Mon/Wed 6–7:30p)",
-    value=str(team_row.get('practice_schedule', '') or '').strip(),
-    placeholder="Days and times",
-    help="The regular weekly schedule pattern (separate from the calendar view above)."
-)
-
-# Row 4: Edit match details expander
+# Edit match details expander
 with st.expander("Edit match details"):
     edit_col1, edit_col2 = st.columns(2)
 
@@ -749,7 +762,6 @@ if submitted:
         "custom_play_style": play_style_custom_value,
         "season_objective": season_objectives_value,
         "custom_objective": season_custom_value,
-        "practice_schedule": practice_schedule.strip(),
         "focus_tags": focus_selection,
         "extra_focus_tags": extra_focus_input.strip(),
         "key_players_notes": key_players_input,
@@ -804,21 +816,34 @@ if len(history_df) == 0:
     st.info("No sessions saved yet for this team. Generate one from the Practice Generator.")
 else:
     history_df['session_date'] = pd.to_datetime(history_df['session_date']).dt.date
+
+    # Top KPIs
     sessions_metric_col, total_time_col, last_session_col = st.columns(3)
     sessions_metric_col.metric("Sessions Logged", len(history_df))
     total_time_col.metric("Total Minutes", int(history_df['total_time'].sum()))
     last_session_col.metric("Last Session", str(history_df['session_date'].max()))
 
-    all_categories = []
-    for entry in history_df['categories'].fillna(""):
-        all_categories.extend(_explode(entry))
-    cat_series = pd.Series(all_categories)
-    if not cat_series.empty:
-        st.bar_chart(cat_series.value_counts(), use_container_width=True)
+    st.divider()
 
+    # Last 5 Sessions table - improved layout
     st.markdown("**Last 5 Sessions**")
+
+    # Prepare data for display
+    recent_sessions = history_df.tail(5).copy()
+    recent_sessions = recent_sessions.sort_values('session_date', ascending=False)
+
+    # Format the display
+    display_df = pd.DataFrame({
+        "Date": recent_sessions['session_date'].dt.strftime("%a, %b %d"),
+        "Session": recent_sessions['session_name'],
+        "Players": recent_sessions['num_players'].astype(int),
+        "Duration (min)": recent_sessions['total_time'].astype(int),
+        "Categories": recent_sessions['categories'].apply(lambda x: ", ".join(_explode(x)[:2]) if pd.notna(x) else "—")
+    })
+
     st.dataframe(
-        history_df[['session_date', 'session_name', 'num_players', 'total_time']].tail(5),
+        display_df,
         hide_index=True,
-        use_container_width=True
+        use_container_width=True,
+        height=250
     )
