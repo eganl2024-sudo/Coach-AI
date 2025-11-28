@@ -1,4 +1,4 @@
-"""Practice History - view, filter, and reuse past sessions."""
+﻿"""Practice History - view, filter, and reuse past sessions."""
 import calendar
 import json
 from datetime import date, timedelta
@@ -265,16 +265,23 @@ elif time_window == "Last 30 days":
             break
     for _, row in pre_day_df.iterrows():
         d = row.get("date_norm")
-        if d is None:
+        if pd.isna(d):
             continue
-        t = (row.get(type_col) if type_col else "").strip().lower() if isinstance(row.get(type_col), str) else ""
+        t_raw = row.get(type_col) if type_col else None
+        t = str(t_raw).strip().lower() if isinstance(t_raw, str) else ""
         if t == "game":
             game_by_day[d] = game_by_day.get(d, 0) + 1
         else:
             practice_by_day[d] = practice_by_day.get(d, 0) + 1
 
+    # Tighten horizontal spacing between day columns
+    st.markdown(
+        "<style>[data-testid='column']{padding-left:0.2rem!important;padding-right:0.2rem!important;}</style>",
+        unsafe_allow_html=True,
+    )
+
     # Sun-Sat header
-    header_cols = st.columns(7)
+    header_cols = st.columns(7, gap="small")
     for col, name in zip(header_cols, ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]):
         col.markdown(f"**{name}**")
 
@@ -286,39 +293,53 @@ elif time_window == "Last 30 days":
 
     rows = [padded_dates[i : i + 7] for i in range(0, len(padded_dates), 7)]
     for row in rows:
-        cols = st.columns(7)
+        cols = st.columns(7, gap="small")
         for day_obj, col in zip(row, cols):
             if day_obj is None:
-                col.markdown("&nbsp;")
+                col.button(" ", key=f"last30_day_empty_{id(row)}_{id(col)}", disabled=True)
+                col.markdown("<div style='height:0.765rem;'></div>", unsafe_allow_html=True)
                 continue
-            count = events_by_day.get(day_obj, 0)
-            label = day_obj.strftime("%d") if count <= 1 else f"{day_obj.day} ({count})"
+
+            sessions_for_day = practice_by_day.get(day_obj, 0) + game_by_day.get(day_obj, 0)
+            label = f"{day_obj.day:02d}"
             is_selected = st.session_state.selected_day_history == day_obj
-            if count > 0:
-                display_label = f"[{label}]" if is_selected else label
-                if col.button(display_label, key=f"last30_day_{day_obj.isoformat()}"):
-                    st.session_state.selected_day_history = day_obj
-            else:
-                col.caption(label)
-            # Dots for practice/game indicators
-            practice_count = practice_by_day.get(day_obj, 0)
-            game_count = game_by_day.get(day_obj, 0)
-            dots = []
-            if practice_count > 0:
-                dots.append(
-                    "<span style='display:inline-block;width:0.35rem;height:0.35rem;border-radius:50%;background-color:black;margin-right:2px;'></span>"
-                )
-            if game_count > 0:
-                dots.append(
-                    "<span style='display:inline-block;width:0.35rem;height:0.35rem;border-radius:50%;background-color:green;'></span>"
-                )
-            if dots:
-                col.markdown(
-                    "<div style='margin-top:2px; line-height:1;'>"
-                    + "".join(dots)
-                    + "</div>",
-                    unsafe_allow_html=True,
-                )
+
+            btn_kwargs = {"disabled": sessions_for_day == 0}
+            if is_selected:
+                btn_kwargs["type"] = "primary"
+            if col.button(label, key=f"last30_day_{day_obj.isoformat()}", **btn_kwargs) and sessions_for_day > 0:
+                st.session_state.selected_day_history = day_obj
+
+            practice_count = min(practice_by_day.get(day_obj, 0), 5)
+            game_count = min(game_by_day.get(day_obj, 0), 5)
+            dot_spans = []
+            dot_spans.extend(
+                "<span style='display:inline-block; width:6px; height:6px; border-radius:3px; background-color:black;'></span>"
+                for _ in range(practice_count)
+            )
+            dot_spans.extend(
+                "<span style='display:inline-block; width:6px; height:6px; border-radius:3px; background-color:#2ecc71;'></span>"
+                for _ in range(game_count)
+            )
+            dots_html = "".join(dot_spans)
+            col.markdown(
+                "<div style='height:0.765rem; margin-top:1.7px; display:flex; justify-content:center; gap:0.15rem; transform:translateX(-2.1rem);'>"
+                f"{dots_html}"
+                "</div>",
+                unsafe_allow_html=True,
+            )
+
+    st.markdown(
+        "<div style='font-size:0.75rem; color:#555; display:flex; gap:10px; align-items:center; margin-top:6px;'>"
+        "<span style='display:inline-flex; align-items:center;'>"
+        "<span style='width:0.45rem; height:0.45rem; border-radius:50%; background:#000; display:inline-block; margin-right:4px;'></span>Practice"
+        "</span>"
+        "<span style='display:inline-flex; align-items:center;'>"
+        "<span style='width:0.45rem; height:0.45rem; border-radius:50%; background:#20a020; display:inline-block; margin-right:4px;'></span>Game"
+        "</span>"
+        "</div>",
+        unsafe_allow_html=True,
+    )
 
 # clear date filter control (shows only when a date is selected)
 if st.session_state.selected_day_history is not None and time_window in ("This week", "Last 30 days"):
@@ -463,8 +484,8 @@ else:
             main_cols = st.columns([0.5, 5, 1.5])
 
             with main_cols[0]:
-                star_label = "?" if is_favorite else "?"
-                if st.button(star_label, key=f"star_{idx}", help="Add to Practice Library"):
+                star_label = "★" if is_favorite else "☆"
+                if st.button(star_label, key=f"star_{idx}", help="Toggle favorite"):
                     success = practice_history.set_session_favorite(
                         team_id,
                         session_date,
@@ -474,10 +495,13 @@ else:
                     )
                     if success:
                         st.rerun()
+                    else:
+                        st.warning("Could not update favorites")
 
             with main_cols[1]:
                 nice_date = session_date.strftime("%a %b %d, %Y") if hasattr(session_date, "strftime") else str(session_date)
-                st.markdown(f"**{nice_date} - {session_name} ({total_time} min)**")
+                stored_date = session_row.get("session_date", session_date)
+                st.markdown(f"**{nice_date} - Session {stored_date} ({total_time} min)**")
                 if intensity_level and intensity_score is not None and not pd.isna(intensity_score):
                     intensity_str = f"Intensity: {intensity_level} ({intensity_score:.1f})"
                 elif intensity_level:
@@ -491,53 +515,11 @@ else:
                     meta_parts.append(intensity_str)
                 st.caption(" | ".join(meta_parts))
 
-                if coach_notes:
+                if coach_notes and not pd.isna(coach_notes):
                     preview = coach_notes[:80] + ("..." if len(coach_notes) > 80 else "")
                     st.caption(f"Notes: {preview}")
 
             with main_cols[2]:
-                if not is_favorite:
-                    if session_key in st.session_state.library_added_sessions:
-                        st.button("Saved to Practice Library", key=f"fav_{idx}", disabled=True)
-                    else:
-                        if st.button("Add to Practice Library", key=f"fav_{idx}", type="primary"):
-                            added = False
-                            try:
-                                session_obj = practice_history.load_practice_session_from_record(session_row)
-                                if session_obj:
-                                    added = practice_history.save_session_as_template(session_obj, st.session_state.data_path)
-                                else:
-                                    added = practice_history.set_session_favorite(
-                                        team_id,
-                                        session_date,
-                                        session_name,
-                                        True,
-                                        st.session_state.data_path,
-                                    )
-                            except Exception as exc:
-                                added = False
-                                print(f"Library add failed: {exc}")
-                            if added:
-                                st.session_state.library_added_sessions.add(session_key)
-                                st.success("Added to Practice Library")
-                                st.rerun()
-                            else:
-                                st.error("Could not add to Practice Library")
-                else:
-                    if st.button("Remove from Library", key=f"unfav_{idx}", type="secondary"):
-                        success = practice_history.set_session_favorite(
-                            team_id,
-                            session_date,
-                            session_name,
-                            False,
-                            st.session_state.data_path,
-                        )
-                        if success:
-                            st.success("Removed from Practice Library")
-                            st.rerun()
-                        else:
-                            st.error("Could not update Practice Library")
-
                 if st.button("View Details", key=f"view_{idx}"):
                     st.session_state["viewing_session"] = session_row.to_dict()
                     st.rerun()
@@ -623,6 +605,13 @@ if ui_session.is_developer_mode():
             st.bar_chart(grouped, x="category", y="minutes")
         else:
             st.caption("No category usage yet.")
+
+
+
+
+
+
+
 
 
 

@@ -1,6 +1,8 @@
 """Coach Home - dashboard landing for coaches."""
 import sys
 from pathlib import Path
+from datetime import date
+import pandas as pd
 import streamlit as st
 
 # Add src to path
@@ -84,7 +86,7 @@ with st.container():
     summary_cols[1].markdown(f"<div style='font-size:20px; font-weight:600'>{practice_count}</div>", unsafe_allow_html=True)
     summary_cols[2].markdown("**📅 Last practice**")
     summary_cols[2].markdown(
-        f"<div style='font-size:20px; font-weight:600'>{str(last_practice_date.date()) if last_practice_date else 'None yet'}</div>",
+        f"<div style='font-size:20px; font-weight:600'>{str(last_practice_date) if last_practice_date else 'None yet'}</div>",
         unsafe_allow_html=True,
     )
     st.markdown("</div>", unsafe_allow_html=True)

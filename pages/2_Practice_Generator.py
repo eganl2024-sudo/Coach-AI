@@ -1328,31 +1328,18 @@ if st.session_state.get("practice_config"):
                     if not name_clean:
                         st.warning("Template name is required.")
                     else:
-                        current_templates = templates.load_block_templates()
-                        blocks_payload = {}
-                        for block_key in practice_generator.BLOCK_ORDER:
-                            blocks_payload[block_key] = [
-                                drill.drill_id
-                                for drill in session.drills
-                                if _resolve_block(drill) == block_key
-                            ]
-                        new_template = templates.BlockTemplate(
-                            name=name_clean,
-                            description=template_desc_input.strip(),
-                            blocks=blocks_payload,
-                        )
-                        replaced = False
-                        for idx, tpl in enumerate(current_templates):
-                            if tpl.name == name_clean:
-                                current_templates[idx] = new_template
-                                replaced = True
-                                break
+                        # Use shared helper to save template
+                        session.session_name = name_clean
+                        ok, msg = practice_history.save_session_as_template(session, st.session_state.data_path)
+                        if ok:
+                            st.success(f"Template saved as '{msg}'.")
+                            st.session_state.selected_block_template = msg
+                            st.rerun()
                         else:
-                            current_templates.append(new_template)
-                        templates.save_block_templates(current_templates)
-                        st.success("Template saved." + (" (Overwrote existing template.)" if replaced else ""))
-                        st.session_state.selected_block_template = name_clean
-                        st.rerun()
+                            if msg == "duplicate":
+                                st.info("A template with this name already exists.")
+                            else:
+                                st.error(f"Could not save template: {msg}")
                 existing_templates = templates.load_block_templates()
                 if existing_templates:
                     st.markdown("**Existing templates**")

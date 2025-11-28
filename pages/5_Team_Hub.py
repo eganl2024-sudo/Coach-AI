@@ -14,6 +14,8 @@ import session_state
 import session_state as ui_session
 import ui_components
 import schedule
+import team_profile
+import pandas as pd
 
 
 CHECKLIST_LINK_CSS = """
@@ -71,6 +73,157 @@ def _persist_teams(df):
 def _explode(cell):
     return [item.strip() for item in str(cell).split("|") if item.strip()]
 
+def _get_next_match_from_schedule(upcoming_df: pd.DataFrame | None):
+    import pandas as pd
+    if upcoming_df is None or upcoming_df.empty:
+        return None
+    df = upcoming_df.copy()
+    if "event_date" not in df.columns:
+        return None
+    df["event_date"] = pd.to_datetime(df["event_date"]).dt.normalize()
+    today = pd.Timestamp.today().normalize()
+    df = df[df["event_date"] >= today]
+    if df.empty:
+        return None
+    if "event_type" in df.columns:
+        mask_game = df["event_type"].astype(str).str.lower().str.contains("game|match", na=False)
+        games_df = df[mask_game]
+        if not games_df.empty:
+            df = games_df
+    if "start_time" in df.columns:
+        df["start_time"] = df["start_time"].astype(str)
+        df = df.sort_values(["event_date", "start_time"])
+    else:
+        df = df.sort_values(["event_date"])
+    return df.iloc[0]
+
+def _render_week_view(upcoming_df: pd.DataFrame | None) -> None:
+    import pandas as pd
+
+    if upcoming_df is None or upcoming_df.empty or "event_date" not in upcoming_df.columns:
+        st.info("No upcoming schedule found for this team. Upload and save a PDF schedule above to get started.")
+        return
+
+    upcoming_df = upcoming_df.copy()
+    upcoming_df["event_date"] = pd.to_datetime(upcoming_df["event_date"]).dt.normalize()
+
+    today_ts = pd.Timestamp.today().normalize()
+    upcoming_df = upcoming_df[upcoming_df["event_date"] >= today_ts].copy()
+
+    if upcoming_df.empty:
+        st.info("No upcoming schedule found for this team. Upload and save a PDF schedule above to get started.")
+        return
+
+    first_date = upcoming_df["event_date"].min()
+    weekday = first_date.weekday()  # Monday=0
+    days_since_sunday = (weekday + 1) % 7
+    default_week_start = (first_date - pd.Timedelta(days=days_since_sunday)).normalize()
+
+    if "schedule_week_start" not in st.session_state:
+        st.session_state["schedule_week_start"] = default_week_start
+
+    week_start: pd.Timestamp = st.session_state["schedule_week_start"]
+    week_days = [week_start + pd.Timedelta(days=i) for i in range(7)]
+    week_end = week_start + pd.Timedelta(days=6)
+
+    header_cols = st.columns([1, 2, 1])
+    with header_cols[0]:
+        if st.button("← Previous week", key="schedule_prev_week"):
+            st.session_state["schedule_week_start"] = week_start - pd.Timedelta(days=7)
+            st.rerun()
+    with header_cols[1]:
+        st.markdown(
+            f"<div style='text-align:center; font-weight:600; margin-top:0.25rem;'>"
+            f"Week of {week_start.strftime('%b %d')} – {week_end.strftime('%b %d')}"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+    with header_cols[2]:
+        if st.button("Next week →", key="schedule_next_week"):
+            st.session_state["schedule_week_start"] = week_start + pd.Timedelta(days=7)
+            st.rerun()
+
+    if "start_time" in upcoming_df.columns:
+        upcoming_df["start_time"] = upcoming_df["start_time"].astype(str).fillna("")
+    else:
+        upcoming_df["start_time"] = ""
+
+    week_df = upcoming_df[
+        (upcoming_df["event_date"] >= week_start) & (upcoming_df["event_date"] <= week_end)
+    ].copy()
+
+    events_by_day = {
+        day: week_df[week_df["event_date"] == day].sort_values(["event_date", "start_time"])
+        for day in week_days
+    }
+
+    day_cols = st.columns(7)
+    day_names = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    today = pd.Timestamp.today().normalize()
+
+    for idx, day in enumerate(week_days):
+        day_events = events_by_day[day]
+        with day_cols[idx]:
+            st.markdown(
+                f"<div style='text-align:center; font-size:0.75rem; color:#888;'>{day_names[idx]}</div>",
+                unsafe_allow_html=True,
+            )
+            is_today = day == today
+            border_color = "#4F8BF9" if is_today else "#e0e0e0"
+            font_weight = "600" if is_today else "400"
+            st.markdown(
+                f"""
+                <div style="
+                    text-align:center;
+                    margin-top:0.25rem;
+                    padding:0.15rem 0.4rem;
+                    border-radius:999px;
+                    border:1px solid {border_color};
+                    font-size:0.85rem;
+                    font-weight:{font_weight};
+                ">{day.strftime('%d')}</div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            if day_events.empty:
+                st.markdown(
+                    "<div style='height:2.5rem; text-align:center; font-size:0.75rem; color:#bbb; margin-top:0.25rem;'>—</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown("<div style='height:0.25rem;'></div>", unsafe_allow_html=True)
+                for _, row in day_events.iterrows():
+                    event_type = str(row.get("event_type", "") or "").strip()
+                    start_time = str(row.get("start_time", "") or "").strip()
+                    opponent = str(row.get("opponent", "") or "").strip()
+                    lower_type = event_type.lower()
+                    if "game" in lower_type or "match" in lower_type:
+                        icon = "⚽"
+                    elif "lift" in lower_type or "strength" in lower_type:
+                        icon = "💪"
+                    elif "film" in lower_type or "video" in lower_type:
+                        icon = "🎥"
+                    else:
+                        icon = "🟢"
+
+                    opp_label = opponent
+                    if len(opp_label) > 18:
+                        opp_label = opp_label[:15].rstrip() + "…"
+
+                    parts = [icon]
+                    if start_time:
+                        parts.append(start_time)
+                    if event_type:
+                        parts.append(event_type)
+                    if opp_label:
+                        parts.append(f"vs {opp_label}")
+                    label = " ".join(parts)
+                    st.markdown(
+                        f"<div style='font-size:0.75rem; margin-bottom:0.25rem; line-height:1.25;'>{label}</div>",
+                        unsafe_allow_html=True,
+                    )
+
 
 st.set_page_config(page_title="Team Hub", page_icon="👥", layout="wide")
 
@@ -115,6 +268,9 @@ team_id = team['team_id']
 team_row = teams_df[teams_df['team_id'] == team_id].iloc[0]
 profile_status = session_state.get_team_profile_status(team_id)
 completion_percent, missing_fields = session_state.get_team_profile_completeness(team_row)
+profile_data_path = Path(st.session_state.data_path)
+stored_profile = team_profile.load_team_profile(profile_data_path, team_id)
+next_match_row = _get_next_match_from_schedule(schedule.load_team_schedule(team_id, st.session_state.data_path))
 
 profile_col, meta_col = st.columns([2, 1])
 with profile_col:
@@ -146,11 +302,11 @@ st.divider()
 st.subheader("Quick Edit")
 edit_sections = st.columns(3)
 if edit_sections[0].button("Update team basics"):
-    st.switch_page("pages/0_🚀_Coach_Onboarding.py")
+    st.switch_page("pages/0_Coach_Onboarding.py")
 if edit_sections[1].button("Update practice schedule"):
-    st.switch_page("pages/0_🚀_Coach_Onboarding.py")
+    st.switch_page("pages/0_Coach_Onboarding.py")
 if edit_sections[2].button("Edit focus/style"):
-    st.switch_page("pages/0_🚀_Coach_Onboarding.py")
+    st.switch_page("pages/0_Coach_Onboarding.py")
 
 st.divider()
 st.subheader("Profile Details")
@@ -195,133 +351,108 @@ st.markdown("<a name='schedule-section'></a>", unsafe_allow_html=True)
 st.header("Schedule (Upload & Calendar)")
 st.caption("Upload a game/practice PDF, review parsed events, then save & view on the calendar.")
 
-# --- Schedule load/state -----------------------------------------------------
-data_path = st.session_state.get("data_path") or config.get_data_path()
-schedule_df = schedule.load_schedule(Path(data_path), team_id)
-if "schedule_edit_df" not in st.session_state:
-    st.session_state.schedule_edit_df = schedule_df.copy()
-
-# Upload & parse
-uploader = st.file_uploader("Upload PDF schedule", type=["pdf"])
-if uploader and st.button("Parse PDF into draft schedule"):
-    try:
-        events = schedule.parse_schedule_pdf(uploader)
-        parsed_df = schedule.events_to_dataframe(events)
-        if parsed_df.empty:
-            st.warning("No events detected. Check that the PDF has selectable text and visible dates.")
-        else:
-            combined = pd.concat([st.session_state.schedule_edit_df, parsed_df], ignore_index=True)
-            combined = combined.drop_duplicates(subset=["date", "time", "type", "opponent", "location"])
-            st.session_state.schedule_edit_df = combined
-            st.success(f"Parsed {len(parsed_df)} event(s) from PDF.")
-    except Exception as exc:
-        st.error(f"Could not parse PDF: {exc}")
-
-st.markdown("#### Review & Edit Schedule")
-edited_df = st.data_editor(
-    st.session_state.schedule_edit_df,
-    num_rows="dynamic",
-    hide_index=True,
-    use_container_width=True,
-    column_config={
-        "date": st.column_config.DateColumn("Date"),
-        "time": st.column_config.TextColumn("Time"),
-        "type": st.column_config.SelectboxColumn("Type", options=["practice", "game"]),
-        "opponent": st.column_config.TextColumn("Opponent"),
-        "location": st.column_config.TextColumn("Location"),
-        "notes": st.column_config.TextColumn("Notes"),
-        "source": st.column_config.SelectboxColumn("Source", options=["parsed", "manual"]),
-    },
+st.markdown("---")
+st.subheader("Upload Schedule (PDF)")
+uploaded_schedule = st.file_uploader(
+    "Upload a game or practice schedule (PDF)",
+    type=["pdf"],
+    key="schedule_pdf",
 )
-st.session_state.schedule_edit_df = edited_df
 
-save_col, download_col = st.columns(2)
-with save_col:
-    if st.button("💾 Save schedule"):
+if st.button("Parse PDF schedule"):
+    if uploaded_schedule is None:
+        st.warning("Please upload a PDF schedule first.")
+    else:
         try:
-            schedule.save_schedule(Path(data_path), team_id, edited_df)
-            st.success("Schedule saved for this team.")
+            parsed_df = schedule.parse_pdf_schedule(uploaded_schedule.getvalue())
+            st.session_state["draft_schedule_df"] = parsed_df
+            st.success("Schedule parsed. Review and edit below before saving.")
         except Exception as exc:
-            st.error(f"Could not save schedule: {exc}")
+            print("Error parsing PDF schedule:", exc)
+            st.error(
+                "We couldn't read this PDF. "
+                f"Details: {exc}"
+            )
 
-with download_col:
-    if not schedule_df.empty:
-        csv_bytes = schedule_df.to_csv(index=False).encode()
-        st.download_button(
-            "⬇️ Download current schedule CSV",
-            data=csv_bytes,
-            file_name=f"practice_game_schedule_{team_id}.csv",
-            mime="text/csv",
-        )
-    else:
-        st.caption("No saved schedule yet.")
+# Editable draft table
+if "draft_schedule_df" in st.session_state:
+    st.subheader("Review & Edit Schedule")
+    draft_df = st.session_state["draft_schedule_df"]
+    edited_df = st.data_editor(
+        draft_df,
+        num_rows="dynamic",
+        hide_index=True,
+        use_container_width=True,
+        key="schedule_editor",
+    )
+    st.session_state["draft_schedule_df"] = edited_df
 
-st.markdown("#### Calendar View")
-if edited_df.empty:
-    st.info("No events to show yet. Add or parse events above.")
+    if st.button("Save schedule to team"):
+        df_to_save = st.session_state.get("draft_schedule_df")
+        if df_to_save is None:
+            st.warning("Nothing to save yet. Parse a PDF schedule first.")
+        else:
+            try:
+                schedule.save_team_schedule(st.session_state.data_path, team_id, df_to_save)
+                st.success("Schedule saved for this team.")
+            except Exception as e:
+                print("Error saving team schedule:", e)
+                st.error(f"We couldn't save this schedule. {e}")
+
+st.markdown("---")
+st.markdown("## Upcoming Schedule")
+st.caption("Week-by-week view of games, training, and events for this team.")
+upcoming_df = schedule.load_team_schedule(team_id, st.session_state.data_path)
+_render_week_view(upcoming_df)
+
+st.markdown("## This Week's Practices")
+practice_types = {"practice", "film", "lift", "recovery", "walkthrough"}
+today_norm = pd.Timestamp.today().normalize()
+week_cutoff = today_norm + pd.Timedelta(days=7)
+pr_df = None
+if upcoming_df is not None and not upcoming_df.empty and "event_date" in upcoming_df.columns:
+    pr_df = upcoming_df.copy()
+    pr_df["event_date"] = pd.to_datetime(pr_df["event_date"], errors="coerce").dt.normalize()
+    pr_df = pr_df[(pr_df["event_date"] >= today_norm) & (pr_df["event_date"] <= week_cutoff)]
+    if "event_type" in pr_df.columns:
+        pr_df = pr_df[pr_df["event_type"].astype(str).str.lower().isin(practice_types)]
+    pr_df = pr_df.dropna(subset=["event_date"])
+    pr_df = pr_df.sort_values(["event_date", "start_time"]) if not pr_df.empty else pr_df
+
+if pr_df is None or pr_df.empty:
+    st.info("No practices scheduled for the next 7 days.")
 else:
-    show_practice = st.checkbox("Show practices", value=True)
-    show_games = st.checkbox("Show games", value=True)
-    filtered = edited_df.copy()
-    if not show_practice:
-        filtered = filtered[filtered["type"] != "practice"]
-    if not show_games:
-        filtered = filtered[filtered["type"] != "game"]
-    filtered["date_obj"] = pd.to_datetime(filtered["date"], errors="coerce").dt.date
-    filtered = filtered.dropna(subset=["date_obj"])
-    if filtered.empty:
-        st.info("No events match the current filters.")
-    else:
-        min_date = min(filtered["date_obj"])
-        max_date = max(filtered["date_obj"])
-        today = pd.Timestamp.today().date()
-        default_month = date(today.year, today.month, 1)
-        first_day = date(min_date.year, min_date.month, 1)
-        last_day = date(max_date.year, max_date.month, 1)
-        selected_month = st.date_input(
-            "Month",
-            value=default_month,
-            min_value=first_day,
-            max_value=last_day,
+    for _, row in pr_df.iterrows():
+        date_val = row.get("event_date")
+        date_disp = ""
+        if pd.notna(date_val):
+            try:
+                date_disp = pd.to_datetime(date_val).strftime("%a %b %d")
+            except Exception:
+                date_disp = str(date_val)
+        time_raw = str(row.get("start_time", "") or "").strip()
+        time_disp = time_raw
+        if time_raw:
+            try:
+                parsed_time = pd.to_datetime(time_raw).time()
+                time_disp = parsed_time.strftime("%I:%M %p").lstrip("0")
+            except Exception:
+                time_disp = time_raw
+        type_disp = str(row.get("event_type", "") or "Practice").strip()
+        loc_disp = str(row.get("location", "") or "").strip()
+        notes_disp = str(row.get("notes", "") or "").strip()
+        meta_parts = [p for p in [loc_disp, notes_disp] if p]
+        meta_line = " | ".join(meta_parts)
+        st.markdown(
+            f"""
+            <div style="border:1px solid #e5e5e5; border-radius:8px; padding:0.6rem 0.75rem; margin-bottom:0.5rem;">
+                <div style="font-weight:700;">{date_disp} {time_disp}</div>
+                <div style="font-size:0.9rem; margin-top:0.15rem;">{type_disp}</div>
+                <div style="font-size:0.85rem; color:#666; margin-top:0.15rem;">{meta_line}</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
-
-        def render_monthly_calendar(df: pd.DataFrame, month_start: date):
-            import calendar as cal
-
-            def _icon(evt_type: str) -> str:
-                return "🟢" if evt_type == "practice" else "🔵"
-
-            events_map = {}
-            for row in df.itertuples():
-                events_map.setdefault(row.date_obj, []).append(row)
-
-            month_calendar = cal.Calendar(firstweekday=0).monthdatescalendar(month_start.year, month_start.month)
-            st.markdown("##### Calendar")
-            # Weekday header
-            header_cols = st.columns(7)
-            for idx, name in enumerate(["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]):
-                header_cols[idx].markdown(f"**{name}**")
-
-            for week in month_calendar:
-                cols = st.columns(7)
-                for idx, day in enumerate(week):
-                    if day.month != month_start.month:
-                        cols[idx].markdown("&nbsp;", unsafe_allow_html=True)
-                        continue
-                    cols[idx].markdown(f"**{day.day}**")
-                    events = events_map.get(day, [])
-                    for evt in events[:3]:
-                        parts = [f"{_icon(evt.type)}"]
-                        if evt.time:
-                            parts.append(evt.time)
-                        parts.append(evt.type.title())
-                        if evt.opponent:
-                            parts.append(f"vs {evt.opponent}")
-                        cols[idx].markdown(" · ".join(parts))
-                    if len(events) > 3:
-                        cols[idx].caption(f"+{len(events) - 3} more")
-
-        render_monthly_calendar(filtered, selected_month)
 
 formation_options = ["4-3-3", "4-4-2", "3-5-2", "4-2-3-1", "4-1-4-1", "Custom"]
 raw_formation = team_row.get('formation', '')
@@ -331,104 +462,193 @@ if current_formation and current_formation not in formation_options:
     formation_options.append(current_formation)
 formation_index = formation_options.index(current_formation) if current_formation in formation_options else 0
 
-col_a, col_b = st.columns(2)
-st.markdown("<a id='anchor_age_group'></a>", unsafe_allow_html=True)
-st.markdown("<a id='anchor_formation'></a>", unsafe_allow_html=True)
-formation = col_a.selectbox(
-    "Preferred formation",
-    options=formation_options,
-    index=formation_index,
-    help="Select the formation you run most often."
-)
-play_style_options = config.TEAM_PLAY_STYLES + ["Custom"]
-raw_play_style = team_row.get('play_style', '')
-current_play_style = str(raw_play_style) if raw_play_style is not None else ''
-current_play_style = current_play_style.strip()
-if current_play_style in config.TEAM_PLAY_STYLES:
-    play_style_index = play_style_options.index(current_play_style)
-    play_style_custom_value = ""
-elif current_play_style:
-    play_style_index = len(play_style_options) - 1
-    play_style_custom_value = current_play_style
-else:
-    play_style_index = 0
-    play_style_custom_value = ""
-st.markdown("<a id='anchor_play_style'></a>", unsafe_allow_html=True)
-play_style_choice = col_b.selectbox(
-    "Play style / identity",
-    options=play_style_options,
-    index=play_style_index,
-    help="Choose the style that best matches this team."
-)
-play_style_value = play_style_choice
-if play_style_choice == "Custom":
-    with col_b:
-        play_style_custom_value = st.text_input(
-            "Custom play style",
-            value=play_style_custom_value,
-            placeholder="Describe the unique identity",
-            key=f"custom_play_style_input_{team_id}"
-        )
-        play_style_value = play_style_custom_value.strip()
+st.divider()
+st.markdown("## Match Plan & Coach Notes")
+st.caption("Capture how you want this team to set up for the next match.")
+with st.container():
+    st.markdown(
+        "<div style='padding:1rem 1.25rem; border:1px solid #e5e5e5; border-radius:0.75rem; background-color:#fafafa;'>",
+        unsafe_allow_html=True,
+    )
 
-current_match_date = team_row.get('upcoming_match_date')
-match_date_value = None
-if current_match_date:
-    try:
-        parsed_date = pd.to_datetime(current_match_date, errors='coerce')
-        if pd.notna(parsed_date):
-            match_date_value = parsed_date.date()
-    except Exception:
-        match_date_value = None
-match_date = col_a.date_input(
-    "Upcoming match date",
-    value=match_date_value or pd.Timestamp.today().date(),
-    help="Select the next fixture date."
-)
-time_options = [f"{hour:02d}:{minute:02d}" for hour in range(0, 24) for minute in (0, 30)]
-stored_time = team_row.get('upcoming_match_time') or "18:00"
-if stored_time not in time_options:
-    stored_time = "18:00"
-match_time = col_a.selectbox(
-    "Kickoff time",
-    options=time_options,
-    index=time_options.index(stored_time),
-    help="Set the kickoff time (24h)."
-)
-upcoming_opponent = col_a.text_input(
-    "Upcoming opponent/team",
-    value=team_row.get('upcoming_match_opponent', ''),
-    placeholder="Opponent name"
-)
-season_objective_options = config.TEAM_SEASON_OBJECTIVES + ["Custom"]
-raw_objective = team_row.get('season_objectives', '')
-current_objective = str(raw_objective) if raw_objective is not None else ''
-current_objective = current_objective.strip()
-if current_objective in config.TEAM_SEASON_OBJECTIVES:
-    season_index = season_objective_options.index(current_objective)
-    season_custom_value = ""
-elif current_objective:
-    season_index = len(season_objective_options) - 1
-    season_custom_value = current_objective
-else:
-    season_index = 0
-    season_custom_value = ""
-season_choice = col_b.selectbox(
-    "Season objective",
-    options=season_objective_options,
-    index=season_index,
-    help="Align everyone on the primary mission."
-)
-season_objectives_value = season_choice
-if season_choice == "Custom":
-    with col_b:
-        season_custom_value = st.text_input(
-            "Custom objective",
-            value=season_custom_value,
-            placeholder="Describe your specific goal",
-            key=f"custom_objective_input_{team_id}"
+    col_left, col_right = st.columns(2)
+
+    with col_left:
+        st.markdown("<a id='anchor_age_group'></a>", unsafe_allow_html=True)
+        st.markdown("<a id='anchor_formation'></a>", unsafe_allow_html=True)
+        preferred_formation_value = st.selectbox(
+            "Preferred formation",
+            options=formation_options,
+            index=formation_index,
+            key="preferred_formation",
+            help="Select the formation you run most often.",
         )
-        season_objectives_value = season_custom_value.strip()
+
+        current_match_date = team_row.get('upcoming_match_date')
+        upcoming_match_date_default = stored_profile.get("upcoming_match_date") or current_match_date
+        kickoff_time_default = stored_profile.get("kickoff_time") or team_row.get('upcoming_match_time')
+        upcoming_opponent_default = stored_profile.get("upcoming_opponent") or team_row.get('upcoming_match_opponent', '')
+
+        kickoff_time_readonly = ""
+        upcoming_opponent_readonly = ""
+        if next_match_row is not None:
+            upcoming_match_date_default = next_match_row.get("event_date", upcoming_match_date_default)
+            upcoming_opponent_readonly = str(next_match_row.get("opponent", "") or "").strip()
+            raw_time = next_match_row.get("start_time", "")
+            if pd.notna(raw_time) and str(raw_time).strip():
+                try:
+                    if isinstance(raw_time, str):
+                        parsed = pd.to_datetime(raw_time).time()
+                    else:
+                        parsed = getattr(raw_time, "time", lambda: raw_time)()
+                    kickoff_time_readonly = parsed.strftime("%I:%M %p").lstrip("0")
+                except Exception:
+                    kickoff_time_readonly = str(raw_time)
+
+        match_date_value = None
+        if upcoming_match_date_default is not None and upcoming_match_date_default != "":
+            try:
+                parsed_date = pd.to_datetime(upcoming_match_date_default, errors='coerce')
+                if pd.notna(parsed_date):
+                    match_date_value = parsed_date.date()
+            except Exception:
+                match_date_value = None
+
+        upcoming_match_date_value = st.date_input(
+            "Upcoming match date",
+            value=match_date_value or pd.Timestamp.today().date(),
+            key="upcoming_match_date",
+            help="Select the next fixture date.",
+        )
+
+        # Upcoming match display row
+        today_ts = pd.Timestamp.today().normalize()
+        next_seven = today_ts + pd.Timedelta(days=7)
+        match_row = None
+        if next_match_row is not None:
+            event_dt = pd.to_datetime(next_match_row.get("event_date"), errors="coerce")
+            if pd.notna(event_dt) and today_ts <= event_dt.normalize() <= next_seven:
+                match_row = next_match_row
+
+        row_cols = st.columns([3, 2, 2])
+        if match_row is not None:
+            opp_text = str(match_row.get("opponent", "") or "TBD").strip()
+            kickoff_disp = kickoff_time_readonly or "TBD"
+            location_disp = str(match_row.get("location", "") or "TBD").strip()
+
+            with row_cols[0]:
+                st.markdown(f"<div style='font-weight:700; font-size:1rem;'>{opp_text}</div>", unsafe_allow_html=True)
+            with row_cols[1]:
+                st.markdown(f"<div style='font-weight:700; font-size:1rem;'>{kickoff_disp}</div>", unsafe_allow_html=True)
+            with row_cols[2]:
+                st.markdown(
+                    f"<div style='border:1px solid #ddd; border-radius:6px; padding:0.35rem 0.5rem; font-size:0.9rem;'>{location_disp}</div>",
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.markdown("No match scheduled this week.")
+
+        st.markdown("---")
+
+        st.text_input(
+            "Kickoff time",
+            value=kickoff_time_readonly or "TBD",
+            key="kickoff_time_readonly",
+            disabled=True,
+        )
+
+        upcoming_opponent_value = st.text_input(
+            "Upcoming opponent",
+            value=upcoming_opponent_readonly or upcoming_opponent_default,
+            key="upcoming_opponent",
+            placeholder="Opponent name",
+            disabled=True,
+        )
+
+    with col_right:
+        play_style_options = config.TEAM_PLAY_STYLES + ["Custom"]
+        raw_play_style = team_row.get('play_style', '')
+        current_play_style = str(raw_play_style) if raw_play_style is not None else ''
+        current_play_style = current_play_style.strip()
+        default_play_style = stored_profile.get("default_play_style", "Custom")
+        match_play_style = stored_profile.get("play_style_identity", "") or current_play_style
+        current_play_style_value = match_play_style or default_play_style
+        if current_play_style_value in play_style_options:
+            play_style_index = play_style_options.index(current_play_style_value)
+            play_style_custom_value = ""
+        elif current_play_style_value:
+            play_style_index = len(play_style_options) - 1
+            play_style_custom_value = current_play_style_value
+        else:
+            play_style_index = 0
+            play_style_custom_value = ""
+        st.markdown("<a id='anchor_play_style'></a>", unsafe_allow_html=True)
+        def _on_play_style_change():
+            value = st.session_state.get("play_style_identity")
+            if value is not None:
+                updated = stored_profile.copy()
+                updated["play_style_identity"] = value
+                team_profile.save_team_profile(profile_data_path, team_id, updated)
+
+        play_style_choice = st.selectbox(
+            "Play style / identity",
+            options=play_style_options,
+            index=play_style_index,
+            key="play_style_identity",
+            on_change=_on_play_style_change,
+            help="Choose the style that best matches this team.",
+        )
+        play_style_value = play_style_choice
+        if play_style_choice == "Custom":
+            play_style_custom_value = st.text_input(
+                "Custom play style",
+                value=play_style_custom_value,
+                key="custom_play_style",
+                placeholder="e.g. High press, possession-focused, counter-attacking",
+            )
+            play_style_value = play_style_custom_value.strip()
+
+        season_objective_options = config.TEAM_SEASON_OBJECTIVES + ["Custom"]
+        raw_objective = team_row.get('season_objectives', '')
+        default_season_objective = stored_profile.get("default_season_objective", "Custom")
+        current_objective_val = stored_profile.get("season_objectives", "").strip() or str(raw_objective).strip() or default_season_objective
+        if current_objective_val in season_objective_options:
+            season_index = season_objective_options.index(current_objective_val)
+            season_custom_value = ""
+        elif current_objective_val:
+            season_index = len(season_objective_options) - 1
+            season_custom_value = current_objective_val
+        else:
+            season_index = 0
+            season_custom_value = ""
+
+        def _on_season_objective_change():
+            value = st.session_state.get("season_objective")
+            if value is not None:
+                updated = stored_profile.copy()
+                updated["season_objectives"] = value
+                team_profile.save_team_profile(profile_data_path, team_id, updated)
+
+        season_choice = st.selectbox(
+            "Season objective",
+            options=season_objective_options,
+            index=season_index,
+            on_change=_on_season_objective_change,
+            key="season_objective",
+            help="Align everyone on the primary mission.",
+        )
+        season_objectives_value = season_choice
+        if season_choice == "Custom":
+            season_custom_value = st.text_area(
+                "Custom objective",
+                value=season_custom_value,
+                key="custom_objective",
+                placeholder="e.g. Develop young players, improve defensive shape, build possession habits",
+                height=80,
+            )
+            season_objectives_value = season_custom_value.strip()
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<a id='anchor_practice_schedule'></a>", unsafe_allow_html=True)
 practice_schedule = st.text_input(
@@ -442,30 +662,30 @@ focus_options = sorted(set(config.DRILL_TAGS).union(existing_focus_tags))
 focus_selection = st.multiselect(
     "Focus areas (tagged)",
     options=focus_options,
-    default=existing_focus_tags,
+    default=stored_profile.get("focus_tags", existing_focus_tags),
     help="These tags describe team priorities. Matching drill tags boosts recommendations."
 )
 extra_focus_input = st.text_input(
     "Additional focus tags (comma separated)",
-    value="",
+    value=stored_profile.get("extra_focus_tags", ""),
     placeholder="Leadership, Mental Toughness, etc.",
     help="Add quick one-off tags separated by commas; they're appended to the list above."
 )
 st.markdown("<a id='anchor_key_players'></a>", unsafe_allow_html=True)
 key_players_input = st.text_area(
     "Key players / notes (one per line)",
-    value=key_players_default,
+    value=stored_profile.get("key_players_notes", key_players_default),
     height=120
 )
 st.markdown("<a id='anchor_injuries'></a>", unsafe_allow_html=True)
 injuries_input = st.text_area(
     "Injuries / availability (one per line)",
-    value=injuries_default,
+    value=stored_profile.get("injury_notes", injuries_default),
     height=120
 )
 notes_input = st.text_area(
     "General notes",
-    value=team_row.get('notes', ''),
+    value=stored_profile.get("general_notes", team_row.get('notes', '')),
     placeholder="Scouting intel, training reminders, parent communication, etc."
 )
 submitted = st.button("Save team profile", type="primary")
@@ -475,24 +695,27 @@ if submitted:
     focus_value = "|".join(dict.fromkeys([*focus_selection, *extra_focus]))
     key_players_value = "|".join([item.strip() for item in key_players_input.splitlines() if item.strip()])
     injuries_value = "|".join([item.strip() for item in injuries_input.splitlines() if item.strip()])
-    update_fields = {
-        'formation': formation,
-        'play_style': play_style_value,
-        'upcoming_match_date': match_date.isoformat(),
-        'upcoming_match_time': match_time,
-        'upcoming_match_opponent': upcoming_opponent.strip(),
-        'season_objectives': season_objectives_value,
-        'focus_areas': focus_value,
-        'key_players': key_players_value,
-        'injuries': injuries_value,
-        'practice_schedule': practice_schedule.strip(),
-        'notes': notes_input.strip(),
+    profile_payload = {
+        "preferred_formation": formation,
+        "play_style_identity": play_style_value,
+        "custom_play_style": play_style_custom_value,
+        "season_objective": season_objectives_value,
+        "custom_objective": season_custom_value,
+        "practice_schedule": practice_schedule.strip(),
+        "focus_tags": focus_selection,
+        "extra_focus_tags": extra_focus_input.strip(),
+        "key_players_notes": key_players_input,
+        "injury_notes": injuries_input,
+        "general_notes": notes_input.strip(),
+        "upcoming_match_date": match_date.isoformat() if match_date else "",
+        "kickoff_time": match_time,
+        "upcoming_opponent": upcoming_opponent.strip(),
     }
-    for field, value in update_fields.items():
-        teams_df.loc[teams_df['team_id'] == team_id, field] = value
-    _persist_teams(teams_df)
-    st.session_state.selected_team = teams_df[teams_df['team_id'] == team_id].iloc[0].to_dict()
-    st.success("Team profile updated.")
+    try:
+        team_profile.save_team_profile(profile_data_path, team_id, profile_payload)
+        st.success("Team profile saved.")
+    except Exception as exc:
+        st.error(f"Couldn't save team profile: {exc}")
 
 st.divider()
 st.subheader("Focus & Key Players")
