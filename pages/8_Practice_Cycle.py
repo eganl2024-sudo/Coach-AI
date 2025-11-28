@@ -93,7 +93,7 @@ selected_template_name = st.selectbox(
     "Template for scripted blocks (optional)",
     options=template_names,
 )
-if len(valid_templates) < len(templates):
+if len(valid_templates) < len(template_list):
     st.info("Some templates are hidden because they reference missing drills or have invalid durations. Repair them in Template Studio.")
 
 generate_clicked = st.button("Generate Cycle", type="primary")
