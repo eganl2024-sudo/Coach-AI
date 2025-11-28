@@ -615,6 +615,10 @@ if reuse_id is not None:
         if reused:
             # Always overwrite with the requested session
             st.session_state.current_session = reused
+            # Refresh block indices for proper display and export
+            _refresh_block_indices(reused.drills)
+            # Recompute session details (equipment, summaries)
+            _recompute_session_details(reused)
     except Exception as e:
         st.error(f"Could not load saved practice: {e}")
 
