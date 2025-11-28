@@ -466,7 +466,9 @@ st.divider()
 st.markdown("## Match Plan & Coach Notes")
 st.caption("Capture how you want this team to set up for the next match.")
 
-# Calculate match data for banner and form
+# ============================================================================
+# CALCULATE MATCH DATA FOR BANNER AND FORM
+# ============================================================================
 current_match_date = team_row.get('upcoming_match_date')
 upcoming_match_date_default = stored_profile.get("upcoming_match_date") or current_match_date
 kickoff_time_default = stored_profile.get("kickoff_time") or team_row.get('upcoming_match_time')
@@ -474,9 +476,13 @@ upcoming_opponent_default = stored_profile.get("upcoming_opponent") or team_row.
 
 kickoff_time_readonly = ""
 upcoming_opponent_readonly = ""
+location_readonly = ""
+upcoming_match_date_display = ""
+
 if next_match_row is not None:
     upcoming_match_date_default = next_match_row.get("event_date", upcoming_match_date_default)
     upcoming_opponent_readonly = str(next_match_row.get("opponent", "") or "").strip()
+    location_readonly = str(next_match_row.get("location", "") or "").strip()
     raw_time = next_match_row.get("start_time", "")
     if pd.notna(raw_time) and str(raw_time).strip():
         try:
@@ -488,164 +494,193 @@ if next_match_row is not None:
         except Exception:
             kickoff_time_readonly = str(raw_time)
 
-# Render upcoming match banner row
-today_ts = pd.Timestamp.today().normalize()
-next_seven = today_ts + pd.Timedelta(days=7)
-match_row = None
-if next_match_row is not None:
-    event_dt = pd.to_datetime(next_match_row.get("event_date"), errors="coerce")
-    if pd.notna(event_dt) and today_ts <= event_dt.normalize() <= next_seven:
-        match_row = next_match_row
+# Parse upcoming_match_date for banner display
+match_date_value = None
+if upcoming_match_date_default is not None and upcoming_match_date_default != "":
+    try:
+        parsed_date = pd.to_datetime(upcoming_match_date_default, errors='coerce')
+        if pd.notna(parsed_date):
+            match_date_value = parsed_date.date()
+            upcoming_match_date_display = parsed_date.strftime("%a, %b %d")
+    except Exception:
+        match_date_value = None
 
-if match_row is not None:
-    opp_text = str(match_row.get("opponent", "") or "TBD").strip()
-    kickoff_disp = kickoff_time_readonly or "TBD"
-    location_disp = str(match_row.get("location", "") or "TBD").strip()
+# ============================================================================
+# MATCH BANNER: OPPONENT | DATE | TIME | LOCATION
+# ============================================================================
+if upcoming_opponent_readonly or kickoff_time_readonly or location_readonly:
+    opp_text = upcoming_opponent_readonly or "TBD"
+    date_text = upcoming_match_date_display or "TBD"
+    time_text = kickoff_time_readonly or "TBD"
+    loc_text = location_readonly or "TBD"
 
     st.markdown(
         f"""
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; background-color:#f8f9fa; border-radius:8px; margin-bottom:1.5rem;">
-            <div style="flex:1; text-align:left;">
-                <div style="font-weight:700; font-size:1.1rem;">{opp_text}</div>
-            </div>
-            <div style="flex:0.7; text-align:center;">
-                <div style="font-weight:700; font-size:1.1rem;">{kickoff_disp}</div>
-            </div>
-            <div style="flex:1; text-align:right;">
-                <div style="font-weight:700; font-size:1.1rem;">{location_disp}</div>
-            </div>
+        <div style="
+            background-color:#f7f7f9;
+            padding:0.75rem 1rem;
+            border-radius:8px;
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            font-weight:600;
+            font-size:15px;
+            margin-bottom:1.5rem;
+            gap:1rem;
+        ">
+            <div style="flex:1.2;">{opp_text}</div>
+            <div style="flex:1;">{date_text}</div>
+            <div style="flex:0.9;">{time_text}</div>
+            <div style="flex:1.2;">{loc_text}</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-with st.container():
-    st.markdown(
-        "<div style='padding:1rem 1.25rem; border:1px solid #e5e5e5; border-radius:0.75rem; background-color:#fafafa;'>",
-        unsafe_allow_html=True,
+# ============================================================================
+# MAIN FORM CONTAINER
+# ============================================================================
+st.markdown("<a id='anchor_formation'></a>", unsafe_allow_html=True)
+st.markdown("<a id='anchor_play_style'></a>", unsafe_allow_html=True)
+
+# Row 1: Preferred formation & Play style / identity
+col_form, col_style = st.columns(2)
+
+with col_form:
+    preferred_formation_value = st.selectbox(
+        "Preferred formation",
+        options=formation_options,
+        index=formation_index,
+        key="preferred_formation",
+        help="Default shape for this team's next match.",
     )
 
-    col_left, col_right = st.columns(2)
+with col_style:
+    play_style_options = config.TEAM_PLAY_STYLES + ["Custom"]
+    raw_play_style = team_row.get('play_style', '')
+    current_play_style = str(raw_play_style) if raw_play_style is not None else ''
+    current_play_style = current_play_style.strip()
+    default_play_style = stored_profile.get("default_play_style", "Custom")
+    match_play_style = stored_profile.get("play_style_identity", "") or current_play_style
+    current_play_style_value = match_play_style or default_play_style
+    if current_play_style_value in play_style_options:
+        play_style_index = play_style_options.index(current_play_style_value)
+        play_style_custom_value = ""
+    elif current_play_style_value:
+        play_style_index = len(play_style_options) - 1
+        play_style_custom_value = current_play_style_value
+    else:
+        play_style_index = 0
+        play_style_custom_value = ""
 
-    with col_left:
-        st.markdown("<a id='anchor_age_group'></a>", unsafe_allow_html=True)
-        st.markdown("<a id='anchor_formation'></a>", unsafe_allow_html=True)
-        preferred_formation_value = st.selectbox(
-            "Preferred formation",
-            options=formation_options,
-            index=formation_index,
-            key="preferred_formation",
-            help="Select the formation you run most often.",
+    def _on_play_style_change():
+        value = st.session_state.get("play_style_identity")
+        if value is not None:
+            updated = stored_profile.copy()
+            updated["play_style_identity"] = value
+            team_profile.save_team_profile(profile_data_path, team_id, updated)
+
+    play_style_choice = st.selectbox(
+        "Play style / identity",
+        options=play_style_options,
+        index=play_style_index,
+        key="play_style_identity",
+        on_change=_on_play_style_change,
+        help="How you want this team to behave with and without the ball.",
+    )
+    play_style_value = play_style_choice
+    if play_style_choice == "Custom":
+        play_style_custom_value = st.text_input(
+            "Custom play style",
+            value=play_style_custom_value,
+            key="custom_play_style",
+            placeholder="e.g. High press, possession-focused, counter-attacking",
         )
+        play_style_value = play_style_custom_value.strip()
 
-        match_date_value = None
-        if upcoming_match_date_default is not None and upcoming_match_date_default != "":
-            try:
-                parsed_date = pd.to_datetime(upcoming_match_date_default, errors='coerce')
-                if pd.notna(parsed_date):
-                    match_date_value = parsed_date.date()
-            except Exception:
-                match_date_value = None
+# Row 2: Season objective
+st.markdown("<a id='anchor_season_objective'></a>", unsafe_allow_html=True)
+season_objective_options = config.TEAM_SEASON_OBJECTIVES + ["Custom"]
+raw_objective = team_row.get('season_objectives', '')
+default_season_objective = stored_profile.get("default_season_objective", "Custom")
+current_objective_val = stored_profile.get("season_objectives", "").strip() or str(raw_objective).strip() or default_season_objective
+if current_objective_val in season_objective_options:
+    season_index = season_objective_options.index(current_objective_val)
+    season_custom_value = ""
+elif current_objective_val:
+    season_index = len(season_objective_options) - 1
+    season_custom_value = current_objective_val
+else:
+    season_index = 0
+    season_custom_value = ""
 
-        upcoming_match_date_value = st.date_input(
-            "Upcoming match date",
-            value=match_date_value or pd.Timestamp.today().date(),
-            key="upcoming_match_date",
-            help="Select the next fixture date.",
-        )
+def _on_season_objective_change():
+    value = st.session_state.get("season_objective")
+    if value is not None:
+        updated = stored_profile.copy()
+        updated["season_objectives"] = value
+        team_profile.save_team_profile(profile_data_path, team_id, updated)
 
-    with col_right:
-        play_style_options = config.TEAM_PLAY_STYLES + ["Custom"]
-        raw_play_style = team_row.get('play_style', '')
-        current_play_style = str(raw_play_style) if raw_play_style is not None else ''
-        current_play_style = current_play_style.strip()
-        default_play_style = stored_profile.get("default_play_style", "Custom")
-        match_play_style = stored_profile.get("play_style_identity", "") or current_play_style
-        current_play_style_value = match_play_style or default_play_style
-        if current_play_style_value in play_style_options:
-            play_style_index = play_style_options.index(current_play_style_value)
-            play_style_custom_value = ""
-        elif current_play_style_value:
-            play_style_index = len(play_style_options) - 1
-            play_style_custom_value = current_play_style_value
-        else:
-            play_style_index = 0
-            play_style_custom_value = ""
-        st.markdown("<a id='anchor_play_style'></a>", unsafe_allow_html=True)
-        def _on_play_style_change():
-            value = st.session_state.get("play_style_identity")
-            if value is not None:
-                updated = stored_profile.copy()
-                updated["play_style_identity"] = value
-                team_profile.save_team_profile(profile_data_path, team_id, updated)
+season_choice = st.selectbox(
+    "Season objective",
+    options=season_objective_options,
+    index=season_index,
+    on_change=_on_season_objective_change,
+    key="season_objective",
+    help="Align everyone on the primary mission for this season.",
+)
+season_objectives_value = season_choice
+if season_choice == "Custom":
+    season_custom_value = st.text_area(
+        "Custom objective",
+        value=season_custom_value,
+        key="custom_objective",
+        placeholder="e.g. Develop young players, improve defensive shape, build possession habits",
+        height=80,
+    )
+    season_objectives_value = season_custom_value.strip()
 
-        play_style_choice = st.selectbox(
-            "Play style / identity",
-            options=play_style_options,
-            index=play_style_index,
-            key="play_style_identity",
-            on_change=_on_play_style_change,
-            help="Choose the style that best matches this team.",
-        )
-        play_style_value = play_style_choice
-        if play_style_choice == "Custom":
-            play_style_custom_value = st.text_input(
-                "Custom play style",
-                value=play_style_custom_value,
-                key="custom_play_style",
-                placeholder="e.g. High press, possession-focused, counter-attacking",
-            )
-            play_style_value = play_style_custom_value.strip()
-
-        season_objective_options = config.TEAM_SEASON_OBJECTIVES + ["Custom"]
-        raw_objective = team_row.get('season_objectives', '')
-        default_season_objective = stored_profile.get("default_season_objective", "Custom")
-        current_objective_val = stored_profile.get("season_objectives", "").strip() or str(raw_objective).strip() or default_season_objective
-        if current_objective_val in season_objective_options:
-            season_index = season_objective_options.index(current_objective_val)
-            season_custom_value = ""
-        elif current_objective_val:
-            season_index = len(season_objective_options) - 1
-            season_custom_value = current_objective_val
-        else:
-            season_index = 0
-            season_custom_value = ""
-
-        def _on_season_objective_change():
-            value = st.session_state.get("season_objective")
-            if value is not None:
-                updated = stored_profile.copy()
-                updated["season_objectives"] = value
-                team_profile.save_team_profile(profile_data_path, team_id, updated)
-
-        season_choice = st.selectbox(
-            "Season objective",
-            options=season_objective_options,
-            index=season_index,
-            on_change=_on_season_objective_change,
-            key="season_objective",
-            help="Align everyone on the primary mission.",
-        )
-        season_objectives_value = season_choice
-        if season_choice == "Custom":
-            season_custom_value = st.text_area(
-                "Custom objective",
-                value=season_custom_value,
-                key="custom_objective",
-                placeholder="e.g. Develop young players, improve defensive shape, build possession habits",
-                height=80,
-            )
-            season_objectives_value = season_custom_value.strip()
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
+# Row 3: Practice schedule
 st.markdown("<a id='anchor_practice_schedule'></a>", unsafe_allow_html=True)
 practice_schedule = st.text_input(
-    "Practice schedule (e.g., Mon/Wed 6-7:30p)",
+    "Typical practice pattern (e.g., Mon/Wed 6–7:30p)",
     value=str(team_row.get('practice_schedule', '') or '').strip(),
-    placeholder="Days/times",
+    placeholder="Days and times",
+    help="The regular weekly schedule pattern (separate from the calendar view above)."
 )
 
+# Row 4: Edit match details expander
+with st.expander("Edit match details"):
+    edit_col1, edit_col2 = st.columns(2)
+
+    with edit_col1:
+        opponent_edit = st.text_input(
+            "Opponent",
+            value=upcoming_opponent_readonly or upcoming_opponent_default,
+            key="opponent_edit",
+            placeholder="Team name",
+        )
+        match_date_edit = st.date_input(
+            "Match date",
+            value=match_date_value or pd.Timestamp.today().date(),
+            key="match_date_edit",
+        )
+
+    with edit_col2:
+        time_edit = st.text_input(
+            "Kickoff time",
+            value=kickoff_time_readonly or "",
+            key="time_edit",
+            placeholder="e.g., 7:00 PM",
+        )
+        location_edit = st.text_input(
+            "Location",
+            value=location_readonly or "",
+            key="location_edit",
+            placeholder="Stadium or field name",
+        )
+
+# Row 5: Focus areas
 st.markdown("<a id='anchor_focus_tags'></a>", unsafe_allow_html=True)
 focus_options = sorted(set(config.DRILL_TAGS).union(existing_focus_tags))
 focus_selection = st.multiselect(
@@ -658,25 +693,39 @@ extra_focus_input = st.text_input(
     "Additional focus tags (comma separated)",
     value=stored_profile.get("extra_focus_tags", ""),
     placeholder="Leadership, Mental Toughness, etc.",
-    help="Add quick one-off tags separated by commas; they're appended to the list above."
+    help="Add quick one-off tags separated by commas."
 )
+
+# Row 6: Expandable text areas for detailed notes
 st.markdown("<a id='anchor_key_players'></a>", unsafe_allow_html=True)
-key_players_input = st.text_area(
-    "Key players / notes (one per line)",
-    value=stored_profile.get("key_players_notes", key_players_default),
-    height=120
-)
+with st.expander("Key players / notes"):
+    key_players_input = st.text_area(
+        "",
+        value=stored_profile.get("key_players_notes", key_players_default),
+        height=120,
+        placeholder="One entry per line",
+    )
+
 st.markdown("<a id='anchor_injuries'></a>", unsafe_allow_html=True)
-injuries_input = st.text_area(
-    "Injuries / availability (one per line)",
-    value=stored_profile.get("injury_notes", injuries_default),
-    height=120
-)
-notes_input = st.text_area(
-    "General notes",
-    value=stored_profile.get("general_notes", team_row.get('notes', '')),
-    placeholder="Scouting intel, training reminders, parent communication, etc."
-)
+with st.expander("Injuries / availability"):
+    injuries_input = st.text_area(
+        "",
+        value=stored_profile.get("injury_notes", injuries_default),
+        height=120,
+        placeholder="One entry per line",
+    )
+
+with st.expander("General notes"):
+    notes_input = st.text_area(
+        "",
+        value=stored_profile.get("general_notes", team_row.get('notes', '')),
+        height=120,
+        placeholder="Scouting intel, training reminders, parent communication, etc.",
+    )
+
+# ============================================================================
+# SAVE BUTTON AND HANDLER
+# ============================================================================
 submitted = st.button("Save team profile", type="primary")
 
 if submitted:
@@ -684,6 +733,13 @@ if submitted:
     focus_value = "|".join(dict.fromkeys([*focus_selection, *extra_focus]))
     key_players_value = "|".join([item.strip() for item in key_players_input.splitlines() if item.strip()])
     injuries_value = "|".join([item.strip() for item in injuries_input.splitlines() if item.strip()])
+
+    # Use edited values if available, otherwise use readonly/default values
+    final_opponent = opponent_edit.strip() if opponent_edit.strip() else upcoming_opponent_readonly
+    final_date = match_date_edit.isoformat() if match_date_edit else ""
+    final_time = time_edit.strip() if time_edit.strip() else kickoff_time_readonly
+    final_location = location_edit.strip() if location_edit.strip() else location_readonly
+
     profile_payload = {
         "preferred_formation": preferred_formation_value,
         "play_style_identity": play_style_value,
@@ -696,9 +752,10 @@ if submitted:
         "key_players_notes": key_players_input,
         "injury_notes": injuries_input,
         "general_notes": notes_input.strip(),
-        "upcoming_match_date": upcoming_match_date_value.isoformat() if upcoming_match_date_value else "",
-        "kickoff_time": kickoff_time_readonly,
-        "upcoming_opponent": upcoming_opponent_readonly,
+        "upcoming_match_date": final_date,
+        "kickoff_time": final_time,
+        "upcoming_opponent": final_opponent,
+        "location": final_location,
     }
     try:
         team_profile.save_team_profile(profile_data_path, team_id, profile_payload)
