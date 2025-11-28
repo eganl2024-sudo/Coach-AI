@@ -311,6 +311,164 @@ def load_practice_session_from_record(row: pd.Series) -> Optional[PracticeSessio
         return None
 
 
+def save_practice_session(
+    team_id: str,
+    session_obj: PracticeSession,
+    data_path: Path | str,
+    session_dict: Dict | None = None,
+) -> bool:
+    """
+    Save a generated PracticeSession to the team's practice history.
+
+    This is the main entry point used by the Practice Generator UI.
+    It loads existing history, appends a new row, and writes back to disk.
+
+    Args:
+        team_id: The team identifier
+        session_obj: The PracticeSession object to save
+        data_path: Path to the data directory
+        session_dict: Optional pre-built row dictionary; if None, built from session_obj
+
+    Returns:
+        True if successfully saved, False otherwise
+    """
+    try:
+        # Load existing history for this team
+        history_df = load_practice_history(team_id, data_path)
+
+        # Build the new row from session_obj and optional session_dict
+        if session_dict is None:
+            session_dict = {}
+
+        config_obj = getattr(session_obj, "config", None)
+        new_row = {
+            "session_date": str(getattr(session_obj, "session_date", "")),
+            "session_name": session_dict.get(
+                "session_name",
+                getattr(session_obj, "session_name", f"Practice {session_obj.session_date}"),
+            ),
+            "session_notes": session_dict.get(
+                "session_notes",
+                getattr(config_obj, "session_notes", "") if config_obj else "",
+            ),
+            "total_time": int(session_dict.get("total_time", session_obj.duration_minutes)),
+            "num_players": int(session_dict.get("num_players", session_obj.num_players)),
+            "drills_used": "|".join(
+                str(d) for d in session_dict.get("drills_used", [d.drill_id for d in session_obj.drills])
+            ),
+            "categories": "|".join(
+                str(c) for c in session_dict.get("categories", session_obj.selected_categories)
+            ),
+            "is_favorite": session_dict.get("is_favorite", False),
+            "session_structure": json.dumps(_session_to_payload_dict(session_obj)),
+            "team_id": team_id,
+            "team_name": getattr(session_obj, "team_name", ""),
+        }
+
+        # Append to history
+        new_df = pd.DataFrame([new_row])
+        history_df = pd.concat([history_df, new_df], ignore_index=True)
+
+        # Save back to disk
+        save_practice_history(history_df, data_path, team_id)
+        return True
+
+    except Exception as exc:
+        print(f"Error saving practice session: {exc}")
+        return False
+
+
+def _session_to_payload_dict(session: PracticeSession) -> Dict:
+    """Convert a PracticeSession to a serializable dictionary for storage."""
+    return {
+        "session_id": getattr(session, "session_id", ""),
+        "team_id": getattr(session, "team_id", ""),
+        "team_name": getattr(session, "team_name", ""),
+        "session_date": getattr(session, "session_date", ""),
+        "duration_minutes": getattr(session, "duration_minutes", 0),
+        "num_players": getattr(session, "num_players", 0),
+        "num_drills": getattr(session, "num_drills", 0),
+        "selected_categories": getattr(session, "selected_categories", []),
+        "config": {
+            "duration_minutes": getattr(getattr(session, "config", None), "duration_minutes", 0),
+            "num_players": getattr(getattr(session, "config", None), "num_players", 0),
+            "session_date": getattr(getattr(session, "config", None), "session_date", ""),
+            "session_notes": getattr(getattr(session, "config", None), "session_notes", ""),
+            "selected_categories": getattr(getattr(session, "config", None), "selected_categories", []),
+            "focus_tags": getattr(getattr(session, "config", None), "focus_tags", []),
+            "favorites_only": getattr(getattr(session, "config", None), "favorites_only", False),
+            "use_team_profile": getattr(getattr(session, "config", None), "use_team_profile", True),
+            "template_blocks": getattr(getattr(session, "config", None), "template_blocks", None),
+        },
+        "drills": [
+            {
+                "drill_id": getattr(d, "drill_id", ""),
+                "drill_name": getattr(d, "drill_name", ""),
+                "category": getattr(d, "category", ""),
+                "intensity": getattr(d, "intensity", ""),
+                "allocated_time": getattr(d, "allocated_time", 0),
+                "target_intensity": getattr(d, "target_intensity", ""),
+            }
+            for d in getattr(session, "drills", [])
+        ],
+        "team_profile_summary": getattr(session, "team_profile_summary", {}),
+        "equipment_needed": getattr(session, "equipment_needed", []),
+        "category_summary": getattr(session, "category_summary", {}),
+        "intensity_summary": getattr(session, "intensity_summary", {}),
+        "manual_adjustments": getattr(session, "manual_adjustments", {}),
+        "block_duration_summaries": getattr(session, "block_duration_summaries", []),
+        "template_notes": getattr(session, "template_notes", []),
+        "warnings": getattr(session, "warnings", []),
+    }
+
+
+def update_drill_library_usage(drill_ids: list, drills_df: pd.DataFrame, data_path: Path | str) -> bool:
+    """
+    Update usage counts for drills in the drill library.
+
+    Increments the usage count for each drill that was used in the session.
+
+    Args:
+        drill_ids: List of drill_id strings that were used
+        drills_df: The drills DataFrame
+        data_path: Path to the data directory
+
+    Returns:
+        True if successfully updated, False otherwise
+    """
+    if drills_df is None or drills_df.empty:
+        return False
+
+    try:
+        work_df = drills_df.copy()
+
+        # Ensure usage column exists
+        if "usage_count" not in work_df.columns:
+            work_df["usage_count"] = 0
+
+        # Increment usage for drills that were used
+        for drill_id in drill_ids:
+            if "drill_id" in work_df.columns:
+                mask = work_df["drill_id"] == drill_id
+                if mask.any():
+                    for idx in work_df[mask].index:
+                        try:
+                            val = work_df.at[idx, "usage_count"]
+                            current = int(float(val)) if val not in [None, "", "NaN"] else 0
+                        except Exception:
+                            current = 0
+                        work_df.at[idx, "usage_count"] = current + 1
+
+        # Save the updated drills dataframe
+        drills_path = Path(data_path) / "drills.csv"
+        work_df.to_csv(drills_path, index=False)
+        return True
+
+    except Exception as exc:
+        print(f"Error updating drill library usage: {exc}")
+        return False
+
+
 def save_session_as_template(session: PracticeSession, data_path: Path | str) -> Tuple[bool, str]:
     """Persist a PracticeSession as a block template; duplicate-safe."""
     try:
