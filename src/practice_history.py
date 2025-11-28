@@ -377,7 +377,6 @@ def save_practice_session(
         status = "planned" if session_date > today else "completed"
 
         new_row = {
-            "session_id": session_id,
             "session_date": session_date_str,
             "session_name": session_dict.get(
                 "session_name",
@@ -400,10 +399,17 @@ def save_practice_session(
             "team_id": team_id,
             "team_name": getattr(session_obj, "team_name", ""),
             "status": status,
+            "session_id": session_id,
         }
 
-        # Append to history
+        # Append to history - reorder columns to match HISTORY_COLUMNS
         new_df = pd.DataFrame([new_row])
+        # Select columns in the correct order, adding any missing columns from history_df
+        all_columns = list(history_df.columns) if not history_df.empty else HISTORY_COLUMNS
+        for col in HISTORY_COLUMNS:
+            if col not in new_df.columns:
+                new_df[col] = None
+        new_df = new_df[all_columns]
         history_df = pd.concat([history_df, new_df], ignore_index=True)
 
         # Save back to disk
