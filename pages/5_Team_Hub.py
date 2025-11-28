@@ -465,6 +465,38 @@ formation_index = formation_options.index(current_formation) if current_formatio
 st.divider()
 st.markdown("## Match Plan & Coach Notes")
 st.caption("Capture how you want this team to set up for the next match.")
+
+# Upcoming match banner row
+today_ts = pd.Timestamp.today().normalize()
+next_seven = today_ts + pd.Timedelta(days=7)
+match_row = None
+if next_match_row is not None:
+    event_dt = pd.to_datetime(next_match_row.get("event_date"), errors="coerce")
+    if pd.notna(event_dt) and today_ts <= event_dt.normalize() <= next_seven:
+        match_row = next_match_row
+
+if match_row is not None:
+    opp_text = str(match_row.get("opponent", "") or "TBD").strip()
+    kickoff_disp = kickoff_time_readonly or "TBD"
+    location_disp = str(match_row.get("location", "") or "TBD").strip()
+
+    st.markdown(
+        f"""
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; background-color:#f8f9fa; border-radius:8px; margin-bottom:1.5rem;">
+            <div style="flex:1; text-align:left;">
+                <div style="font-weight:700; font-size:1.1rem;">{opp_text}</div>
+            </div>
+            <div style="flex:0.7; text-align:center;">
+                <div style="font-weight:700; font-size:1.1rem;">{kickoff_disp}</div>
+            </div>
+            <div style="flex:1; text-align:right;">
+                <div style="font-weight:700; font-size:1.1rem;">{location_disp}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 with st.container():
     st.markdown(
         "<div style='padding:1rem 1.25rem; border:1px solid #e5e5e5; border-radius:0.75rem; background-color:#fafafa;'>",
@@ -519,50 +551,6 @@ with st.container():
             value=match_date_value or pd.Timestamp.today().date(),
             key="upcoming_match_date",
             help="Select the next fixture date.",
-        )
-
-        # Upcoming match display row
-        today_ts = pd.Timestamp.today().normalize()
-        next_seven = today_ts + pd.Timedelta(days=7)
-        match_row = None
-        if next_match_row is not None:
-            event_dt = pd.to_datetime(next_match_row.get("event_date"), errors="coerce")
-            if pd.notna(event_dt) and today_ts <= event_dt.normalize() <= next_seven:
-                match_row = next_match_row
-
-        row_cols = st.columns([3, 2, 2])
-        if match_row is not None:
-            opp_text = str(match_row.get("opponent", "") or "TBD").strip()
-            kickoff_disp = kickoff_time_readonly or "TBD"
-            location_disp = str(match_row.get("location", "") or "TBD").strip()
-
-            with row_cols[0]:
-                st.markdown(f"<div style='font-weight:700; font-size:1rem;'>{opp_text}</div>", unsafe_allow_html=True)
-            with row_cols[1]:
-                st.markdown(f"<div style='font-weight:700; font-size:1rem;'>{kickoff_disp}</div>", unsafe_allow_html=True)
-            with row_cols[2]:
-                st.markdown(
-                    f"<div style='border:1px solid #ddd; border-radius:6px; padding:0.35rem 0.5rem; font-size:0.9rem;'>{location_disp}</div>",
-                    unsafe_allow_html=True,
-                )
-        else:
-            st.markdown("No match scheduled this week.")
-
-        st.markdown("---")
-
-        st.text_input(
-            "Kickoff time",
-            value=kickoff_time_readonly or "TBD",
-            key="kickoff_time_readonly",
-            disabled=True,
-        )
-
-        upcoming_opponent_value = st.text_input(
-            "Upcoming opponent",
-            value=upcoming_opponent_readonly or upcoming_opponent_default,
-            key="upcoming_opponent",
-            placeholder="Opponent name",
-            disabled=True,
         )
 
     with col_right:
