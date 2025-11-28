@@ -1066,10 +1066,44 @@ if st.session_state.get("practice_config"):
                 st.markdown(f"#### Tonight's plan for {session.team_name}")
                 focus_label = session.config.session_notes or "Session focus"
                 st.caption(f"{session.session_date} · Focus: {focus_label}")
-                summary_cols = st.columns(3)
-                summary_cols[0].metric("Duration", f"{session.duration_minutes} min")
-                summary_cols[1].metric("Players", session.num_players)
-                summary_cols[2].metric("Categories", ", ".join(session.selected_categories))
+
+                # Session Overview header
+                st.markdown("### Session Overview")
+                overview_cols = st.columns([1.3, 1, 2])
+
+                with overview_cols[0]:
+                    st.markdown(
+                        f"""
+                        <div style="font-size:14px; color:#666;">Duration</div>
+                        <div style="font-size:22px; font-weight:600; margin-top:-4px;">
+                            {session.duration_minutes} min
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                with overview_cols[1]:
+                    st.markdown(
+                        f"""
+                        <div style="font-size:14px; color:#666;">Players</div>
+                        <div style="font-size:22px; font-weight:600; margin-top:-4px;">
+                            {session.num_players}
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                with overview_cols[2]:
+                    formatted_categories = " • ".join(session.selected_categories)
+                    st.markdown(
+                        f"""
+                        <div style="font-size:14px; color:#666;">Categories</div>
+                        <div style="font-size:18px; font-weight:500; margin-top:-4px; white-space:nowrap; overflow:hidden;">
+                            {formatted_categories}
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
             duration_summaries = getattr(session, "block_duration_summaries", []) or []
             if duration_summaries:
@@ -1148,13 +1182,13 @@ if st.session_state.get("practice_config"):
                         st.session_state.prefill_drill = drill.to_dict()
                         st.switch_page("pages/6_Edit_Drill.py")
                     can_move_up, can_move_down = can_move_up_down(len(session.drills), global_idx)
-                    if ctrl_cols[3].button("Up", key=f"move_up_{global_idx}", disabled=not can_move_up):
+                    if ctrl_cols[3].button("↑", key=f"move_up_{global_idx}", disabled=not can_move_up, help="Move this drill up"):
                         if move_drill_in_session(session, global_idx, "up"):
                             _refresh_block_indices(session.drills)
                             _recompute_session_details(session)
                             st.session_state.current_session = session
                             st.rerun()
-                    if ctrl_cols[4].button("Down", key=f"move_down_{global_idx}", disabled=not can_move_down):
+                    if ctrl_cols[4].button("↓", key=f"move_down_{global_idx}", disabled=not can_move_down, help="Move this drill down"):
                         if move_drill_in_session(session, global_idx, "down"):
                             _refresh_block_indices(session.drills)
                             _recompute_session_details(session)
@@ -1235,81 +1269,6 @@ if st.session_state.get("practice_config"):
                                             practice_generator.DrillScoreBreakdown(**chosen_bd)
                                         ))
 
-                btn_cols = st.columns(1)
-                with btn_cols[0]:
-                    if st.button("Replace", key=f"replace_{block_key}_{global_idx}"):
-                        st.session_state.replace_target_index = global_idx
-                if st.session_state.get("replace_target_index") == global_idx:
-                    with st.expander("Replace Drill", expanded=True):
-                        recency_map = st.session_state.practice_config.get("drill_recency", {})
-                        focus_tags = config_data.get("focus_tags", [])
-                        candidates = []
-                        for _, candidate in st.session_state.drills_df.iterrows():
-                            if candidate['drill_id'] == drill.drill_id:
-                                continue
-                            candidate_block = practice_generator.CATEGORY_TO_BLOCK.get(candidate['category'], "technical")
-                            if candidate_block != (drill.block_type or candidate_block):
-                                continue
-                            if recency_map.get(candidate['drill_id'], {}).get("label") == "Recent":
-                                continue
-                            scored = practice_generator._score_replacement_candidate(
-                                drill,
-                                candidate.to_dict(),
-                                focus_tags,
-                                config_data.get("num_players", drill.players_max),
-                                recency_map,
-                            )
-                            candidates.append(scored)
-                            if len(candidates) >= 5:
-                                break
-                        candidates.sort(key=lambda item: item.score, reverse=True)
-                        if not candidates:
-                            st.write("No matching replacements available. Try expanding your drill library.")
-                        else:
-                            explanation_helper = []
-                            option_labels = []
-                            for item in candidates:
-                                drill_row = item.drill
-                                expl = item.explanation
-                                checks = []
-                                if expl.matches_block_type:
-                                    checks.append("same block")
-                                if expl.matches_intensity:
-                                    checks.append("intensity match")
-                                if expl.matches_players:
-                                    checks.append("fits players")
-                                if expl.matches_focus_tags:
-                                    checks.append("matches focus tags")
-                                if expl.underused_recently:
-                                    checks.append("underused recently")
-                                if not checks:
-                                    checks.append("looser match")
-                                explanation_helper.append(", ".join(checks))
-                                option_labels.append(
-                                    f"{drill_row['drill_name']} ({drill_row['drill_id']}) - {drill_row.get('duration_minutes', drill.allocated_time)} min"
-                                )
-                            choice = st.selectbox(
-                                "Choose replacement",
-                                options=range(len(candidates)),
-                                format_func=lambda i: option_labels[i],
-                            )
-                            st.caption(explanation_helper[choice])
-                            if st.button("Confirm Replacement", key=f"confirm_replace_{block_key}_{global_idx}"):
-                                selected = candidates[choice].drill
-                                selected['allocated_time'] = drill.allocated_time
-                                selected['target_intensity'] = drill.target_intensity
-                                selected['recency_label'] = recency_map.get(selected['drill_id'], {}).get("label", "New")
-                                selected['block_type'] = practice_generator.CATEGORY_TO_BLOCK.get(
-                                    selected.get('category'), "technical"
-                                )
-                                new_drill = SessionDrill.from_dict(selected)
-                                session.drills[global_idx] = new_drill
-                                session.manual_adjustments["replaced"] = session.manual_adjustments.get("replaced", 0) + 1
-                                _refresh_block_indices(session.drills)
-                                _recompute_session_details(session)
-                                st.session_state.current_session = session
-                                st.session_state.pop("replace_target_index", None)
-                                st.rerun()
 
             with st.expander("Block Template Tools", expanded=False):
                 st.markdown("**Save current session as a block template**")
