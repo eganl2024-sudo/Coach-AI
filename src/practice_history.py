@@ -387,8 +387,12 @@ def save_practice_session(
     try:
         from datetime import date as date_cls
 
+        print(f"[HISTORY] Starting save_practice_session for team {team_id}")
+
         # Load existing history for this team
+        print(f"[HISTORY] Loading practice history...")
         history_df = load_practice_history(team_id, data_path)
+        print(f"[HISTORY] Loaded {len(history_df)} existing rows")
 
         # Build the new row from session_obj and optional session_dict
         if session_dict is None:
@@ -408,49 +412,80 @@ def save_practice_session(
 
         today = date_cls.today()
         status = "planned" if session_date > today else "completed"
+        print(f"[HISTORY] Session status: {status} (date: {session_date_str})")
 
-        new_row = {
-            "session_date": session_date_str,
-            "session_name": session_dict.get(
-                "session_name",
-                getattr(session_obj, "session_name", f"Practice {session_obj.session_date}"),
-            ),
-            "session_notes": session_dict.get(
-                "session_notes",
-                getattr(config_obj, "session_notes", "") if config_obj else "",
-            ),
-            "total_time": int(session_dict.get("total_time", session_obj.duration_minutes)),
-            "num_players": int(session_dict.get("num_players", session_obj.num_players)),
-            "drills_used": "|".join(
-                str(d) for d in session_dict.get("drills_used", [d.drill_id for d in session_obj.drills])
-            ),
-            "categories": "|".join(
-                str(c) for c in session_dict.get("categories", session_obj.selected_categories)
-            ),
-            "is_favorite": session_dict.get("is_favorite", False),
-            "session_structure": json.dumps(_session_to_payload_dict(session_obj)),
-            "team_id": team_id,
-            "team_name": getattr(session_obj, "team_name", ""),
-            "status": status,
-            "session_id": session_id,
-        }
+        print(f"[HISTORY] Building new row...")
+        try:
+            new_row = {
+                "session_date": session_date_str,
+                "session_name": session_dict.get(
+                    "session_name",
+                    getattr(session_obj, "session_name", f"Practice {session_obj.session_date}"),
+                ),
+                "session_notes": session_dict.get(
+                    "session_notes",
+                    getattr(config_obj, "session_notes", "") if config_obj else "",
+                ),
+                "total_time": int(session_dict.get("total_time", session_obj.duration_minutes)),
+                "num_players": int(session_dict.get("num_players", session_obj.num_players)),
+                "drills_used": "|".join(
+                    str(d) for d in session_dict.get("drills_used", [d.drill_id for d in session_obj.drills])
+                ),
+                "categories": "|".join(
+                    str(c) for c in session_dict.get("categories", session_obj.selected_categories)
+                ),
+                "is_favorite": session_dict.get("is_favorite", False),
+                "session_structure": json.dumps(_session_to_payload_dict(session_obj)),
+                "team_id": team_id,
+                "team_name": getattr(session_obj, "team_name", ""),
+                "status": status,
+                "session_id": session_id,
+            }
+            print(f"[HISTORY] New row built successfully")
+        except Exception as e:
+            print(f"[ERROR] Failed to build new_row: {e}")
+            import traceback
+            print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
+            raise
 
         # Append to history - reorder columns to match HISTORY_COLUMNS
-        new_df = pd.DataFrame([new_row])
-        # Select columns in the correct order, adding any missing columns from history_df
-        all_columns = list(history_df.columns) if not history_df.empty else HISTORY_COLUMNS
-        for col in HISTORY_COLUMNS:
-            if col not in new_df.columns:
-                new_df[col] = None
-        new_df = new_df[all_columns]
-        history_df = pd.concat([history_df, new_df], ignore_index=True)
+        try:
+            print(f"[HISTORY] Creating DataFrame from new row...")
+            new_df = pd.DataFrame([new_row])
+            print(f"[HISTORY] New DataFrame created with columns: {list(new_df.columns)}")
+
+            # Select columns in the correct order, adding any missing columns from history_df
+            all_columns = list(history_df.columns) if not history_df.empty else HISTORY_COLUMNS
+            print(f"[HISTORY] Target columns: {all_columns}")
+
+            for col in HISTORY_COLUMNS:
+                if col not in new_df.columns:
+                    print(f"[HISTORY] Adding missing column: {col}")
+                    new_df[col] = None
+
+            new_df = new_df[all_columns]
+            print(f"[HISTORY] DataFrame reordered successfully")
+
+            history_df = pd.concat([history_df, new_df], ignore_index=True)
+            print(f"[HISTORY] Concatenation successful, now have {len(history_df)} rows")
+        except Exception as e:
+            print(f"[ERROR] Failed during DataFrame manipulation: {e}")
+            import traceback
+            print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
+            raise
 
         # Save back to disk
-        print(f"[HISTORY] About to save {len(history_df)} rows for team {team_id}")
-        print(f"[HISTORY] Data path: {data_path}")
-        save_practice_history(history_df, data_path, team_id)
-        print(f"[HISTORY] Successfully saved practice session with status={status}")
-        return True, status
+        try:
+            print(f"[HISTORY] About to save {len(history_df)} rows for team {team_id}")
+            print(f"[HISTORY] Data path: {data_path}")
+            save_practice_history(history_df, data_path, team_id)
+            print(f"[HISTORY] Successfully saved practice session with status={status}")
+            return True, status
+        except Exception as e:
+            print(f"[ERROR] Failed during save_practice_history: {e}")
+            import traceback
+            print(f"[ERROR] Traceback:\n{traceback.format_exc()}")
+            raise
 
     except Exception as exc:
         import traceback
