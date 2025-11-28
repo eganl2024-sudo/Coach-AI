@@ -102,7 +102,7 @@ if st.session_state.get("reset_filters_history_trigger"):
     st.session_state.reset_filters_history_trigger = False
 
 # --- controls ---------------------------------------------------------------
-controls_time, controls_fav, controls_sort = st.columns([1.6, 1.0, 1.2])
+controls_time, controls_fav = st.columns([1.6, 1.0])
 with controls_time:
     time_window = st.radio(
         "Time window",
@@ -112,20 +112,18 @@ with controls_time:
     )
 with controls_fav:
     show_favorites_only = st.toggle("Show favorites only", value=False, key="favorites_only_toggle_history")
-with controls_sort:
-    sort_options = [
-        "Date (newest)",
-        "Date (oldest)",
-        "Favorites first",
-        "Intensity (low to high)",
-        "Intensity (high to low)",
-    ]
-    sort_by = st.selectbox(
-        "Sort by",
-        sort_options,
-        index=0,
-        key="sort_by_select_history2",
-    )
+
+# Initialize sort_by with default
+sort_options = [
+    "Date (newest)",
+    "Date (oldest)",
+    "Favorites first",
+    "Intensity (low to high)",
+    "Intensity (high to low)",
+]
+if "sort_by_select_history2" not in st.session_state:
+    st.session_state.sort_by_select_history2 = "Date (newest)"
+
 st.markdown("")  # spacer
 
 # category/intensity filters
@@ -310,20 +308,35 @@ elif time_window == "Last 30 days":
             if col.button(label, key=f"last30_day_{day_obj.isoformat()}", **btn_kwargs) and sessions_for_day > 0:
                 st.session_state.selected_day_history = day_obj
 
-            practice_count = min(practice_by_day.get(day_obj, 0), 5)
-            game_count = min(game_by_day.get(day_obj, 0), 5)
+            # Build dots for this day - show up to 3 total dots
+            total_sessions = sessions_for_day
+            practice_raw = practice_by_day.get(day_obj, 0)
+            game_raw = game_by_day.get(day_obj, 0)
+
+            # Allocate dots: prioritize practices first, then games, up to 3 total
+            practice_count = min(practice_raw, 3)
+            remaining_dots = 3 - practice_count
+            game_count = min(game_raw, remaining_dots)
+
+            # If total > 3, add tooltip with actual count
+            tooltip_title = ""
+            if total_sessions > 3:
+                tooltip_title = f'title="{total_sessions} sessions"'
+
             dot_spans = []
+            # Black dots for practices
             dot_spans.extend(
-                "<span style='display:inline-block; width:6px; height:6px; border-radius:3px; background-color:black;'></span>"
+                "<span style='display:inline-block; width:5px; height:5px; border-radius:50%; background-color:#000; margin:0 2px;'></span>"
                 for _ in range(practice_count)
             )
+            # Green dots for games
             dot_spans.extend(
-                "<span style='display:inline-block; width:6px; height:6px; border-radius:3px; background-color:#2ecc71;'></span>"
+                "<span style='display:inline-block; width:5px; height:5px; border-radius:50%; background-color:#20a020; margin:0 2px;'></span>"
                 for _ in range(game_count)
             )
             dots_html = "".join(dot_spans)
             col.markdown(
-                "<div style='height:0.765rem; margin-top:1.7px; display:flex; justify-content:center; gap:0.15rem; transform:translateX(-2.1rem);'>"
+                f"<div {tooltip_title} style='height:0.6rem; margin-top:2px; text-align:center;'>"
                 f"{dots_html}"
                 "</div>",
                 unsafe_allow_html=True,
@@ -353,21 +366,8 @@ if selected_day and time_window in ("This week", "Last 30 days"):
 else:
     display_df = pre_day_df.copy()
 
-# sorting
-if sort_by == "Date (oldest)":
-    display_df = display_df.sort_values(by="date_norm", ascending=True)
-elif sort_by == "Favorites first" and fav_col:
-    display_df = display_df.sort_values(by=[fav_col, "date_norm"], ascending=[False, False])
-elif sort_by == "Intensity (low to high)":
-    df_sorted = display_df.copy()
-    df_sorted["intensity_sort"] = df_sorted["avg_intensity_score"].fillna(float("inf"))
-    display_df = df_sorted.sort_values(by=["intensity_sort", "date_norm"], ascending=[True, False])
-elif sort_by == "Intensity (high to low)":
-    df_sorted = display_df.copy()
-    df_sorted["intensity_sort"] = df_sorted["avg_intensity_score"].fillna(-float("inf"))
-    display_df = df_sorted.sort_values(by=["intensity_sort", "date_norm"], ascending=[False, False])
-else:
-    display_df = display_df.sort_values(by="date_norm", ascending=False)
+# sorting (deferred until after sort_by control is rendered in Timeline section)
+# We'll apply sorting after the Timeline header/sort dropdown is rendered
 
 display_df = display_df.reset_index(drop=True)
 
@@ -377,13 +377,10 @@ def _summary_bar(df: pd.DataFrame) -> None:
     num_sessions = len(df)
 
     avg_minutes = "N/A"
-    median_minutes = "N/A"
     if "total_time" in df.columns and len(df):
         try:
             avg_val = df["total_time"].mean()
-            med_val = df["total_time"].median()
             avg_minutes = f"{int(round(avg_val))} min" if not pd.isna(avg_val) else "N/A"
-            median_minutes = f"{int(round(med_val))} min" if not pd.isna(med_val) else "N/A"
         except Exception:
             pass
 
@@ -410,20 +407,21 @@ def _summary_bar(df: pd.DataFrame) -> None:
         if cats:
             common_focus = pd.Series(cats).value_counts().idxmax()
 
-    date_range = "No sessions in selected range"
+    date_range = "No sessions"
     if len(df) and "date_norm" in df.columns:
         earliest = df["date_norm"].min()
         latest = df["date_norm"].max()
-        date_range = f"{earliest:%Y-%m-%d} to {latest:%Y-%m-%d}"
+        date_range = f"{earliest.strftime('%b %d')} to {latest.strftime('%b %d')}"
 
     st.markdown("**Summary for displayed sessions**")
-    c1, c2, c3, c4, c5, c6 = st.columns(6)
+    c1, c2, c3, c4, c5 = st.columns([1, 1, 1, 1.4, 1])
     c1.metric("Total sessions", num_sessions)
     c2.metric("Average length", avg_minutes)
-    c3.metric("Median length", median_minutes)
-    c4.metric("Most common category", common_focus)
-    c5.metric("Date range", date_range)
-    c6.metric("Average intensity", avg_intensity_metric)
+    c3.metric("Most common", common_focus)
+    with c4:
+        st.caption("Date range")
+        st.markdown(f"<div style='font-size:14px; font-weight:600; white-space:nowrap;'>{date_range}</div>", unsafe_allow_html=True)
+    c5.metric("Average intensity", avg_intensity_metric)
 
 
 # detail modal
@@ -442,8 +440,9 @@ if "viewing_session" in st.session_state:
 # --- summary + timeline -----------------------------------------------------
 _summary_bar(display_df)
 
-st.subheader("Timeline")
+# --- Timeline section with sort dropdown ---
 if len(display_df) == 0:
+    st.subheader("Timeline")
     if st.session_state.selected_day_history:
         selected_label = st.session_state.selected_day_history.strftime("%a %b %d")
         st.info(
@@ -456,6 +455,9 @@ if len(display_df) == 0:
             "Try changing the time window, categories, or intensity levels."
         )
 else:
+    # Timeline header with sort dropdown
+    timeline_col, sort_col = st.columns([3, 2])
+
     if time_window == "This week":
         timeline_label = "This Week"
     elif time_window == "Last 30 days":
@@ -466,11 +468,41 @@ else:
     if selected_day:
         timeline_label = f"{timeline_label} - {selected_day:%a %b %d}"
 
-    st.markdown(f"### {timeline_label}")
+    with timeline_col:
+        st.markdown(f"### {timeline_label}")
+
+    with sort_col:
+        st.markdown("<div style='font-size:12px; color:#888; margin-bottom:2px;'>Sort by</div>", unsafe_allow_html=True)
+        sort_by = st.selectbox(
+            "Sort by",
+            sort_options,
+            index=sort_options.index(st.session_state.sort_by_select_history2) if st.session_state.sort_by_select_history2 in sort_options else 0,
+            key="sort_by_select_history2",
+            label_visibility="collapsed",
+        )
+
+    # Apply sorting based on selected option
+    if sort_by == "Date (oldest)":
+        display_df = display_df.sort_values(by="date_norm", ascending=True)
+    elif sort_by == "Favorites first" and fav_col:
+        display_df = display_df.sort_values(by=[fav_col, "date_norm"], ascending=[False, False])
+    elif sort_by == "Intensity (low to high)":
+        df_sorted = display_df.copy()
+        df_sorted["intensity_sort"] = df_sorted["avg_intensity_score"].fillna(float("inf"))
+        display_df = df_sorted.sort_values(by=["intensity_sort", "date_norm"], ascending=[True, False])
+    elif sort_by == "Intensity (high to low)":
+        df_sorted = display_df.copy()
+        df_sorted["intensity_sort"] = df_sorted["avg_intensity_score"].fillna(-float("inf"))
+        display_df = df_sorted.sort_values(by=["intensity_sort", "date_norm"], ascending=[False, False])
+    else:  # Date (newest)
+        display_df = display_df.sort_values(by="date_norm", ascending=False)
+
+    display_df = display_df.reset_index(drop=True)
 
     for idx, session_row in display_df.iterrows():
         session_date = session_row.get("date_norm")
         session_name = session_row.get("session_name") or "Practice"
+        session_id = session_row.get("session_id", None)
         total_time = session_row.get("total_time", 0)
         categories = session_row.get("categories", "")
         num_players = session_row.get("num_players", 0)
@@ -524,40 +556,19 @@ else:
                     st.session_state["viewing_session"] = session_row.to_dict()
                     st.rerun()
                 if st.button("Reuse session", key=f"reuse_{idx}", type="secondary"):
-                    session_structure = session_row.get("session_structure", "")
-                    if session_structure:
-                        try:
-                            data = json.loads(session_structure)
-                            drills = [SessionDrill.from_dict(d) for d in data.get("drills", [])]
-                            cfg_dict = data.get("config", {})
-                            config_obj = PracticeConfig(**cfg_dict) if cfg_dict else PracticeConfig(
-                                duration_minutes=data.get("duration_minutes", 90),
-                                num_players=data.get("num_players", 16),
-                                num_drills=len(drills),
-                                selected_categories=data.get("selected_categories", []),
-                                session_date=str(session_date),
-                                session_notes=data.get("session_notes", ""),
-                            )
-                            session_obj = PracticeSession(
-                                session_id=data.get("session_id", "reuse"),
-                                team_id=data.get("team_id", team_id),
-                                team_name=data.get("team_name", team.get("team_name", "")),
-                                session_date=data.get("session_date", str(session_date)),
-                                config=config_obj,
-                                duration_minutes=data.get("duration_minutes", config_obj.duration_minutes),
-                                num_players=data.get("num_players", config_obj.num_players),
-                                num_drills=len(drills),
-                                selected_categories=data.get("selected_categories", config_obj.selected_categories),
-                                drills=drills,
-                                team_profile_summary=data.get("team_profile_summary", {}),
-                                equipment_needed=data.get("equipment_needed", []),
-                                category_summary=data.get("category_summary", {}),
-                                intensity_summary=data.get("intensity_summary", {}),
-                            )
-                            st.session_state.current_session = session_obj
-                        except Exception:
-                            st.session_state.current_session = None
+                    # Use the new load function if session_id is available
+                    if session_id:
+                        loaded_session = practice_history.load_practice_session_by_id(
+                            team_id=team_id,
+                            session_id=session_id,
+                            data_path=st.session_state.data_path,
+                        )
+                        if loaded_session:
+                            st.session_state.current_session = loaded_session
+                        else:
+                            st.warning("Could not load session details")
                     else:
+                        # Fallback if no session_id
                         ui_session.set_practice_config(
                             duration_minutes=total_time or 90,
                             num_players=num_players or 16,

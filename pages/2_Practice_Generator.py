@@ -600,6 +600,24 @@ if 'generation_error' not in st.session_state:
 if 'show_scoring_debug' not in st.session_state:
     st.session_state.show_scoring_debug = False
 
+# Handle reused session from Past Sessions page
+if (st.session_state.current_session is None and
+    st.session_state.get("reuse_session_id") is not None):
+    try:
+        team_id = st.session_state.selected_team.get("team_id")
+        reused = practice_history.load_practice_session_by_id(
+            team_id=team_id,
+            session_id=st.session_state.get("reuse_session_id"),
+            data_path=st.session_state.data_path,
+        )
+        if reused:
+            st.session_state.current_session = reused
+    except Exception as e:
+        st.error(f"Could not load reused session: {e}")
+    finally:
+        # Clear the reuse flag so it doesn't retrigger on rerun
+        st.session_state.pop("reuse_session_id", None)
+
 is_coach = ui_session.is_coach_mode()
 is_dev = ui_session.is_developer_mode()
 

@@ -341,7 +341,12 @@ def save_practice_session(
             session_dict = {}
 
         config_obj = getattr(session_obj, "config", None)
+        # Generate a unique session_id if not already present
+        import uuid
+        session_id = getattr(session_obj, "session_id", None) or str(uuid.uuid4())
+
         new_row = {
+            "session_id": session_id,
             "session_date": str(getattr(session_obj, "session_date", "")),
             "session_name": session_dict.get(
                 "session_name",
@@ -420,6 +425,106 @@ def _session_to_payload_dict(session: PracticeSession) -> Dict:
         "template_notes": getattr(session, "template_notes", []),
         "warnings": getattr(session, "warnings", []),
     }
+
+
+def load_practice_session_by_id(team_id: str, session_id: str, data_path: Path | str) -> PracticeSession | None:
+    """
+    Load and reconstruct a PracticeSession from history by its session_id.
+
+    This enables the "Reuse session" functionality by loading the exact
+    session that was saved previously, with all drills in the same order.
+
+    Args:
+        team_id: The team identifier
+        session_id: The session_id to load
+        data_path: Path to the data directory
+
+    Returns:
+        A reconstructed PracticeSession object, or None if not found
+    """
+    from datetime import date as date_cls
+
+    try:
+        history_df = load_practice_history(team_id, data_path)
+        if history_df.empty:
+            return None
+
+        # Find the row with matching session_id
+        mask = history_df["session_id"] == session_id
+        if not mask.any():
+            return None
+
+        row = history_df[mask].iloc[0]
+
+        # Reconstruct from the saved session_structure JSON
+        if pd.isna(row.get("session_structure")) or row.get("session_structure") == "":
+            return None
+
+        session_dict = json.loads(row["session_structure"])
+
+        # Reconstruct drills with all required parameters
+        drills = []
+        for drill_data in session_dict.get("drills", []):
+            drill = SessionDrill(
+                drill_id=drill_data.get("drill_id", ""),
+                drill_name=drill_data.get("drill_name", ""),
+                category=drill_data.get("category", ""),
+                intensity=drill_data.get("intensity", ""),
+                players_min=drill_data.get("players_min", 6),
+                players_max=drill_data.get("players_max", 30),
+                field_type=drill_data.get("field_type", "Full"),
+                description=drill_data.get("description", ""),
+                coaching_points=drill_data.get("coaching_points", ""),
+                equipment=drill_data.get("equipment", ""),
+                setup_data=drill_data.get("setup_data", ""),
+                allocated_time=drill_data.get("allocated_time", 0),
+                target_intensity=drill_data.get("target_intensity", ""),
+            )
+            drills.append(drill)
+
+        # Reconstruct config
+        config_data = session_dict.get("config", {})
+        num_drills_val = len(drills)
+        config = PracticeConfig(
+            duration_minutes=config_data.get("duration_minutes", 90),
+            num_players=config_data.get("num_players", 12),
+            num_drills=num_drills_val,
+            selected_categories=config_data.get("selected_categories", []),
+            session_date=config_data.get("session_date", str(date_cls.today())),
+            session_notes=config_data.get("session_notes", ""),
+            focus_tags=config_data.get("focus_tags", []),
+            favorites_only=config_data.get("favorites_only", False),
+            use_team_profile=config_data.get("use_team_profile", True),
+            template_blocks=config_data.get("template_blocks"),
+        )
+
+        # Reconstruct the session
+        session = PracticeSession(
+            team_id=session_dict.get("team_id", team_id),
+            team_name=session_dict.get("team_name", ""),
+            session_date=session_dict.get("session_date", str(date_cls.today())),
+            duration_minutes=session_dict.get("duration_minutes", 90),
+            num_players=session_dict.get("num_players", 12),
+            num_drills=num_drills_val,
+            selected_categories=session_dict.get("selected_categories", []),
+            drills=drills,
+            config=config,
+            session_id=session_id,
+            team_profile_summary=session_dict.get("team_profile_summary", {}),
+            equipment_needed=session_dict.get("equipment_needed", []),
+            category_summary=session_dict.get("category_summary", {}),
+            intensity_summary=session_dict.get("intensity_summary", {}),
+            manual_adjustments=session_dict.get("manual_adjustments", {}),
+            block_duration_summaries=session_dict.get("block_duration_summaries", []),
+            template_notes=session_dict.get("template_notes", []),
+            warnings=session_dict.get("warnings", []),
+        )
+
+        return session
+
+    except Exception as exc:
+        print(f"Error loading practice session {session_id}: {exc}")
+        return None
 
 
 def update_drill_library_usage(drill_ids: list, drills_df: pd.DataFrame, data_path: Path | str) -> bool:

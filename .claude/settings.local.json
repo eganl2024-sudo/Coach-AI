@@ -5,7 +5,8 @@
       "Bash(python test_phase2_backend.py:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(python -m py_compile:*)"
+      "Bash(python -m py_compile:*)",
+      "Bash(python:*)"
     ],
     "deny": [],
     "ask": []
