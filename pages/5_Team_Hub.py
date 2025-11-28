@@ -835,7 +835,7 @@ else:
 
     # Format the display
     display_df = pd.DataFrame({
-        "Date": recent_sessions['session_date'].dt.strftime("%a, %b %d"),
+        "Date": pd.to_datetime(recent_sessions['session_date']).dt.strftime("%a, %b %d"),
         "Session": recent_sessions['session_name'],
         "Players": recent_sessions['num_players'].astype(int),
         "Duration (min)": recent_sessions['total_time'].astype(int),
