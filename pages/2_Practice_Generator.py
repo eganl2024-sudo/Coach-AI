@@ -679,19 +679,66 @@ with profile_container:
     if not team_profile_context:
         st.warning("This team does not have profile details set. Visit the Team Hub to capture play style, focus tags, and injuries.")
     else:
-        col_profile1, col_profile2, col_profile3, col_profile4 = st.columns(4)
-        col_profile1.metric("Play Style", team_profile_context.get("play_style") or "—")
-        col_profile2.metric("Focus Tags", ", ".join(team_profile_context.get("focus_tags", [])) or "—")
-        col_profile3.metric("Season Objective", team_profile_context.get("season_objectives") or "—")
-        col_profile4.metric("Formation", team_profile_context.get("formation") or "—")
-        if team_profile_context.get("injuries"):
-            st.info("Injuries / availability: " + ", ".join(team_profile_context["injuries"]))
+        col_profile1, col_profile2, col_profile3, col_profile4 = st.columns([1.1, 1.5, 1.5, 1])
+
+        # Play Style & Formation (left)
+        with col_profile1:
+            st.markdown(
+                f"""
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Play Style</strong></div>
+                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{team_profile_context.get("play_style") or "—"}</div>
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Formation</strong></div>
+                <div style="font-size:14px; font-weight:500;">{team_profile_context.get("formation") or "—"}</div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Focus Tags (as pills)
+        with col_profile2:
+            focus_tags_list = team_profile_context.get("focus_tags", [])
+            if focus_tags_list:
+                pills_html = " ".join(
+                    f"<span style='background-color:#eef2ff; padding:5px 10px; border-radius:6px; margin-right:4px; margin-bottom:4px; font-size:12px; border:1px solid #d5dce3; display:inline-block;'>{tag}</span>"
+                    for tag in focus_tags_list
+                )
+                st.markdown(
+                    f"<div style='font-size:13px; color:#666; margin-bottom:6px;'><strong>Focus Tags</strong></div><div>{pills_html}</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown("<div style='font-size:13px; color:#666; margin-bottom:4px;'><strong>Focus Tags</strong></div><div style='font-size:14px;'>—</div>", unsafe_allow_html=True)
+
+        # Season Objective (with wrapping text)
+        with col_profile3:
+            season_obj = team_profile_context.get("season_objectives") or "—"
+            st.markdown(
+                f"""
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Season Objective</strong></div>
+                <div style="font-size:14px; font-weight:500; word-wrap:break-word; word-break:break-word;">{season_obj}</div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+        # Additional info
+        with col_profile4:
+            if team_profile_context.get("injuries"):
+                injury_pills = " ".join(
+                    f"<span style='background-color:#fee2e2; padding:3px 8px; border-radius:5px; margin-right:3px; margin-bottom:3px; font-size:11px; border:1px solid #fca5a5; display:inline-block;'>{inj}</span>"
+                    for inj in team_profile_context["injuries"]
+                )
+                st.markdown(
+                    f"<div style='font-size:12px; color:#666; margin-bottom:4px;'><strong>Injuries</strong></div><div>{injury_pills}</div>",
+                    unsafe_allow_html=True,
+                )
+
+        # Match info below
         if team_profile_context.get("upcoming_match", {}).get("opponent"):
             match = team_profile_context["upcoming_match"]
             st.caption(
-                f"Upcoming match: {match.get('opponent')} "
+                f"📅 Upcoming match: {match.get('opponent')} "
                 f"({match.get('date') or 'date TBA'} {match.get('time') or ''})"
             )
+
     if profile_status["has_team"] and not profile_status["is_complete"]:
         missing = ", ".join(profile_status["missing_fields"])
         st.info(
@@ -947,50 +994,79 @@ if st.session_state.get("practice_config"):
         st.warning("Select at least one category to generate a practice.")
     else:
         st.subheader("Session Snapshot")
-        info_cols = st.columns(3)
+        info_cols = st.columns([1.5, 1.5, 1])
         team_info = config_data["team"]
         with info_cols[0]:
-            st.write(f"**Team**: {team_info['team_name']}")
-            st.write(f"**Age Group**: {team_info['age_group']}")
-            st.write(f"**Skill**: {team_info['skill_level'].title()}")
+            st.markdown(
+                f"""
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Team</strong></div>
+                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{team_info['team_name']}</div>
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Age Group</strong></div>
+                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{team_info['age_group']}</div>
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Skill</strong></div>
+                <div style="font-size:14px; font-weight:500;">{team_info['skill_level'].title()}</div>
+                """,
+                unsafe_allow_html=True,
+            )
         with info_cols[1]:
-            st.write(f"**Date**: {config_data['session_date']}")
-            st.write(f"**Duration**: {config_data['duration_minutes']} min")
-            st.write(f"**Players**: {config_data['num_players']}")
+            st.markdown(
+                f"""
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Date</strong></div>
+                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{config_data['session_date']}</div>
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Duration</strong></div>
+                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{config_data['duration_minutes']} min</div>
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Players</strong></div>
+                <div style="font-size:14px; font-weight:500;">{config_data['num_players']}</div>
+                """,
+                unsafe_allow_html=True,
+            )
         with info_cols[2]:
-            st.write("**Categories**:")
-            st.write(", ".join(config_data['selected_categories']) or "—")
-            if config_data.get("session_notes"):
-                st.write("**Notes:**")
-                st.caption(config_data["session_notes"])
-            if config_data.get("focus_tags"):
-                st.write("**Focus tags:**")
-                st.write(", ".join(config_data["focus_tags"]))
-            st.write(f"**Favorites only:** {'Yes' if config_data.get('favorites_only') else 'No'}")
-            st.write(f"**Team profile influence:** {'On' if config_data.get('use_team_profile') else 'Off'}")
+            st.markdown(
+                f"""
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Categories</strong></div>
+                <div style="font-size:14px; font-weight:500; margin-bottom:8px;">{", ".join(config_data['selected_categories']) or "—"}</div>
+                <div style="font-size:13px; color:#666; margin-bottom:4px;"><strong>Options</strong></div>
+                <div style="font-size:13px;">
+                    Favorites: {'Yes' if config_data.get('favorites_only') else 'No'}<br/>
+                    Team Profile: {'On' if config_data.get('use_team_profile') else 'Off'}
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-        st.subheader("Recency Watchlist")
-        if config_data.get("recent_usage"):
-            name_map = {}
-            try:
-                df = st.session_state.get("drills_df")
-                if df is not None and "drill_id" in df.columns:
-                    name_col = "drill_name" if "drill_name" in df.columns else ("name" if "name" in df.columns else None)
-                    if name_col:
-                        name_map = df.set_index("drill_id")[name_col].to_dict()
-            except Exception:
+        # Additional details in expander if needed
+        with st.expander("Session notes & tags", expanded=False):
+            if config_data.get("session_notes"):
+                st.markdown(f"**Coach Notes:** {config_data['session_notes']}")
+            if config_data.get("focus_tags"):
+                focus_pills = " ".join(
+                    f"<span style='background-color:#e8f4fd; padding:4px 8px; border-radius:6px; margin-right:4px; font-size:12px; border:1px solid #b3d9e8;'>{tag}</span>"
+                    for tag in config_data["focus_tags"]
+                )
+                st.markdown(f"<div style='margin-top:8px;'><strong>Focus Tags:</strong><br/>{focus_pills}</div>", unsafe_allow_html=True)
+
+        with st.expander("Recency watchlist (advanced)", expanded=False):
+            if config_data.get("recent_usage"):
                 name_map = {}
-            rows = []
-            for drill, sessions in config_data["recent_usage"].items():
-                label = name_map.get(drill, drill)
-                row = {"Drill": label, "Sessions Ago": sessions}
-                if ui_session.is_developer_mode():
-                    row["ID"] = drill
-                rows.append(row)
-            recency_df = pd.DataFrame(rows)
-            st.dataframe(recency_df, use_container_width=True, hide_index=True, height=200)
-        else:
-            st.write("No recent drills logged for this team.")
+                try:
+                    df = st.session_state.get("drills_df")
+                    if df is not None and "drill_id" in df.columns:
+                        name_col = "drill_name" if "drill_name" in df.columns else ("name" if "name" in df.columns else None)
+                        if name_col:
+                            name_map = df.set_index("drill_id")[name_col].to_dict()
+                except Exception:
+                    name_map = {}
+                rows = []
+                for drill, sessions in config_data["recent_usage"].items():
+                    label = name_map.get(drill, drill)
+                    row = {"Drill": label, "Sessions Ago": sessions}
+                    if ui_session.is_developer_mode():
+                        row["ID"] = drill
+                    rows.append(row)
+                recency_df = pd.DataFrame(rows)
+                st.dataframe(recency_df, use_container_width=True, hide_index=True, height=200)
+            else:
+                st.write("No recent drills logged for this team.")
 
         st.divider()
         st.caption("Need tweaks? Jump to other pages via the sidebar.")
@@ -1010,7 +1086,61 @@ if st.session_state.get("practice_config"):
 
         if current_session:
             session = current_session
-            st.success(f"Generated {session.num_drills} drills for {session.team_name} ({session.duration_minutes} min).")
+
+            # ======== Consolidated Status Banners ========
+            status_col1, status_col2 = st.columns(2)
+
+            with status_col1:
+                st.markdown(
+                    f"""
+                    <div style="
+                        background-color:#d4edda;
+                        border:1px solid #c3e6cb;
+                        border-radius:8px;
+                        padding:10px 12px;
+                        font-size:13px;
+                        color:#155724;
+                    ">
+                        ✓ Generated {session.num_drills} drills for {session.team_name} ({session.duration_minutes} min)
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            with status_col2:
+                validation_errors = _full_session_validation(session)
+                if validation_errors:
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background-color:#fff3cd;
+                            border:1px solid #ffeaa7;
+                            border-radius:8px;
+                            padding:10px 12px;
+                            font-size:13px;
+                            color:#856404;
+                        ">
+                            ⚠️ Session needs attention
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f"""
+                        <div style="
+                            background-color:#cfe2ff;
+                            border:1px solid #b6d4fe;
+                            border-radius:8px;
+                            padding:10px 12px;
+                            font-size:13px;
+                            color:#084298;
+                        ">
+                            ✓ Session passed validation checks
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
 
             checklist = st.sidebar.container()
             checklist.subheader("Block Checklist")
@@ -1022,11 +1152,11 @@ if st.session_state.get("practice_config"):
                 status_icon = "[x]" if block_counts.get(block) else "[ ]"
                 checklist.markdown(f"{status_icon} {BLOCK_LABELS.get(block, block.title())}")
 
-            validation_errors = _full_session_validation(session)
+            # Show detailed validation errors in expander if needed
             if validation_errors:
-                st.warning("Session needs attention:\n- " + "\n- ".join(validation_errors))
-            else:
-                st.info("Session passed validation checks.")
+                with st.expander("Validation details", expanded=False):
+                    for error in validation_errors:
+                        st.warning(error)
 
             team_summary = session.team_profile_summary
             if team_summary:
@@ -1092,7 +1222,7 @@ if st.session_state.get("practice_config"):
                 with overview_cols[0]:
                     st.markdown(
                         f"""
-                        <div style="font-size:13px; color:#666; margin-bottom:2px;">
+                        <div style="font-size:14px; font-weight:600; color:#444; margin-bottom:6px;">
                             ⏱ Duration
                         </div>
                         <div style="font-size:22px; font-weight:600; margin-top:-2px;">
@@ -1105,7 +1235,7 @@ if st.session_state.get("practice_config"):
                 with overview_cols[1]:
                     st.markdown(
                         f"""
-                        <div style="font-size:13px; color:#666; margin-bottom:2px;">
+                        <div style="font-size:14px; font-weight:600; color:#444; margin-bottom:6px;">
                             👥 Players
                         </div>
                         <div style="font-size:22px; font-weight:600; margin-top:-2px;">
@@ -1123,10 +1253,10 @@ if st.session_state.get("practice_config"):
                     )
                     st.markdown(
                         f"""
-                        <div style="font-size:13px; color:#666; margin-bottom:2px;">
+                        <div style="font-size:14px; font-weight:600; color:#444; margin-bottom:6px;">
                             🎯 Categories
                         </div>
-                        <div style="margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        <div style="margin-top:2px; display:flex; flex-wrap:wrap; gap:6px;">
                             {pill_html}
                         </div>
                         """,
@@ -1213,7 +1343,11 @@ if st.session_state.get("practice_config"):
                         alt.Chart(df_intensity)
                         .mark_line(point=True, strokeWidth=2, color="#4F8BF9")
                         .encode(
-                            x=alt.X("index:O", title="Drill order (start → finish)"),
+                            x=alt.X(
+                                "index:O",
+                                title="Drill order (start → finish)",
+                                axis=alt.Axis(labelAngle=0)
+                            ),
                             y=alt.Y(
                                 "intensity_score:Q",
                                 title="Intensity",
