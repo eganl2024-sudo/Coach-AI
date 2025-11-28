@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 from datetime import date, datetime, timedelta, UTC
 import datetime as dt
+import altair as alt
 
 # Add src to path
 src_path = Path(__file__).parent.parent / 'src'
@@ -1105,30 +1106,67 @@ if st.session_state.get("practice_config"):
                         unsafe_allow_html=True,
                     )
 
-            duration_summaries = getattr(session, "block_duration_summaries", []) or []
-            if duration_summaries:
-                pill_html = ""
-                status_to_css = {
-                    "ok": "block-ok",
-                    "low": "block-low",
-                    "high": "block-high",
-                }
-                for summary in duration_summaries:
-                    data = summary if isinstance(summary, dict) else summary.__dict__
-                    css_class = status_to_css.get(data.get("status"), "")
-                    label = BLOCK_LABELS.get(data.get("block_type"), data.get("block_type", "").title())
-                    pill_html += (
-                        f"<span class='block-duration-pill {css_class}'>"
-                        f"{label}: {data.get('total_minutes', 0)} min "
-                        f"(target {data.get('target_min', 0)}-{data.get('target_max', 0)})"
-                        f"</span>"
-                    )
-                st.markdown("##### Block Durations")
-                st.markdown(f"<div style='margin-bottom:12px'>{pill_html}</div>", unsafe_allow_html=True)
+            # ========================================================================
+            # SESSION STRUCTURE SECTION (Block durations + Categories & Intensity)
+            # ========================================================================
+            st.markdown("### Session structure")
+            struct_col_left, struct_col_right = st.columns(2)
 
-            st.markdown("### Category & Intensity Summary")
-            _render_pills("Categories", session.category_summary or {})
-            _render_pills("Intensity", session.intensity_summary or {})
+            # LEFT COLUMN: Block durations
+            with struct_col_left:
+                st.markdown("#### Block durations")
+                duration_summaries = getattr(session, "block_duration_summaries", []) or []
+                if duration_summaries:
+                    block_html = ""
+                    for summary in duration_summaries:
+                        data = summary if isinstance(summary, dict) else summary.__dict__
+                        label = BLOCK_LABELS.get(data.get("block_type"), data.get("block_type", "").title())
+                        total_min = data.get("total_minutes", 0)
+                        target_min = data.get("target_min", 0)
+                        target_max = data.get("target_max", 0)
+                        block_html += (
+                            f"<div style='font-size:13px; line-height:1.6;'>"
+                            f"<strong>{label}:</strong> {total_min} min "
+                            f"<span style='color:#777;'>(target {target_min}–{target_max})</span>"
+                            f"</div>"
+                        )
+                    st.markdown(
+                        f"<div style='font-size:13px;'>{block_html}</div>",
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.caption("No block durations available.")
+
+            # RIGHT COLUMN: Categories & Intensity summary
+            with struct_col_right:
+                st.markdown("#### Categories & intensity")
+
+                # Categories
+                category_summary = session.category_summary or {}
+                if category_summary:
+                    st.markdown(
+                        "<div style='font-size:13px; font-weight:600; margin-bottom:4px;'>Categories</div>",
+                        unsafe_allow_html=True,
+                    )
+                    cat_html = ""
+                    for cat_name, count in category_summary.items():
+                        cat_html += f"<div style='font-size:13px; line-height:1.4;'>• {cat_name}: {count}</div>"
+                    st.markdown(cat_html, unsafe_allow_html=True)
+
+                # Intensity
+                intensity_summary = session.intensity_summary or {}
+                if intensity_summary:
+                    st.markdown(
+                        "<div style='font-size:13px; font-weight:600; margin-top:10px; margin-bottom:4px;'>Intensity</div>",
+                        unsafe_allow_html=True,
+                    )
+                    intensity_line = " · ".join(
+                        f"{name.capitalize()}: {count}" for name, count in intensity_summary.items()
+                    )
+                    st.markdown(
+                        f"<div style='font-size:13px; line-height:1.4;'>{intensity_line}</div>",
+                        unsafe_allow_html=True,
+                    )
 
             if session.manual_adjustments.get("reordered") or session.manual_adjustments.get("replaced"):
                 st.info(
@@ -1141,6 +1179,45 @@ if st.session_state.get("practice_config"):
                 st.caption(f"Block template applied: {template_name_applied}")
             if getattr(session, "template_notes", None):
                 st.warning("Template notes: " + "; ".join(session.template_notes), icon="⚠")
+
+            # ========================================================================
+            # INTENSITY CURVE CHART
+            # ========================================================================
+            st.markdown("#### Intensity curve (start → finish)")
+
+            # Build intensity data from current session drills
+            intensity_map = {"low": 1, "medium": 2, "high": 3}
+            intensity_data = []
+            for idx, drill in enumerate(session.drills, start=1):
+                intensity_score = intensity_map.get(
+                    (drill.intensity or "medium").lower(), 2
+                )
+                intensity_data.append({
+                    "index": idx,
+                    "drill_name": drill.drill_name[:20],  # truncate for readability
+                    "intensity_score": intensity_score,
+                })
+
+            if intensity_data:
+                df_intensity = pd.DataFrame(intensity_data)
+
+                intensity_chart = (
+                    alt.Chart(df_intensity)
+                    .mark_line(point=True, strokeWidth=2, color="#4F8BF9")
+                    .encode(
+                        x=alt.X("index:O", title="Drill order (start → finish)"),
+                        y=alt.Y(
+                            "intensity_score:Q",
+                            title="Intensity (1=low, 3=high)",
+                            scale=alt.Scale(domain=[0.5, 3.5], nice=False),
+                        ),
+                        tooltip=["index", "drill_name", "intensity_score"],
+                    )
+                    .properties(height=220)
+                    .interactive()
+                )
+
+                st.altair_chart(intensity_chart, use_container_width=True)
 
             st.markdown("#### Session Order (top to bottom)")
             display_counter = 1
@@ -1209,10 +1286,31 @@ if st.session_state.get("practice_config"):
                     st.write(f"Players: {drill.players_min}-{drill.players_max}")
                     st.write(f"Field: {drill.field_type or '—'}")
                     st.write(f"Recency: {drill.recency_label or 'New'}")
-                    if drill.drill_id in config_data.get("recent_usage", {}):
-                        st.warning(
-                            f"Recently used {config_data['recent_usage'][drill.drill_id]} session(s) ago",
-                            icon="⚠️"
+
+                    # Recency warning: only show if used in last 3 practices
+                    sessions_ago = config_data.get("recent_usage", {}).get(drill.drill_id)
+                    if sessions_ago and isinstance(sessions_ago, int) and 1 <= sessions_ago <= 3:
+                        if sessions_ago == 1:
+                            recency_message = "You used this last practice"
+                        else:
+                            recency_message = f"You used this {sessions_ago} practices ago"
+
+                        st.markdown(
+                            f"""
+                            <div style="
+                                background-color:#FFF8E1;
+                                border-radius:6px;
+                                padding:8px 10px;
+                                margin-top:8px;
+                                font-size:12px;
+                                display:flex;
+                                align-items:center;
+                            ">
+                                <span style="margin-right:6px;">⚠️</span>
+                                <span>{recency_message}</span>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
                         )
                     if show_details:
                         st.write(f"Tags: {', '.join(_split_tags(drill.tags)) if getattr(drill, 'tags', '') else '—'}")
