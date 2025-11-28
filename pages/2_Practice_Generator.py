@@ -1062,21 +1062,40 @@ if st.session_state.get("practice_config"):
                 )
 
             st.markdown("<div style='height:6px'></div>", unsafe_allow_html=True)
-            hero = st.container()
-            with hero:
+
+            # ========================================================================
+            # SESSION SUMMARY CARD (Overview + Structure + Intensity Curve)
+            # ========================================================================
+            with st.container():
+                st.markdown(
+                    """
+                    <div style="
+                        background-color:#fafafa;
+                        border:1px solid #eee;
+                        border-radius:10px;
+                        padding:18px 22px 22px 22px;
+                        margin-bottom:18px;
+                    ">
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+                # Main hero title
                 st.markdown(f"#### Tonight's plan for {session.team_name}")
                 focus_label = session.config.session_notes or "Session focus"
                 st.caption(f"{session.session_date} · Focus: {focus_label}")
 
-                # Session Overview header
+                # Session Overview with icons and pills
                 st.markdown("### Session Overview")
                 overview_cols = st.columns([1.3, 1, 2])
 
                 with overview_cols[0]:
                     st.markdown(
                         f"""
-                        <div style="font-size:14px; color:#666;">Duration</div>
-                        <div style="font-size:22px; font-weight:600; margin-top:-4px;">
+                        <div style="font-size:13px; color:#666; margin-bottom:2px;">
+                            ⏱ Duration
+                        </div>
+                        <div style="font-size:22px; font-weight:600; margin-top:-2px;">
                             {session.duration_minutes} min
                         </div>
                         """,
@@ -1086,8 +1105,10 @@ if st.session_state.get("practice_config"):
                 with overview_cols[1]:
                     st.markdown(
                         f"""
-                        <div style="font-size:14px; color:#666;">Players</div>
-                        <div style="font-size:22px; font-weight:600; margin-top:-4px;">
+                        <div style="font-size:13px; color:#666; margin-bottom:2px;">
+                            👥 Players
+                        </div>
+                        <div style="font-size:22px; font-weight:600; margin-top:-2px;">
                             {session.num_players}
                         </div>
                         """,
@@ -1095,78 +1116,122 @@ if st.session_state.get("practice_config"):
                     )
 
                 with overview_cols[2]:
-                    formatted_categories = " • ".join(session.selected_categories)
+                    # Category pills
+                    pill_html = " ".join(
+                        f"<span style='background-color:#f3f4f6; padding:3px 10px; border-radius:999px; margin-right:6px; font-size:12px;'>{cat}</span>"
+                        for cat in session.selected_categories
+                    )
                     st.markdown(
                         f"""
-                        <div style="font-size:14px; color:#666;">Categories</div>
-                        <div style="font-size:18px; font-weight:500; margin-top:-4px; white-space:nowrap; overflow:hidden;">
-                            {formatted_categories}
+                        <div style="font-size:13px; color:#666; margin-bottom:2px;">
+                            🎯 Categories
+                        </div>
+                        <div style="margin-top:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            {pill_html}
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
 
-            # ========================================================================
-            # SESSION STRUCTURE SECTION (Block durations + Categories & Intensity)
-            # ========================================================================
-            st.markdown("### Session structure")
-            struct_col_left, struct_col_right = st.columns(2)
+                # ========================================================================
+                # SESSION STRUCTURE SECTION (Block durations + Categories & Intensity)
+                # ========================================================================
+                st.markdown("#### Session structure")
+                struct_col_left, struct_col_right = st.columns(2)
 
-            # LEFT COLUMN: Block durations
-            with struct_col_left:
-                st.markdown("#### Block durations")
-                duration_summaries = getattr(session, "block_duration_summaries", []) or []
-                if duration_summaries:
-                    block_html = ""
-                    for summary in duration_summaries:
-                        data = summary if isinstance(summary, dict) else summary.__dict__
-                        label = BLOCK_LABELS.get(data.get("block_type"), data.get("block_type", "").title())
-                        total_min = data.get("total_minutes", 0)
-                        target_min = data.get("target_min", 0)
-                        target_max = data.get("target_max", 0)
-                        block_html += (
-                            f"<div style='font-size:13px; line-height:1.6;'>"
-                            f"<strong>{label}:</strong> {total_min} min "
-                            f"<span style='color:#777;'>(target {target_min}–{target_max})</span>"
-                            f"</div>"
+                # LEFT COLUMN: Block durations
+                with struct_col_left:
+                    st.markdown("<div style='font-size:12px; font-weight:600; margin-bottom:8px; color:#555;'>Block durations</div>", unsafe_allow_html=True)
+                    duration_summaries = getattr(session, "block_duration_summaries", []) or []
+                    if duration_summaries:
+                        block_html = ""
+                        for summary in duration_summaries:
+                            data = summary if isinstance(summary, dict) else summary.__dict__
+                            label = BLOCK_LABELS.get(data.get("block_type"), data.get("block_type", "").title())
+                            total_min = data.get("total_minutes", 0)
+                            target_min = data.get("target_min", 0)
+                            target_max = data.get("target_max", 0)
+                            block_html += (
+                                f"<div style='font-size:13px; line-height:1.5; margin-bottom:6px;'>"
+                                f"<strong>{label}:</strong> {total_min} min "
+                                f"<span style='color:#999;'>(target {target_min}–{target_max})</span>"
+                                f"</div>"
+                            )
+                        st.markdown(block_html, unsafe_allow_html=True)
+                    else:
+                        st.caption("No block durations available.")
+
+                # RIGHT COLUMN: Categories & Intensity summary
+                with struct_col_right:
+                    st.markdown("<div style='font-size:12px; font-weight:600; margin-bottom:8px; color:#555;'>Categories & intensity</div>", unsafe_allow_html=True)
+
+                    # Categories
+                    category_summary = session.category_summary or {}
+                    if category_summary:
+                        cat_html = ""
+                        for cat_name, count in category_summary.items():
+                            cat_html += f"<div style='font-size:13px; line-height:1.5; margin-bottom:2px;'>• {cat_name}: {count}</div>"
+                        st.markdown(cat_html, unsafe_allow_html=True)
+
+                        # Intensity
+                        intensity_summary = session.intensity_summary or {}
+                        if intensity_summary:
+                            st.markdown(
+                                "<div style='font-size:12px; font-weight:600; margin-top:10px; margin-bottom:4px; color:#555;'>Intensity</div>",
+                                unsafe_allow_html=True,
+                            )
+                            intensity_line = " · ".join(
+                                f"{name.capitalize()}: {count}" for name, count in intensity_summary.items()
+                            )
+                            st.markdown(
+                                f"<div style='font-size:13px; line-height:1.5;'>{intensity_line}</div>",
+                                unsafe_allow_html=True,
+                            )
+
+                # ========================================================================
+                # INTENSITY CURVE CHART
+                # ========================================================================
+                st.markdown("#### Intensity curve (start → finish)")
+
+                # Build intensity data from current session drills
+                intensity_map = {"low": 1, "medium": 2, "high": 3}
+                intensity_data = []
+                for idx, drill in enumerate(session.drills, start=1):
+                    intensity_score = intensity_map.get(
+                        (drill.intensity or "medium").lower(), 2
+                    )
+                    intensity_data.append({
+                        "index": idx,
+                        "drill_name": drill.drill_name[:20],  # truncate for readability
+                        "intensity_score": intensity_score,
+                    })
+
+                if intensity_data:
+                    df_intensity = pd.DataFrame(intensity_data)
+
+                    intensity_chart = (
+                        alt.Chart(df_intensity)
+                        .mark_line(point=True, strokeWidth=2, color="#4F8BF9")
+                        .encode(
+                            x=alt.X("index:O", title="Drill order (start → finish)"),
+                            y=alt.Y(
+                                "intensity_score:Q",
+                                title="Intensity",
+                                scale=alt.Scale(domain=[1, 3]),
+                                axis=alt.Axis(
+                                    values=[1, 2, 3],
+                                    labelExpr="datum.value == 1 ? 'Low' : datum.value == 2 ? 'Medium' : 'High'"
+                                ),
+                            ),
+                            tooltip=["index", "drill_name", "intensity_score"],
                         )
-                    st.markdown(
-                        f"<div style='font-size:13px;'>{block_html}</div>",
-                        unsafe_allow_html=True,
+                        .properties(height=220)
+                        .interactive()
                     )
-                else:
-                    st.caption("No block durations available.")
 
-            # RIGHT COLUMN: Categories & Intensity summary
-            with struct_col_right:
-                st.markdown("#### Categories & intensity")
+                    st.altair_chart(intensity_chart, use_container_width=True)
 
-                # Categories
-                category_summary = session.category_summary or {}
-                if category_summary:
-                    st.markdown(
-                        "<div style='font-size:13px; font-weight:600; margin-bottom:4px;'>Categories</div>",
-                        unsafe_allow_html=True,
-                    )
-                    cat_html = ""
-                    for cat_name, count in category_summary.items():
-                        cat_html += f"<div style='font-size:13px; line-height:1.4;'>• {cat_name}: {count}</div>"
-                    st.markdown(cat_html, unsafe_allow_html=True)
-
-                # Intensity
-                intensity_summary = session.intensity_summary or {}
-                if intensity_summary:
-                    st.markdown(
-                        "<div style='font-size:13px; font-weight:600; margin-top:10px; margin-bottom:4px;'>Intensity</div>",
-                        unsafe_allow_html=True,
-                    )
-                    intensity_line = " · ".join(
-                        f"{name.capitalize()}: {count}" for name, count in intensity_summary.items()
-                    )
-                    st.markdown(
-                        f"<div style='font-size:13px; line-height:1.4;'>{intensity_line}</div>",
-                        unsafe_allow_html=True,
-                    )
+                st.markdown("</div>", unsafe_allow_html=True)
 
             if session.manual_adjustments.get("reordered") or session.manual_adjustments.get("replaced"):
                 st.info(
@@ -1179,45 +1244,6 @@ if st.session_state.get("practice_config"):
                 st.caption(f"Block template applied: {template_name_applied}")
             if getattr(session, "template_notes", None):
                 st.warning("Template notes: " + "; ".join(session.template_notes), icon="⚠")
-
-            # ========================================================================
-            # INTENSITY CURVE CHART
-            # ========================================================================
-            st.markdown("#### Intensity curve (start → finish)")
-
-            # Build intensity data from current session drills
-            intensity_map = {"low": 1, "medium": 2, "high": 3}
-            intensity_data = []
-            for idx, drill in enumerate(session.drills, start=1):
-                intensity_score = intensity_map.get(
-                    (drill.intensity or "medium").lower(), 2
-                )
-                intensity_data.append({
-                    "index": idx,
-                    "drill_name": drill.drill_name[:20],  # truncate for readability
-                    "intensity_score": intensity_score,
-                })
-
-            if intensity_data:
-                df_intensity = pd.DataFrame(intensity_data)
-
-                intensity_chart = (
-                    alt.Chart(df_intensity)
-                    .mark_line(point=True, strokeWidth=2, color="#4F8BF9")
-                    .encode(
-                        x=alt.X("index:O", title="Drill order (start → finish)"),
-                        y=alt.Y(
-                            "intensity_score:Q",
-                            title="Intensity (1=low, 3=high)",
-                            scale=alt.Scale(domain=[0.5, 3.5], nice=False),
-                        ),
-                        tooltip=["index", "drill_name", "intensity_score"],
-                    )
-                    .properties(height=220)
-                    .interactive()
-                )
-
-                st.altair_chart(intensity_chart, use_container_width=True)
 
             st.markdown("#### Session Order (top to bottom)")
             display_counter = 1
