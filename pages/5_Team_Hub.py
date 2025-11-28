@@ -704,6 +704,7 @@ with st.expander("Key players / notes"):
         value=stored_profile.get("key_players_notes", key_players_default),
         height=120,
         placeholder="One entry per line",
+        key="key_players_area",
     )
 
 st.markdown("<a id='anchor_injuries'></a>", unsafe_allow_html=True)
@@ -713,6 +714,7 @@ with st.expander("Injuries / availability"):
         value=stored_profile.get("injury_notes", injuries_default),
         height=120,
         placeholder="One entry per line",
+        key="injuries_area",
     )
 
 with st.expander("General notes"):
@@ -721,6 +723,7 @@ with st.expander("General notes"):
         value=stored_profile.get("general_notes", team_row.get('notes', '')),
         height=120,
         placeholder="Scouting intel, training reminders, parent communication, etc.",
+        key="general_notes_area",
     )
 
 # ============================================================================
