@@ -444,38 +444,56 @@ else:
         meta_parts = [p for p in [loc_disp, notes_disp] if p]
         meta_line = " | ".join(meta_parts)
 
-        # Layout with info + generate button
-        col_info, col_btn = st.columns([4, 1])
+        # Full-width card with integrated button
+        with st.container():
+            col_left, col_right = st.columns([4.5, 1.5])
 
-        with col_info:
-            st.markdown(
-                f"""
-                <div style="border:1px solid #e5e5e5; border-radius:8px; padding:0.6rem 0.75rem; margin-bottom:0.5rem;">
-                    <div style="font-weight:700;">{date_disp} {time_disp}</div>
-                    <div style="font-size:0.9rem; margin-top:0.15rem;">{type_disp}</div>
-                    <div style="font-size:0.85rem; color:#666; margin-top:0.15rem;">{meta_line}</div>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+            with col_left:
+                st.markdown(
+                    f"""
+                    <div style="
+                        border: 1px solid #e5e5e5;
+                        border-radius: 8px;
+                        padding: 0.75rem 1rem;
+                        background-color: #fafafa;
+                    ">
+                        <div style="font-weight: 700; font-size: 0.95rem;">{date_disp} {time_disp}</div>
+                        <div style="font-size: 0.85rem; margin-top: 0.3rem; color: #555;">{type_disp}</div>
+                        {f'<div style="font-size: 0.8rem; color: #888; margin-top: 0.2rem;">{meta_line}</div>' if meta_line else ''}
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
-        with col_btn:
-            if st.button("⚽ Gen", key=f"gen_practice_{idx}", help="Generate practice for this date"):
-                # Extract duration from duration field or default to 90
-                inferred_duration = 90
-                if "duration_minutes" in row and pd.notna(row["duration_minutes"]):
-                    try:
-                        inferred_duration = int(row["duration_minutes"])
-                    except (TypeError, ValueError):
-                        inferred_duration = 90
+            with col_right:
+                # Vertical spacing to align button with card
+                st.markdown("<div style='height: 0.35rem;'></div>", unsafe_allow_html=True)
+                if st.button(
+                    "⚽ Generate Practice",
+                    key=f"gen_practice_{idx}",
+                    help="Create a practice for this date",
+                    use_container_width=True,
+                ):
+                    # Extract duration from duration field or default to 90
+                    inferred_duration = 90
+                    if "duration_minutes" in row and pd.notna(row["duration_minutes"]):
+                        try:
+                            inferred_duration = int(row["duration_minutes"])
+                        except (TypeError, ValueError):
+                            inferred_duration = 90
 
-                # Store values for Practice Generator to read
-                st.session_state.generator_target_date = date_val
-                st.session_state.generator_default_duration = inferred_duration
+                    # Store values for Practice Generator to read
+                    st.session_state.generator_target_date = date_val
+                    st.session_state.generator_default_duration = inferred_duration
 
-                # Navigate to Practice Generator
-                # Use the internal navigation mechanism available in Streamlit
-                st.switch_page("pages/2_Practice_Generator.py")
+                    # Navigate to Practice Generator
+                    st.switch_page("pages/2_Practice_Generator.py")
+
+        # Subtle divider between cards
+        st.markdown(
+            "<div style='height: 0.5px; background-color: #f0f0f0; margin: 8px 0;'></div>",
+            unsafe_allow_html=True,
+        )
 
 formation_options = ["4-3-3", "4-4-2", "3-5-2", "4-2-3-1", "4-1-4-1", "Custom"]
 raw_formation = team_row.get('formation', '')

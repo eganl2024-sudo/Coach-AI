@@ -326,17 +326,28 @@ elif time_window == "Last 30 days":
             dot_spans = []
             # Black dots for practices
             dot_spans.extend(
-                "<span style='display:inline-block; width:5px; height:5px; border-radius:50%; background-color:#000; margin:0 2px;'></span>"
+                "<span style='display:inline-block; width:5px; height:5px; border-radius:50%; background-color:#000;'></span>"
                 for _ in range(practice_count)
             )
             # Green dots for games
             dot_spans.extend(
-                "<span style='display:inline-block; width:5px; height:5px; border-radius:50%; background-color:#20a020; margin:0 2px;'></span>"
+                "<span style='display:inline-block; width:5px; height:5px; border-radius:50%; background-color:#20a020;'></span>"
                 for _ in range(game_count)
             )
             dots_html = "".join(dot_spans)
+
+            # Use flexbox to perfectly center dots under the date number
+            dots_container_style = (
+                "margin-top:3px; "
+                "display:flex; "
+                "justify-content:center; "
+                "align-items:center; "
+                "gap:4px; "
+                "width:100%;"
+            )
+
             col.markdown(
-                f"<div {tooltip_title} style='height:0.6rem; margin-top:2px; text-align:center;'>"
+                f"<div {tooltip_title} style='{dots_container_style}'>"
                 f"{dots_html}"
                 "</div>",
                 unsafe_allow_html=True,
