@@ -474,7 +474,7 @@ else:
                 st.session_state.generator_default_duration = inferred_duration
 
                 # Navigate to Practice Generator
-                st.switch_page("pages/2_⚽_Practice_Generator.py")
+                st.switch_page("2_⚽_Practice_Generator")
 
 formation_options = ["4-3-3", "4-4-2", "3-5-2", "4-2-3-1", "4-1-4-1", "Custom"]
 raw_formation = team_row.get('formation', '')
