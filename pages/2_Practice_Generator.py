@@ -601,23 +601,22 @@ if 'generation_error' not in st.session_state:
 if 'show_scoring_debug' not in st.session_state:
     st.session_state.show_scoring_debug = False
 
-# Handle reused session from Past Sessions page
-if (st.session_state.current_session is None and
-    st.session_state.get("reuse_session_id") is not None):
+# Handle reused session from Past Sessions page or Team Hub Practice Details
+# Always reload if reuse_session_id is set, even if current_session exists
+reuse_id = st.session_state.pop("reuse_session_id", None)
+if reuse_id is not None:
     try:
         team_id = st.session_state.selected_team.get("team_id")
         reused = practice_history.load_practice_session_by_id(
             team_id=team_id,
-            session_id=st.session_state.get("reuse_session_id"),
+            session_id=reuse_id,
             data_path=st.session_state.data_path,
         )
         if reused:
+            # Always overwrite with the requested session
             st.session_state.current_session = reused
     except Exception as e:
-        st.error(f"Could not load reused session: {e}")
-    finally:
-        # Clear the reuse flag so it doesn't retrigger on rerun
-        st.session_state.pop("reuse_session_id", None)
+        st.error(f"Could not load saved practice: {e}")
 
 is_coach = ui_session.is_coach_mode()
 is_dev = ui_session.is_developer_mode()
@@ -647,15 +646,14 @@ session_state.render_team_selector(
 )
 
 # Simple config panel
-config_col1, config_col2, config_col3 = st.columns(3)
+config_col1, config_col2 = st.columns(2)
 practice_date = config_col1.date_input(
     "Practice date",
     value=st.session_state.session_date,
     key="session_date_input",
 )
 st.session_state.session_date = practice_date
-session_length = config_col2.number_input("Session length (minutes)", min_value=45, max_value=120, value=90, step=5)
-focus_choice = config_col3.selectbox(
+focus_choice = config_col2.selectbox(
     "Session focus (optional)",
     options=["Mixed", "Technical", "Tactical", "Fitness"],
     help="Helps guide drill selection and notes."
@@ -861,7 +859,16 @@ else:
             else:
                 default_duration = 90
 
-            duration = st.slider("Duration (minutes)", min_value=45, max_value=120, value=default_duration, step=5)
+            duration = st.slider(
+                "Duration (minutes)",
+                min_value=45,
+                max_value=120,
+                value=default_duration,
+                step=5,
+                key="session_duration_slider"
+            )
+            # Store to state for use by generator
+            st.session_state["session_length_minutes"] = duration
             raw_roster_size = st.session_state.selected_team.get('typical_roster_size')
             try:
                 roster_size = int(raw_roster_size)
@@ -956,7 +963,7 @@ else:
             st.warning("Select at least one category to generate a practice.")
         else:
             config_obj = PracticeConfig(
-                duration_minutes=session_length,
+                duration_minutes=st.session_state.get("session_length_minutes", 90),
                 num_players=player_count,
                 num_drills=num_drills,
                 selected_categories=categories,

@@ -535,8 +535,10 @@ else:
                         help="View and edit the saved practice for this date",
                         use_container_width=True,
                     ):
-                        # Set reuse_session_id to load the saved session
-                        st.session_state.reuse_session_id = session_id
+                        # Clear any existing session to force reload from reuse_session_id
+                        st.session_state["current_session"] = None
+                        # Tell the generator which saved session to load
+                        st.session_state["reuse_session_id"] = session_id
                         st.switch_page("pages/2_Practice_Generator.py")
 
         # Subtle divider between cards
