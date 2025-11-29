@@ -600,8 +600,6 @@ if 'generation_error' not in st.session_state:
     st.session_state.generation_error = None
 if 'show_scoring_debug' not in st.session_state:
     st.session_state.show_scoring_debug = False
-if 'show_focus_tag_editor' not in st.session_state:
-    st.session_state.show_focus_tag_editor = False
 if 'focus_tags' not in st.session_state:
     st.session_state.focus_tags = []
 
@@ -627,6 +625,23 @@ if reuse_id is not None:
             st.session_state["focus_tags"] = list(reused.config.focus_tags or [])
     except Exception as e:
         st.error(f"Could not load saved practice: {e}")
+
+# Sync focus_tags from team profile if not already loaded from a saved session
+# Only sync if focus_tags is empty (not loaded from reuse_session_id)
+if not st.session_state.get("focus_tags"):
+    if st.session_state.selected_team is not None:
+        teams_df = st.session_state.teams_df
+        team_id = st.session_state.selected_team.get("team_id")
+        if teams_df is not None and not teams_df.empty:
+            team_row = teams_df[teams_df["team_id"] == team_id]
+            if not team_row.empty:
+                team_data = team_row.iloc[0]
+                # Extract focus_tags from team profile
+                focus_tags_value = team_data.get("focus_areas", "")
+                if focus_tags_value and not pd.isna(focus_tags_value):
+                    # Assuming pipe-delimited format (from Team Hub)
+                    profile_tags = [t.strip() for t in str(focus_tags_value).split("|") if t.strip()]
+                    st.session_state["focus_tags"] = profile_tags
 
 is_coach = ui_session.is_coach_mode()
 is_dev = ui_session.is_developer_mode()
@@ -727,28 +742,20 @@ with profile_container:
                 unsafe_allow_html=True,
             )
 
-        # Focus Tags (as pills with edit button)
+        # Focus Tags (read-only, from team profile)
         with col_tags:
             focus_tags_list = team_profile_context.get("focus_tags", [])
-            col_tag_preview, col_tag_btn = st.columns([3, 1])
-
-            with col_tag_preview:
-                if focus_tags_list:
-                    pills_html = " ".join(
-                        f"<span style='background-color:#eef2ff; padding:5px 10px; border-radius:6px; margin-right:4px; margin-bottom:4px; font-size:12px; border:1px solid #d5dce3; display:inline-block;'>{tag}</span>"
-                        for tag in focus_tags_list
-                    )
-                    st.markdown(
-                        f"<div style='font-size:13px; color:#666; margin-bottom:6px;'><strong>Focus Tags</strong></div><div>{pills_html}</div>",
-                        unsafe_allow_html=True,
-                    )
-                else:
-                    st.markdown("<div style='font-size:13px; color:#666; margin-bottom:4px;'><strong>Focus Tags</strong></div><div style='font-size:14px;'>—</div>", unsafe_allow_html=True)
-
-            with col_tag_btn:
-                if st.button("✏️ Edit", key="edit_focus_tags_top", help="Edit focus tags"):
-                    st.session_state["show_focus_tag_editor"] = not st.session_state.get("show_focus_tag_editor", False)
-                    st.rerun()
+            if focus_tags_list:
+                pills_html = " ".join(
+                    f"<span style='background-color:#eef2ff; padding:5px 10px; border-radius:6px; margin-right:4px; margin-bottom:4px; font-size:12px; border:1px solid #d5dce3; display:inline-block;'>{tag}</span>"
+                    for tag in focus_tags_list
+                )
+                st.markdown(
+                    f"<div style='font-size:13px; color:#666; margin-bottom:6px;'><strong>Focus Tags</strong></div><div>{pills_html}</div>",
+                    unsafe_allow_html=True,
+                )
+            else:
+                st.markdown("<div style='font-size:13px; color:#666; margin-bottom:4px;'><strong>Focus Tags</strong></div><div style='font-size:14px; color:#999;'>No focus tags set (edit on Team Hub)</div>", unsafe_allow_html=True)
 
         # Season Objective (with wrapping text)
         with col_objective:
@@ -796,47 +803,6 @@ with profile_container:
         st.info(
             f"Team Hub is missing {missing}. Add them to improve drill scoring and suggestions."
         )
-
-# Inline focus tags editor (triggered by Edit button in header)
-if st.session_state.get("show_focus_tag_editor", False):
-    st.markdown("---")
-    st.subheader("Edit Focus Tags")
-
-    # Build available tags from drill library and team profile
-    all_editor_tags = set()
-    if st.session_state.drills_df is not None and 'tags' in st.session_state.drills_df.columns:
-        for tags_str in st.session_state.drills_df['tags'].fillna(''):
-            all_editor_tags.update(_split_tags(tags_str))
-    # Add current tags to available options
-    if st.session_state.focus_tags:
-        all_editor_tags.update(st.session_state.focus_tags)
-    available_editor_tags = sorted(all_editor_tags)
-
-    editor_col1, editor_col2 = st.columns([3, 1])
-
-    with editor_col1:
-        selected_tags = st.multiselect(
-            "Select tags to focus on",
-            options=available_editor_tags,
-            default=st.session_state.focus_tags,
-            help="Filter to drills that match these tags. Use tags from Team Hub for best results.",
-            key="focus_tag_editor_multiselect"
-        )
-
-    # Save/Cancel buttons
-    btn_col1, btn_col2 = st.columns(2)
-    with btn_col1:
-        if st.button("Save Tags", key="save_focus_tags_btn"):
-            st.session_state.focus_tags = selected_tags
-            st.session_state["show_focus_tag_editor"] = False
-            st.rerun()
-
-    with btn_col2:
-        if st.button("Cancel", key="cancel_focus_tags_btn"):
-            st.session_state["show_focus_tag_editor"] = False
-            st.rerun()
-
-    st.markdown("---")
 
 if team_profile_context and team_drill_recency:
     suggested_drills = []
@@ -1001,7 +967,7 @@ else:
         if len(categories) == 0:
             st.warning("Select at least one category to generate a practice.")
         else:
-            # Use focus_tags from session_state (edited via inline editor)
+            # Use focus_tags from session_state (loaded from team profile or saved session)
             edited_focus_tags = st.session_state.get("focus_tags", [])
 
             config_obj = PracticeConfig(
