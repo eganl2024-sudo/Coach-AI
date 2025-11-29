@@ -600,6 +600,10 @@ if 'generation_error' not in st.session_state:
     st.session_state.generation_error = None
 if 'show_scoring_debug' not in st.session_state:
     st.session_state.show_scoring_debug = False
+if 'show_focus_tag_editor' not in st.session_state:
+    st.session_state.show_focus_tag_editor = False
+if 'focus_tags' not in st.session_state:
+    st.session_state.focus_tags = []
 
 # Handle reused session from Past Sessions page or Team Hub Practice Details
 # Always reload if reuse_session_id is set, even if current_session exists
@@ -619,6 +623,8 @@ if reuse_id is not None:
             _refresh_block_indices(reused.drills)
             # Recompute session details (equipment, summaries)
             _recompute_session_details(reused)
+            # Sync focus_tags from loaded session
+            st.session_state["focus_tags"] = list(reused.config.focus_tags or [])
     except Exception as e:
         st.error(f"Could not load saved practice: {e}")
 
@@ -741,7 +747,7 @@ with profile_container:
 
             with col_tag_btn:
                 if st.button("✏️ Edit", key="edit_focus_tags_top", help="Edit focus tags"):
-                    st.session_state["open_focus_tags_expander"] = True
+                    st.session_state["show_focus_tag_editor"] = not st.session_state.get("show_focus_tag_editor", False)
                     st.rerun()
 
         # Season Objective (with wrapping text)
@@ -790,6 +796,47 @@ with profile_container:
         st.info(
             f"Team Hub is missing {missing}. Add them to improve drill scoring and suggestions."
         )
+
+# Inline focus tags editor (triggered by Edit button in header)
+if st.session_state.get("show_focus_tag_editor", False):
+    st.markdown("---")
+    st.subheader("Edit Focus Tags")
+
+    # Build available tags from drill library and team profile
+    all_editor_tags = set()
+    if st.session_state.drills_df is not None and 'tags' in st.session_state.drills_df.columns:
+        for tags_str in st.session_state.drills_df['tags'].fillna(''):
+            all_editor_tags.update(_split_tags(tags_str))
+    # Add current tags to available options
+    if st.session_state.focus_tags:
+        all_editor_tags.update(st.session_state.focus_tags)
+    available_editor_tags = sorted(all_editor_tags)
+
+    editor_col1, editor_col2 = st.columns([3, 1])
+
+    with editor_col1:
+        selected_tags = st.multiselect(
+            "Select tags to focus on",
+            options=available_editor_tags,
+            default=st.session_state.focus_tags,
+            help="Filter to drills that match these tags. Use tags from Team Hub for best results.",
+            key="focus_tag_editor_multiselect"
+        )
+
+    # Save/Cancel buttons
+    btn_col1, btn_col2 = st.columns(2)
+    with btn_col1:
+        if st.button("Save Tags", key="save_focus_tags_btn"):
+            st.session_state.focus_tags = selected_tags
+            st.session_state["show_focus_tag_editor"] = False
+            st.rerun()
+
+    with btn_col2:
+        if st.button("Cancel", key="cancel_focus_tags_btn"):
+            st.session_state["show_focus_tag_editor"] = False
+            st.rerun()
+
+    st.markdown("---")
 
 if team_profile_context and team_drill_recency:
     suggested_drills = []
@@ -924,18 +971,6 @@ else:
             help="Blend Team Hub focus tags, play style, and injuries into drill scoring for this session."
         )
 
-        # Focus Tags expander with state-based opening
-        focus_tags_expanded = st.session_state.get("open_focus_tags_expander", False)
-        with st.expander("Focus tags (optional)", expanded=focus_tags_expanded):
-            focus_tags = st.multiselect(
-                "Select tags to filter drills",
-                options=available_tags,
-                help="Filter to drills that match these tags. Use focus tags from Team Hub for best results."
-            )
-            # Clear the expander state flag after reading
-            if focus_tags_expanded:
-                st.session_state["open_focus_tags_expander"] = False
-
         favorites_only = st.checkbox(
             "Use favorites only",
             value=False,
@@ -966,6 +1001,9 @@ else:
         if len(categories) == 0:
             st.warning("Select at least one category to generate a practice.")
         else:
+            # Use focus_tags from session_state (edited via inline editor)
+            edited_focus_tags = st.session_state.get("focus_tags", [])
+
             config_obj = PracticeConfig(
                 duration_minutes=st.session_state.get("session_length_minutes", 90),
                 num_players=player_count,
@@ -973,7 +1011,7 @@ else:
                 selected_categories=categories,
                 session_date=st.session_state.session_date.isoformat(),
                 session_notes=session_notes or (focus_choice if focus_choice != "Mixed" else ""),
-                focus_tags=focus_tags,
+                focus_tags=edited_focus_tags,
                 favorites_only=favorites_only,
                 use_team_profile=use_team_profile,
                 template_blocks=selected_template.blocks if selected_template else None,
@@ -1000,8 +1038,8 @@ else:
             drills_source = st.session_state.drills_df.copy()
             if favorites_only:
                 drills_source = drills_source[drills_source['is_favorite'] == True]  # noqa: E712
-            if focus_tags:
-                tag_set = set(focus_tags)
+            if edited_focus_tags:
+                tag_set = set(edited_focus_tags)
                 drills_source = drills_source[
                     drills_source['tags'].apply(
                         lambda cell: bool(set(_split_tags(cell)).intersection(tag_set))
