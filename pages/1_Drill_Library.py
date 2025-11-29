@@ -86,8 +86,8 @@ session_state.init_session_state()
 if 'data_path' not in st.session_state:
     st.session_state.data_path = config.get_data_path()
 
-if st.session_state.drills_df is None:
-    st.session_state.drills_df = data_loader.load_drills(st.session_state.data_path)
+# Use canonical drill loader - ensures consistency across pages
+session_state.init_drills_in_session_state(st.session_state.data_path)
 
 if st.session_state.teams_df is None:
     st.session_state.teams_df = data_loader.load_teams(st.session_state.data_path)

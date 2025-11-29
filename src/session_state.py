@@ -53,30 +53,48 @@ def init_session_state():
         st.session_state.generated_practice = None
 
 
+def init_drills_in_session_state(data_path):
+    """
+    CANONICAL DRILL LOADER - Single source of truth for drills across the app.
+
+    This function ensures that drills are loaded once and shared via session_state.
+    Both the Drill Library page and Practice Generator page should call this function
+    to ensure they're using the same drills_df.
+
+    Args:
+        data_path: Path to data directory
+
+    Returns:
+        None (loads into st.session_state["drills_df"])
+    """
+    if 'drills_df' not in st.session_state or st.session_state['drills_df'] is None:
+        st.session_state.drills_df = data_loader.load_drills(data_path)
+
+
 def get_cached_drills(data_path):
     """
     Load drills with file freshness caching.
     Only reloads if CSV file has been modified.
-    
+
     Args:
         data_path: Path to data directory
-        
+
     Returns:
         DataFrame with drills
     """
     drill_file = Path(data_path) / 'drill_library.csv'
-    
+
     # Check if file has been modified
     is_fresh, new_mtime = data_loader.check_file_freshness(
         drill_file,
         st.session_state.drill_cache_mtime
     )
-    
+
     # Reload if fresh or not cached
     if is_fresh or st.session_state.drills_df is None:
         st.session_state.drills_df = data_loader.load_drills(data_path)
         st.session_state.drill_cache_mtime = new_mtime
-    
+
     return st.session_state.drills_df
 
 

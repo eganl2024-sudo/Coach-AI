@@ -576,9 +576,8 @@ block_templates = data_loader.load_session_templates(st.session_state.data_path)
 if 'selected_block_template' not in st.session_state:
     st.session_state.selected_block_template = "None"
 
-# Ensure drills and teams are loaded for this page
-if st.session_state.drills_df is None:
-    st.session_state.drills_df = data_loader.load_drills(st.session_state.data_path)
+# Use canonical drill loader - ensures consistency with Drill Library page
+session_state.init_drills_in_session_state(st.session_state.data_path)
 
 if st.session_state.teams_df is None:
     st.session_state.teams_df = data_loader.load_teams(st.session_state.data_path)
@@ -663,6 +662,20 @@ if drill_load_error:
 team_load_error = st.session_state.teams_df.attrs.get('load_error')
 if team_load_error:
     st.error(team_load_error)
+
+# DEBUG PANEL: Drill library status (hidden by default)
+with st.expander("🔧 Debug: Drill library status", expanded=False):
+    if st.session_state.drills_df is None:
+        st.error("❌ drills_df is None. Check init_drills_in_session_state() execution and data_path.")
+    else:
+        st.write(f"✅ drills_df loaded successfully")
+        st.write(f"   Shape: {st.session_state.drills_df.shape}")
+        if st.session_state.drills_df.empty:
+            st.error("⚠️ drills_df is EMPTY. The drill_library.csv file may not have loaded correctly or may be missing.")
+        else:
+            st.write(f"   Columns: {list(st.session_state.drills_df.columns)}")
+            st.write(f"   First 3 rows:")
+            st.dataframe(st.session_state.drills_df.head(3), use_container_width=True)
 
 session_state.render_team_selector(
     label="Active team",
@@ -1013,12 +1026,20 @@ else:
                 ]
 
             if len(drills_source) == 0:
+                # Distinguish between empty drill library vs filters wiping out all drills
+                if len(st.session_state.drills_df) == 0:
+                    error_msg = "No drills found in the drill library. Add drills using the Drill Library page first."
+                    suggestion_msg = "Go to the Drill Library page and add drills to get started."
+                else:
+                    error_msg = "No drills match the selected categories, tags, and favorites filter."
+                    suggestion_msg = "Try relaxing your filters: remove focus tags, disable favorites-only, or select more categories."
+
                 result = {
                     "success": False,
-                    "error": "No drills match the selected tags/favorites filter.",
-                    "suggestion": "Adjust focus tags or disable the favorites-only toggle to expand options.",
+                    "error": error_msg,
+                    "suggestion": suggestion_msg,
                     "actions": {
-                        "can_clear_tags": bool(focus_tags),
+                        "can_clear_tags": bool(edited_focus_tags),
                         "can_disable_favorites": favorites_only
                     }
                 }
