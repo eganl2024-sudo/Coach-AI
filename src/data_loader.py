@@ -6,9 +6,25 @@ import uuid
 from typing import Optional
 import pandas as pd
 from pathlib import Path
+import streamlit as st
+import db
 from utils import ensure_columns
 import config
 from validation import validate_drill, validate_team_profile
+
+def _get_username() -> str | None:
+    """
+    Return the active username from session state, or None if auth is 
+    disabled (local dev mode) or no user is logged in.
+    """
+    import os
+    disable_auth = str(
+        os.environ.get("COACH_AI_DISABLE_AUTH", "")
+    ).strip().lower() in {"1", "true", "yes", "on"}
+    if disable_auth:
+        return None
+    return st.session_state.get("username")
+
 
 DRILL_COLUMNS = [
     'drill_id', 'drill_name', 'category', 'description',
@@ -291,6 +307,17 @@ def save_pending_changes(changes_dict):
         json.dump(changes_dict, f, indent=2)
 
 def load_athlete_profile(data_path) -> Optional[dict]:
+    username = _get_username()
+    if username:
+        try:
+            raw = db.load_user_data(username, "athlete_profile")
+            if raw:
+                profile = json.loads(raw)
+                return profile if profile.get("name") else None
+            return None
+        except Exception:
+            pass
+    # Filesystem fallback for local dev
     profile_path = Path(data_path) / "athlete_profile.json"
     if profile_path.exists():
         try:
@@ -301,12 +328,28 @@ def load_athlete_profile(data_path) -> Optional[dict]:
     return None
 
 def save_athlete_profile(profile: dict, data_path) -> None:
+    username = _get_username()
+    if username:
+        try:
+            db.save_user_data(username, "athlete_profile", json.dumps(profile, default=str))
+            return
+        except Exception:
+            pass
+    # Filesystem fallback for local dev
     profile_path = Path(data_path) / "athlete_profile.json"
     profile_path.parent.mkdir(parents=True, exist_ok=True)
     with open(profile_path, "w", encoding="utf-8") as f:
         json.dump(profile, f, indent=2, default=str)
 
 def load_completion_log(data_path) -> dict:
+    username = _get_username()
+    if username:
+        try:
+            raw = db.load_user_data(username, "completion_log")
+            return json.loads(raw) if raw else {}
+        except Exception:
+            pass
+    # Filesystem fallback
     log_path = Path(data_path) / "completion_log.json"
     if log_path.exists():
         try:
@@ -317,12 +360,31 @@ def load_completion_log(data_path) -> dict:
     return {}
 
 def save_completion_log(log: dict, data_path) -> None:
+    username = _get_username()
+    if username:
+        try:
+            db.save_user_data(username, "completion_log", json.dumps(log, default=str))
+            return
+        except Exception:
+            pass
+    # Filesystem fallback
     log_path = Path(data_path) / "completion_log.json"
     log_path.parent.mkdir(parents=True, exist_ok=True)
     with open(log_path, "w", encoding="utf-8") as f:
         json.dump(log, f, indent=2, default=str)
 
 def load_weekly_training_plan(data_path) -> Optional[dict]:
+    username = _get_username()
+    if username:
+        try:
+            raw = db.load_user_data(username, "weekly_training_plan")
+            if raw:
+                plan = json.loads(raw)
+                return plan if plan else None
+            return None
+        except Exception:
+            pass
+    # Filesystem fallback
     plan_path = Path(data_path) / "weekly_training_plan.json"
     if plan_path.exists():
         try:
@@ -333,17 +395,32 @@ def load_weekly_training_plan(data_path) -> Optional[dict]:
     return None
 
 def save_weekly_training_plan(plan: dict, data_path) -> None:
+    username = _get_username()
+    if username:
+        try:
+            db.save_user_data(username, "weekly_training_plan", json.dumps(plan, default=str))
+            return
+        except Exception:
+            pass
+    # Filesystem fallback
     plan_path = Path(data_path) / "weekly_training_plan.json"
     plan_path.parent.mkdir(parents=True, exist_ok=True)
     with open(plan_path, "w", encoding="utf-8") as f:
         json.dump(plan, f, indent=2, default=str)
 
 def load_rrs_history(data_path) -> dict:
-    """
-    Load RRS snapshot history from rrs_history.json.
-    Returns {"snapshots": []} if file does not exist or is malformed.
-    Each snapshot: {"date": ISO str, "overall": int, "pillars": dict}
-    """
+    username = _get_username()
+    if username:
+        try:
+            raw = db.load_user_data(username, "rrs_history")
+            if raw:
+                content = json.loads(raw)
+                if isinstance(content, dict) and "snapshots" in content:
+                    return content
+            return {"snapshots": []}
+        except Exception:
+            pass
+    # Filesystem fallback
     history_path = Path(data_path) / "rrs_history.json"
     if history_path.exists():
         try:
@@ -357,10 +434,14 @@ def load_rrs_history(data_path) -> dict:
     return {"snapshots": []}
 
 def save_rrs_history(history: dict, data_path) -> None:
-    """
-    Save RRS history dict to rrs_history.json.
-    Same pattern as save_completion_log.
-    """
+    username = _get_username()
+    if username:
+        try:
+            db.save_user_data(username, "rrs_history", json.dumps(history, default=str))
+            return
+        except Exception:
+            pass
+    # Filesystem fallback
     history_path = Path(data_path) / "rrs_history.json"
     history_path.parent.mkdir(parents=True, exist_ok=True)
     with open(history_path, "w", encoding="utf-8") as f:

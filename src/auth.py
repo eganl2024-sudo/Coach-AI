@@ -8,6 +8,7 @@ import re
 from pathlib import Path
 import streamlit as st
 import config
+import db
 
 DEFAULT_PASSWORD = "Coach_AI_2025"
 
@@ -47,27 +48,7 @@ def verify_password(password: str, pwd_hash_hex: str, salt_hex: str) -> bool:
     except Exception:
         return False
 
-def get_users_file_path() -> Path:
-    """Get path to the users database file."""
-    return config.PRODUCTION_DATA_DIR / 'users.json'
 
-def load_users() -> dict:
-    """Load user credentials from file."""
-    users_file = get_users_file_path()
-    if users_file.exists():
-        try:
-            with open(users_file, 'r', encoding='utf-8') as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-def save_users(users: dict) -> None:
-    """Save user credentials to file."""
-    users_file = get_users_file_path()
-    users_file.parent.mkdir(parents=True, exist_ok=True)
-    with open(users_file, 'w', encoding='utf-8') as f:
-        json.dump(users, f, indent=2)
 
 def bootstrap_user_sandbox(username: str) -> Path:
     """Bootstrap isolated sandboxed directory with starter files."""
@@ -105,27 +86,26 @@ def signup_user(username, password) -> bool:
         st.error("Username cannot be empty.")
         return False
     if not is_valid_username(username):
-        st.error("Username must be at least 3 characters and contain only letters, numbers, and symbols (@ . _ -).")
+        st.error("Username must be at least 3 characters and contain only "
+                 "letters, numbers, and symbols (@ . _ -).")
         return False
     if len(password) < 6:
         st.error("Password must be at least 6 characters.")
         return False
-        
-    users = load_users()
-    if username in users:
+    try:
+        existing = db.get_user(username)
+    except RuntimeError as e:
+        st.error(f"Database error: {e}")
+        return False
+    if existing:
         st.error("Username is already taken.")
         return False
-        
     pwd_hash, salt = hash_password(password)
-    from datetime import datetime
-    users[username] = {
-        "password_hash": pwd_hash,
-        "salt": salt,
-        "created_at": datetime.now().isoformat()
-    }
-    save_users(users)
-    
-    # Bootstrap user directory
+    try:
+        db.create_user(username, pwd_hash, salt)
+    except RuntimeError as e:
+        st.error(f"Could not create account: {e}")
+        return False
     bootstrap_user_sandbox(username)
     return True
 
@@ -135,19 +115,20 @@ def login_user(username, password) -> bool:
     if not username or not password:
         st.error("Username and password cannot be empty.")
         return False
-        
-    users = load_users()
-    if username not in users:
+    try:
+        user_data = db.get_user(username)
+    except RuntimeError as e:
+        st.error(f"Database error: {e}")
+        return False
+    if not user_data:
         st.error("Invalid username or password.")
         return False
-        
-    user_data = users[username]
     if verify_password(password, user_data["password_hash"], user_data["salt"]):
         st.session_state.authenticated = True
         st.session_state.username = username
-        
-        # Point data path dynamically to their sandbox
-        st.session_state.data_path = config.PRODUCTION_DATA_DIR / 'users' / username
+        st.session_state.data_path = (
+            config.PRODUCTION_DATA_DIR / "users" / username
+        )
         return True
     else:
         st.error("Invalid username or password.")

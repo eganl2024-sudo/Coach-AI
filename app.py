@@ -34,6 +34,20 @@ st.set_page_config(
 # Enforce authentication
 require_auth()
 
+# Verify Supabase connection (skip if auth is disabled for local dev)
+import os as _os
+if not _os.environ.get("COACH_AI_DISABLE_AUTH", "").strip().lower() in {"1", "true", "yes", "on"}:
+    try:
+        import db as _db
+        _db.get_client()
+    except Exception as _e:
+        st.error(
+            f"⚠️ Database connection failed. "
+            f"Check that SUPABASE_URL and SUPABASE_KEY are set in "
+            f"Streamlit Cloud secrets. Error: {_e}"
+        )
+        st.stop()
+
 # Initialize session state variables
 session_state.init_session_state()
 
