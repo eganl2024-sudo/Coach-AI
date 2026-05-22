@@ -99,7 +99,7 @@ if is_first_visit:
     }
     .credential-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         gap: 16px;
         margin-top: 24px;
     }
@@ -194,11 +194,6 @@ if is_first_visit:
                     <div class="credential-card">
                         <div class="cred-name">Mitch Ferguson</div>
                         <div class="cred-role">Center Back · Sporting KC 2</div>
-                        <div class="cred-level">MLS Next Pro</div>
-                    </div>
-                    <div class="credential-card">
-                        <div class="cred-name">Bryce Boneau</div>
-                        <div class="cred-role">Midfielder · Toronto FC 2</div>
                         <div class="cred-level">MLS Next Pro</div>
                     </div>
                     <div class="credential-card">
@@ -512,7 +507,6 @@ if submit_button:
         </div>
         """, unsafe_allow_html=True)
         
-        col_ok, _ = st.columns([1, 2])
+        col_ok, _ = st.columns([1.5, 2])
         with col_ok:
-            if st.button("Go to My Dashboard →", type="primary", use_container_width=True):
-                st.switch_page("pages/0_Coach_Home.py")
+            st.page_link("pages/0_Coach_Home.py", label="Go to My Dashboard →", icon="🏠", use_container_width=True)

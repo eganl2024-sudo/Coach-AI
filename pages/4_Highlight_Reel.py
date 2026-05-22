@@ -505,7 +505,7 @@ st.markdown("""
     <h3 style="margin:0 0 8px 0;">🚀 Highlight Reel Workshop — Coming Soon</h3>
     <p style="margin:0; opacity:0.9;">
         Player AI will soon offer personalized highlight reel feedback from our college and professional
-        coaching staff — Mitch, Nick, Bryce, and Liam will review your footage and tell you exactly
+        coaching staff — Nick, Mitch, and Liam will review your footage and tell you exactly
         what to keep, what to cut, and how to structure your reel for maximum impact with college coaches.
     </p>
 </div>

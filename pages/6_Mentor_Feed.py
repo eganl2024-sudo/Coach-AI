@@ -47,8 +47,9 @@ st.divider()
 
 # Load data at the top
 athlete_profile = data_loader.load_athlete_profile(st.session_state.data_path) or {}
-presenters_df = st.session_state.get("presenters_df") or \
-    data_loader.load_presenters(st.session_state.data_path)
+presenters_df = st.session_state.get("presenters_df")
+if presenters_df is None:
+    presenters_df = data_loader.load_presenters(st.session_state.data_path)
 feed = data_loader.load_mentor_feed(st.session_state.data_path)
 posts = feed.get("posts", [])
 
@@ -179,7 +180,7 @@ st.markdown("""
         🎙️ Mentor Feed
     </h1>
     <p style="color:rgba(255,255,255,0.9); font-size:16px; margin:0 0 6px 0;">
-        Direct from Mitch, Bryce, Nick, and Liam — what they are 
+        Direct from Mitch, Nick, and Liam — what they are 
         training, what they are learning, and what you need to hear.
     </p>
     <p style="color:rgba(255,255,255,0.65); font-size:13px; margin:0;">
@@ -192,7 +193,7 @@ st.markdown("""
 if "feed_filter_presenter" not in st.session_state:
     st.session_state.feed_filter_presenter = "All"
 
-filter_cols = st.columns([1, 1, 1, 1, 1])  # 5 columns: All + 4 presenters
+filter_cols = st.columns([1, 1, 1, 1])  # 4 columns: All + 3 presenters
 
 with filter_cols[0]:
     is_active = st.session_state.feed_filter_presenter == "All"
@@ -205,7 +206,7 @@ with filter_cols[0]:
         st.session_state.feed_filter_presenter = "All"
         st.rerun()
 
-ORDERED_PRESENTER_IDS = ["YOU-01", "KC-01", "UNLV-01", "TFC-01"]
+ORDERED_PRESENTER_IDS = ["YOU-01", "KC-01", "UNLV-01"]
 
 for idx, pid in enumerate(ORDERED_PRESENTER_IDS):
     col_idx = idx + 1
@@ -344,7 +345,7 @@ st.markdown("""
     <p style="margin:0 0 12px 0; color:rgba(255,255,255,0.85);
               font-size:15px; line-height:1.6;">
         Soon you will be able to submit your game footage directly to Mitch,
-        Bryce, Nick, or Liam for a personal video review — and book a live
+        Nick, or Liam for a personal video review — and book a live
         30-minute Q&A session with a current college or professional player
         who plays your position.
     </p>

@@ -20,7 +20,7 @@ def test_save_and_load_mentor_feed():
             "posts": [
                 {
                     "post_id": "POST_002",
-                    "presenter_id": "TFC-01",
+                    "presenter_id": "UNLV-01",
                     "title": "Older Post",
                     "date_posted": "2026-05-10"
                 },
