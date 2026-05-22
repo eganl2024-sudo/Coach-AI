@@ -1,22 +1,15 @@
 {
-  "name": "Adolf Hitler",
-  "age": 12,
-  "preferred_foot": "Left",
-  "position": "Forward",
-  "secondary_position": "Goalkeeper",
+  "name": "",
+  "age": 14,
+  "preferred_foot": "Right",
+  "position": "Striker",
+  "secondary_position": "None",
   "level": "Recreational",
-  "sessions_per_week": 4,
-  "session_duration": 60,
-  "focus_areas": [
-    "Dribbling",
-    "Passing",
-    "First Touch"
-  ],
-  "equipment_available": [
-    "Ball only",
-    "Cones",
-    "Goal",
-    "Training partner available",
-    "Rebounder/Wall"
-  ]
+  "target_level": "Competitive Club",
+  "sessions_per_week": 3,
+  "session_duration": 30,
+  "focus_areas": ["First Touch", "Dribbling & Ball Mastery"],
+  "equipment_available": ["Ball only", "Cones"],
+  "age_group": "U14",
+  "created_date": null
 }

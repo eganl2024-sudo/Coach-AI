@@ -26,7 +26,7 @@ from auth import require_auth
 
 # Page configuration
 st.set_page_config(
-    page_title="Highlight Reel Guide - Player Development Platform",
+    page_title="Highlight Reel Guide | Player AI",
     page_icon="🎬",
     layout="wide",
     initial_sidebar_state="expanded",

@@ -30,7 +30,7 @@ from auth import require_auth
 
 # Page configuration
 st.set_page_config(
-    page_title="My Dashboard - Player Development Platform",
+    page_title="My Dashboard | Player AI",
     page_icon="🏠",
     layout="wide",
     initial_sidebar_state="expanded",

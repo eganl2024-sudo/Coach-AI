@@ -250,8 +250,8 @@ def render_login_screen():
     with col2:
         st.markdown('<div class="glass-container">', unsafe_allow_html=True)
         
-        st.markdown('<div class="login-header-text">⚽ Coach AI</div>', unsafe_allow_html=True)
-        st.markdown('<div class="login-subheader-text">Player Development Platform</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-header-text">⚽ Player AI</div>', unsafe_allow_html=True)
+        st.markdown('<div class="login-subheader-text">Player AI</div>', unsafe_allow_html=True)
         
         # Tabs for login vs signup
         mode = st.radio(
