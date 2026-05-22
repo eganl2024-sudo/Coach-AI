@@ -1,69 +1,93 @@
 import sys
 from pathlib import Path
-
+import datetime
 import pytest
 
-ROOT = Path(__file__).resolve().parents[1]
-sys.path.append(str(ROOT / "src"))
+# Ensure src is on path
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(ROOT / "src"))
 
-from models import PracticeConfig, PracticeSession, SessionDrill  # noqa: E402
+from validation import (
+    validate_drill,
+    validate_team_profile,
+    validate_practice_session,
+)
 
 
-def _session_with_drills(drills):
-    cfg = PracticeConfig(
-        duration_minutes=sum(d.allocated_time for d in drills),
-        num_players=10,
-        num_drills=len(drills),
-        selected_categories=["Warmup", "Technical", "Cool Down"],
-        session_date="2024-01-01",
-        session_notes="",
+def test_validate_drill_valid():
+    data = {
+        "drill_id": "D1",
+        "drill_name": "Passing Warmup",
+        "category": "Warmup",
+        "players_min": "6",
+        "players_max": 12,
+        "duration_minutes": "10",
+        "intensity": "low",
+        "tags": "Passing|Warmup",
+    }
+    drill = validate_drill(data)
+    assert drill.drill_id == "D1"
+    assert drill.min_players == 6
+    assert drill.max_players == 12
+    assert drill.duration_minutes == 10
+    assert drill.tags == ["Passing", "Warmup"]
+
+
+def test_validate_drill_missing_name():
+    with pytest.raises(ValueError):
+        validate_drill({"drill_id": "X1", "category": "Warmup"})
+
+
+def test_validate_team_profile_valid_and_defaults():
+    profile = validate_team_profile(
+        {"team_id": "T1", "team_name": "U12 Blue", "age_group": "U12", "typical_roster_size": "14"}
     )
-    return PracticeSession.create(
-        team_name="Test",
-        team_id="t1",
-        session_date="2024-01-01",
-        config=cfg,
-        drills=drills,
-        team_profile_summary={},
-    )
+    assert profile.schema_version == 1
+    assert profile.team_id == "T1"
+    assert profile.age_group == "U12"
+    assert profile.typical_roster_size == 14
 
 
-def test_validate_session_missing_warmup():
-    drills = [
-        SessionDrill.from_dict({"drill_id": "TECH1", "drill_name": "Tech", "category": "Technical", "allocated_time": 20, "intensity": "medium", "players_min": 1, "players_max": 20}),
-        SessionDrill.from_dict({"drill_id": "COOL1", "drill_name": "Cool", "category": "Cool Down", "allocated_time": 10, "intensity": "low", "players_min": 1, "players_max": 20}),
-    ]
-    session = _session_with_drills(drills)
-    errors = session.validate()
-    assert any("Warmup block must be first." in err for err in errors)
+def test_validate_team_profile_missing_age_group():
+    with pytest.raises(ValueError):
+        validate_team_profile({"team_id": "T2", "team_name": "No Age"})
 
 
-def test_validate_session_missing_cooldown():
-    drills = [
-        SessionDrill.from_dict({"drill_id": "WARM1", "drill_name": "Warm", "category": "Warmup", "allocated_time": 10, "intensity": "low", "players_min": 1, "players_max": 20}),
-        SessionDrill.from_dict({"drill_id": "TECH1", "drill_name": "Tech", "category": "Technical", "allocated_time": 20, "intensity": "medium", "players_min": 1, "players_max": 20}),
-    ]
-    session = _session_with_drills(drills)
-    errors = session.validate()
-    assert any("Cool Down block must be last." in err for err in errors)
+def test_validate_practice_session_minimal():
+    session_dict = {
+        "team_id": "T1",
+        "team_name": "U12 Blue",
+        "session_date": "2024-05-01",
+        "duration_minutes": 60,
+        "num_players": 12,
+        "drills": [
+            {
+                "drill_id": "D1",
+                "drill_name": "Warmup",
+                "category": "Warmup",
+                "intensity": "low",
+                "players_min": 6,
+                "players_max": 20,
+                "allocated_time": 10,
+            }
+        ],
+    }
+    session = validate_practice_session(session_dict)
+    assert session.schema_version == 1
+    assert session.session_id
+    assert session.duration_minutes == 60
+    assert session.num_players == 12
+    assert len(session.drills) == 1
 
 
-def test_validate_session_negative_duration():
-    drills = [
-        SessionDrill.from_dict({"drill_id": "WARM1", "drill_name": "Warm", "category": "Warmup", "allocated_time": -5, "intensity": "low", "players_min": 1, "players_max": 20}),
-        SessionDrill.from_dict({"drill_id": "COOL1", "drill_name": "Cool", "category": "Cool Down", "allocated_time": 10, "intensity": "low", "players_min": 1, "players_max": 20}),
-    ]
-    session = _session_with_drills(drills)
-    errors = session.validate()
-    assert any("non-positive duration" in err for err in errors)
-
-
-def test_validate_session_total_duration_mismatch():
-    drills = [
-        SessionDrill.from_dict({"drill_id": "WARM1", "drill_name": "Warm", "category": "Warmup", "allocated_time": 5, "intensity": "low", "players_min": 1, "players_max": 20}),
-        SessionDrill.from_dict({"drill_id": "COOL1", "drill_name": "Cool", "category": "Cool Down", "allocated_time": 5, "intensity": "low", "players_min": 1, "players_max": 20}),
-    ]
-    session = _session_with_drills(drills)
-    session.duration_minutes = 30
-    errors = session.validate()
-    assert any("Total allocated time" in err for err in errors)
+def test_validate_practice_session_bad_block():
+    bad_session = {
+        "team_id": "T1",
+        "team_name": "U12",
+        "session_date": "2024-05-01",
+        "duration_minutes": 60,
+        "num_players": 10,
+        "blocks": [{"block_type": "warmup", "duration_minutes": "abc", "drill_id": "D1", "order_index": 0}],
+    }
+    with pytest.raises(ValueError):
+        validate_practice_session(bad_session)

@@ -1,0 +1,7 @@
+schema_version,club_id,team_id,team_name,age_group,skill_level,typical_roster_size,notes,preferred_formation,play_style,season_objectives,focus_areas,created_date,formation,key_players,injuries,practice_schedule,upcoming_match,upcoming_match_date,upcoming_match_time,upcoming_match_opponent,gender,focus_tags,default_practice_start_time,default_practice_duration
+1,,team_1,U12 Eagles,U12,intermediate,0,,4-3-3,Balanced,"First touch, Pressing",First touch|Pressing,,4-3-3,,,"Tue, Thu",,,,,Coed,"First touch,Pressing",17:00,90
+1,,team_2,My Team,U14,intermediate,0,,4-3-3,Balanced,"First touch, Pressing",First touch|Pressing,,,,,,,,,,,,,
+1,,team_3,My Team,U14,intermediate,0,,4-3-3,Balanced,"First touch, Pressing",First touch|Pressing,,,,,,,,,,,,,
+1,,team_4,My Team,U14,intermediate,0,,4-3-3,Balanced,"First touch, Pressing",First touch|Pressing,,,,,,,,,,,,,
+1,,team_5,My Team,U14,intermediate,0,,4-3-3,Balanced,"First touch, Pressing",First touch|Pressing,,,,,,,,,,,,,
+1,,team_6,My Team,U14,intermediate,0,,4-3-3,Balanced,"First touch, Pressing",First touch|Pressing,,,,,,,,,,,,,

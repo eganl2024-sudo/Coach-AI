@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Template 1",
+    "description": "Test Template 1",
+    "blocks": {
+      "warmup": [
+        "WARM_002"
+      ],
+      "technical": [
+        "TECH_003"
+      ],
+      "tactical": [
+        "TACT_004"
+      ],
+      "conditioning": [
+        "COND_006",
+        "COND_004",
+        "COND_001"
+      ],
+      "cooldown": [
+        "COOL_004"
+      ]
+    },
+    "block_durations": {
+      "warmup": 13,
+      "technical": 13,
+      "tactical": 13,
+      "conditioning": 39,
+      "cooldown": 12
+    },
+    "repair_notes": [
+      "Converted from session 2025-11-27"
+    ]
+  }
+]

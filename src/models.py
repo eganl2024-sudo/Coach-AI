@@ -1,7 +1,10 @@
 import uuid
 from dataclasses import dataclass, field, asdict
+from datetime import datetime, date
 from typing import List, Dict, Any, Optional
 import pandas as pd
+
+SCHEMA_VERSION_CURRENT = 1
 
 MIN_DURATION = 45
 MAX_DURATION = 120
@@ -9,6 +12,194 @@ MIN_DRILLS = 3
 MAX_DRILLS = 8
 MIN_PLAYERS = 6
 MAX_PLAYERS = 30
+
+
+@dataclass
+class Drill:
+    """
+    Core drill definition loaded from CSV/Excel.
+
+    Mirrors columns like drill_id, drill_name, category, players_min/max, duration_minutes,
+    and keeps any extra columns in extra_data for forward compatibility.
+    """
+    drill_id: str
+    name: str
+    category: str
+    age_group_min: Optional[int] = None
+    age_group_max: Optional[int] = None
+    min_players: Optional[int] = None
+    max_players: Optional[int] = None
+    duration_minutes: Optional[int] = None
+    intensity: Optional[str] = None
+    tags: Optional[List[str]] = None
+    description: str = ""
+    field_type: str = ""
+    equipment: str = ""
+    setup_data: str = ""
+    coaching_points: str = ""
+    difficulty: Optional[str] = None
+    is_favorite: bool = False
+    position_relevance: Optional[List[str]] = None
+    skill_category: str = "Technical"
+    solo_possible: bool = True
+    min_equipment: str = "Ball only"
+    game_application: str = "Game application notes coming soon"
+    video_url: str = ""
+    video_thumbnail: str = ""
+    coaching_cues: Optional[List[str]] = None
+    position_track: str = ""
+    drill_type: str = "Isolation"
+    series_name: str = ""
+    series_order: int = 0
+    rrs_benchmark: str = "Club Level"
+    space_required: str = "Small area"
+    position_primary: str = ""
+    presenter_id: str = ""
+    college_context: str = ""
+    pro_context: str = ""
+    variations: str = ""
+    prerequisite_drill: str = ""
+    next_drill: str = ""
+    status: str = "Published"
+    video_url_short: str = ""
+    video_url_full: str = ""
+    video_status: str = "Not Filmed"
+    filming_date: str = ""
+    filming_notes: str = ""
+    beta_ready: bool = False
+    date_published: str = ""
+    slug: str = ""
+    common_mistakes: str = ""
+    extra_data: Dict[str, Any] = field(default_factory=dict)
+
+    def to_record(self, preferred_fields: Optional[List[str]] = None) -> Dict[str, Any]:
+        """
+        Return a flat dict suitable for DataFrame construction, preserving extra columns.
+        """
+        base = {
+            "drill_id": self.drill_id,
+            "drill_name": self.name,
+            "category": self.category,
+            "players_min": self.min_players,
+            "players_max": self.max_players,
+            "duration_minutes": self.duration_minutes,
+            "field_type": self.field_type,
+            "setup_data": self.setup_data,
+            "equipment": self.equipment,
+            "coaching_points": self.coaching_points,
+            "description": self.description,
+            "difficulty": self.difficulty,
+            "intensity": self.intensity,
+            "is_favorite": self.is_favorite,
+            "skill_category": self.skill_category,
+            "solo_possible": self.solo_possible,
+            "min_equipment": self.min_equipment,
+            "game_application": self.game_application,
+            "video_url": self.video_url,
+            "video_thumbnail": self.video_thumbnail,
+            "position_track": self.position_track,
+            "drill_type": self.drill_type,
+            "series_name": self.series_name,
+            "series_order": self.series_order,
+            "rrs_benchmark": self.rrs_benchmark,
+            "space_required": self.space_required,
+            "position_primary": self.position_primary,
+            "presenter_id": self.presenter_id,
+            "college_context": self.college_context,
+            "pro_context": self.pro_context,
+            "variations": self.variations,
+            "prerequisite_drill": self.prerequisite_drill,
+            "next_drill": self.next_drill,
+            "status": self.status,
+            "video_url_short": self.video_url_short,
+            "video_url_full": self.video_url_full,
+            "video_status": self.video_status,
+            "filming_date": self.filming_date,
+            "filming_notes": self.filming_notes,
+            "beta_ready": self.beta_ready,
+            "date_published": self.date_published,
+            "slug": self.slug,
+            "common_mistakes": self.common_mistakes,
+        }
+        if self.tags is not None:
+            base["tags"] = "|".join(self.tags)
+        if self.position_relevance is not None:
+            base["position_relevance"] = "|".join(self.position_relevance)
+        if self.coaching_cues is not None:
+            base["coaching_cues"] = "|".join(self.coaching_cues)
+        if self.age_group_min is not None:
+            base["age_group_min"] = self.age_group_min
+        if self.age_group_max is not None:
+            base["age_group_max"] = self.age_group_max
+        # Preserve any extra columns that were present on load
+        for key, value in (self.extra_data or {}).items():
+            if key not in base:
+                base[key] = value
+        if preferred_fields:
+            for key in preferred_fields:
+                base.setdefault(key, None)
+        return base
+
+
+@dataclass
+class PracticeBlock:
+    """
+    A single block inside a practice session (warmup, technical, etc.).
+    """
+    block_id: str
+    block_type: str
+    order_index: int
+    duration_minutes: int
+    drill_id: str
+    notes: Optional[str] = None
+    auto_inserted: bool = False
+
+
+@dataclass
+class TeamProfile:
+    """
+    Structured representation of a team profile row from CSV/Excel.
+    """
+    schema_version: int
+    team_id: str
+    team_name: str
+    age_group: str
+    club_id: Optional[str] = None
+    gender: Optional[str] = None
+    level: Optional[str] = None
+    sessions_per_week: Optional[int] = None
+    default_practice_duration_minutes: Optional[int] = None
+    preferred_formation: Optional[str] = None
+    style_of_play: Optional[str] = None
+    season_objective: Optional[str] = None
+    skill_level: Optional[str] = None
+    typical_roster_size: Optional[int] = None
+    notes: str = ""
+    focus_areas: Optional[str] = None
+    extra_data: Dict[str, Any] = field(default_factory=dict)
+
+    def to_record(self, preferred_fields: Optional[List[str]] = None) -> Dict[str, Any]:
+        record = {
+            "schema_version": self.schema_version,
+            "club_id": self.club_id,
+            "team_id": self.team_id,
+            "team_name": self.team_name,
+            "age_group": self.age_group,
+            "skill_level": self.skill_level,
+            "typical_roster_size": self.typical_roster_size,
+            "notes": self.notes,
+            "preferred_formation": self.preferred_formation,
+            "play_style": self.style_of_play,
+            "season_objectives": self.season_objective,
+            "focus_areas": self.focus_areas,
+        }
+        if preferred_fields:
+            for key in preferred_fields:
+                record.setdefault(key, None)
+        for key, value in (self.extra_data or {}).items():
+            if key not in record:
+                record[key] = value
+        return record
 
 
 @dataclass
@@ -57,6 +248,14 @@ class SessionDrill:
     target_intensity: str
     recency_label: str = "New"
     fallback: bool = False
+    position_relevance: Optional[List[str]] = None
+    skill_category: str = "Technical"
+    solo_possible: bool = True
+    min_equipment: str = "Ball only"
+    game_application: str = "Game application notes coming soon"
+    video_url: str = ""
+    video_thumbnail: str = ""
+    coaching_cues: Optional[List[str]] = None
     extras: Dict[str, Any] = field(default_factory=dict)
     diagram_path: str = ""
     diagram_metadata: Dict[str, Any] = field(default_factory=dict)
@@ -81,6 +280,14 @@ class SessionDrill:
             "target_intensity": data.get("target_intensity", ""),
             "recency_label": data.get("recency_label", "New"),
             "fallback": bool(data.get("fallback", False)),
+            "position_relevance": data.get("position_relevance") if isinstance(data.get("position_relevance"), list) else ([t.strip() for t in str(data.get("position_relevance", "")).split("|") if t.strip()] if data.get("position_relevance") else []),
+            "skill_category": data.get("skill_category", "Technical"),
+            "solo_possible": bool(data.get("solo_possible") if data.get("solo_possible") is not None else True),
+            "min_equipment": data.get("min_equipment", "Ball only"),
+            "game_application": data.get("game_application", "Game application notes coming soon"),
+            "video_url": data.get("video_url") or data.get("video_youtube_url") or "",
+            "video_thumbnail": data.get("video_thumbnail", ""),
+            "coaching_cues": data.get("coaching_cues") if isinstance(data.get("coaching_cues"), list) else ([t.strip() for t in str(data.get("coaching_cues", "")).split("|") if t.strip()] if data.get("coaching_cues") else []),
             "diagram_path": data.get("diagram_path", ""),
             "diagram_metadata": data.get("diagram_metadata") if isinstance(data.get("diagram_metadata"), dict) else {},
             "block_type": data.get("block_type"),
@@ -116,6 +323,10 @@ class DrillScoreBreakdown:
 
 @dataclass
 class PracticeSession:
+    """
+    Rich practice session used throughout the app. The generator relies on drills and config,
+    while schema_version/blocks/metadata support migration and validation.
+    """
     session_id: str
     team_id: str
     team_name: str
@@ -134,6 +345,15 @@ class PracticeSession:
     block_duration_summaries: List[Any] = field(default_factory=list)
     template_notes: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
+    schema_version: int = SCHEMA_VERSION_CURRENT
+    club_id: Optional[str] = None
+    blocks: List[PracticeBlock] = field(default_factory=list)
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    source: Optional[str] = None
+    primary_focus: Optional[str] = None
+    num_players_expected: Optional[int] = None
+    formation: Optional[str] = None
 
     @classmethod
     def create(cls, team_name: str, team_id: str, session_date: str, config: PracticeConfig,
@@ -155,6 +375,57 @@ class PracticeSession:
             category_summary=category_summary or {},
             intensity_summary=intensity_summary or {}
         )
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]):
+        cfg = data.get("config", {}) or {}
+        drills_data = data.get("drills", []) or []
+        drills = [SessionDrill.from_dict(d) for d in drills_data]
+        config = PracticeConfig(
+            duration_minutes=cfg.get("duration_minutes", data.get("duration_minutes", 0)),
+            num_players=cfg.get("num_players", data.get("num_players", 0)),
+            num_drills=cfg.get("num_drills", len(drills)),
+            selected_categories=cfg.get("selected_categories", data.get("selected_categories", [])),
+            session_date=cfg.get("session_date", data.get("session_date", "")),
+            session_notes=cfg.get("session_notes", ""),
+            focus_tags=cfg.get("focus_tags", []),
+            favorites_only=cfg.get("favorites_only", False),
+            use_team_profile=cfg.get("use_team_profile", True),
+            template_blocks=cfg.get("template_blocks"),
+            focus_boost_categories=cfg.get("focus_boost_categories", []),
+        )
+        session = cls(
+            session_id=data.get("session_id", ""),
+            team_id=data.get("team_id", ""),
+            team_name=data.get("team_name", ""),
+            session_date=data.get("session_date", cfg.get("session_date", "")),
+            config=config,
+            duration_minutes=data.get("duration_minutes", config.duration_minutes),
+            num_players=data.get("num_players", config.num_players),
+            num_drills=data.get("num_drills", len(drills)),
+            selected_categories=data.get("selected_categories", config.selected_categories),
+            drills=drills,
+            team_profile_summary=data.get("team_profile_summary", {}),
+            equipment_needed=data.get("equipment_needed", []),
+            category_summary=data.get("category_summary", {}),
+            intensity_summary=data.get("intensity_summary", {}),
+            manual_adjustments=data.get("manual_adjustments", {"reordered": 0, "replaced": 0}),
+            block_duration_summaries=data.get("block_duration_summaries", []),
+            template_notes=data.get("template_notes", []),
+            warnings=data.get("warnings", []),
+            schema_version=int(data.get("schema_version", SCHEMA_VERSION_CURRENT) or SCHEMA_VERSION_CURRENT),
+            club_id=data.get("club_id"),
+            blocks=[PracticeBlock(**b) if isinstance(b, dict) else b for b in data.get("blocks", []) or []],
+            created_at=data.get("created_at"),
+            updated_at=data.get("updated_at"),
+            source=data.get("source"),
+            primary_focus=data.get("primary_focus"),
+            num_players_expected=data.get("num_players_expected"),
+            formation=data.get("formation"),
+        )
+        # Optional extra metadata
+        session.event_id = data.get("event_id", "")
+        return session
 
     def compute_avg_intensity(self):
         """
@@ -234,6 +505,18 @@ class PracticeSession:
                 for summary in self.block_duration_summaries
             ],
             "template_notes": self.template_notes,
+            "schema_version": self.schema_version,
+            "club_id": self.club_id,
+            "blocks": [
+                asdict(block) if hasattr(block, "__dict__") else block
+                for block in (self.blocks or [])
+            ],
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "source": self.source,
+            "primary_focus": self.primary_focus,
+            "num_players_expected": self.num_players_expected,
+            "formation": self.formation,
         }
 
     def validate(self):
@@ -499,3 +782,19 @@ def can_move_up_down(n: int, index: int) -> tuple[bool, bool]:
     if index == n - 2:
         return True, False
     return True, True
+
+
+@dataclass
+class PlayerAttributeMetric:
+    """
+    Placeholder model for player attribute tracking (future use).
+    """
+    metric_id: str
+    schema_version: int
+    club_id: Optional[str]
+    team_id: str
+    session_id: str
+    player_id: Optional[str]
+    attribute: str
+    value: float
+    timestamp: datetime

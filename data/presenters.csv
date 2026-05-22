@@ -1,0 +1,5 @@
+presenter_id,full_name,display_name,current_team,team_level,position,college,graduation_year,bio_short,headshot_url,active,position_tracks
+YOU-01,Liam Egan,Liam Egan — Notre Dame,Notre Dame (Former),Notre Dame,Goalkeeper,University of Notre Dame,2024,Former Notre Dame goalkeeper bringing professional-grade GK development content to youth players.,,TRUE,GK
+KC-01,Mitch Ferguson,Mitch Ferguson — Sporting KC 2,Sporting KC 2,MLS Next Pro,Center Back,University of Notre Dame,2024,Active MLS Next Pro center back and former Notre Dame defender. Brings professional defensive training methodology to the CB track.,,TRUE,CB|Full Back
+UNLV-01,Nick Legendre,Nick Legendre — UNLV,UNLV,Division I,Winger/Forward,University of Notre Dame,2024,Active Division I winger and forward at UNLV. Covers the winger and forward tracks with current college-level training insight.,,TRUE,Winger|Forward
+TFC-01,Bryce Boneau,Bryce Boneau — Toronto FC 2,Toronto FC 2,MLS Next Pro,Midfielder,,,Active MLS Next Pro midfielder with Toronto FC 2. Leads the midfielder track.,,TRUE,Midfielder

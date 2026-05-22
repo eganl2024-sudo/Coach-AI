@@ -1,33 +1,51 @@
-# Data files (production only)
-data/production/
+# ===== SECRETS (NEVER COMMIT) =====
+.streamlit/secrets.toml
+.env
+*.env
 
-# Temporary files
-temp/
-.venv/
-venv/
-
-# Python
+# ===== Python =====
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
+*.py[cod]
+*$py.class
+*.so
 .Python
+venv/
+.venv/
+env/
+.eggs/
+*.egg-info/
+dist/
+build/
 
-# Streamlit
-.streamlit/
+# ===== Data (keep structure, ignore large files) =====
+# Uncomment if you don't want to commit your drill/team data:
+# data/*.csv
+# practice_history_*.csv
 
-# Jupyter
-.ipynb_checkpoints/
-
-# IDE
-.vscode/
-.idea/
-
-# Local logs and temp artifacts
+# ===== Temp files =====
+temp/
 *.tmp
 *.log
 temp_session_detail_bytes.tmp
+_tmp_*
+Soccer Mentor_Content_Bible.docx
 
-# OS junk
+# ===== Jupyter =====
+.ipynb_checkpoints/
+*.ipynb
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== OS =====
 .DS_Store
 Thumbs.db
+Desktop.ini
+
+# ===== Testing =====
+.pytest_cache/
+.coverage
+htmlcov/

@@ -40,17 +40,31 @@ def init_session_state():
     if 'drills_df' not in st.session_state:
         st.session_state.drills_df = None
     
-    if 'teams_df' not in st.session_state:
-        st.session_state.teams_df = None
-    
-    if 'templates' not in st.session_state:
-        st.session_state.templates = None
-    
-    if 'selected_team' not in st.session_state:
-        st.session_state.selected_team = None
-    
     if 'generated_practice' not in st.session_state:
         st.session_state.generated_practice = None
+    
+    # Progressive Disclosure: Experience Level (Day 1)
+    if 'user_experience_level' not in st.session_state:
+        st.session_state.user_experience_level = "essential"
+    
+    if 'level_change_history' not in st.session_state:
+        st.session_state.level_change_history = []
+    
+    # Progressive Disclosure: Page Visit Tracking (Day 6)
+    if 'drill_library_visited' not in st.session_state:
+        st.session_state.drill_library_visited = False
+    
+    if 'team_hub_visited' not in st.session_state:
+        st.session_state.team_hub_visited = False
+    
+    # ✅ NEW: Add developer mode toggle (Phase 1 Fix)
+    if 'developer_mode' not in st.session_state:
+        # Check URL params for ?dev=true
+        try:
+            params = st.query_params
+            st.session_state.developer_mode = params.get("dev") == "true"
+        except:
+            st.session_state.developer_mode = False
 
 
 def init_drills_in_session_state(data_path):
@@ -141,6 +155,10 @@ def render_team_selector(container=None, label="Active Team", widget_key="team_s
 
     if selected_name != st.session_state.selected_team['team_name']:
         st.session_state.selected_team = teams_df[teams_df['team_name'] == selected_name].iloc[0].to_dict()
+
+    # Keep explicit team id + row in session for downstream pages
+    st.session_state.current_team_id = st.session_state.selected_team.get("team_id")
+    st.session_state.current_team = st.session_state.selected_team
 
     return st.session_state.selected_team
 

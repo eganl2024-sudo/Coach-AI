@@ -1,42 +1,60 @@
-"""Drill Library - Browse and manage drills"""
+"""Player Development Platform - Drill Library"""
 import streamlit as st
 import pandas as pd
 import sys
 from pathlib import Path
+from datetime import datetime, timedelta
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
+import importlib
 import config
 import data_loader
 import session_state
-import practice_history
-import drills
 import ui_components
-from datetime import datetime, timedelta
-from filter_presets import load_presets, save_presets, PRESETS_VERSION
+import experience_level
+
+# Force reload of custom modules to clear Streamlit's running process cache
+try:
+    importlib.reload(config)
+    importlib.reload(data_loader)
+    importlib.reload(session_state)
+    importlib.reload(ui_components)
+    importlib.reload(experience_level)
+except Exception:
+    pass
+
+from auth import require_auth
 
 
 def _split_tags(cell):
     return [tag.strip() for tag in str(cell).split("|") if tag and tag.strip()]
 
 
+# Enforce player-focused defaults
 FILTER_DEFAULTS = {
     "categories": ["All"],
     "difficulty": ["All"],
     "intensity": ["All"],
     "tags": ["All"],
+    "position_relevance": ["All"],
+    "skill_category": ["All"],
+    "solo_only": False,
     "search": "",
     "favorites_only": False,
     "hide_recent": False,
     "sort": "Most Recent",
 }
-FILTER_PRESET_FILE = "drill_filter_presets.json"
+
 FILTER_WIDGET_KEYS = {
     "categories": "library_filter_categories",
     "difficulty": "library_filter_difficulty",
     "intensity": "library_filter_intensity",
     "tags": "library_filter_tags",
+    "position_relevance": "library_filter_position_relevance",
+    "skill_category": "library_filter_skill_category",
+    "solo_only": "library_filter_solo_only",
     "search": "library_filter_search",
     "favorites_only": "library_filter_favorites",
     "hide_recent": "library_filter_hide_recent",
@@ -53,305 +71,185 @@ def _persist_drills(df):
     st.session_state.drills_df = df
 
 
-def _filter_preset_path():
-    data_path = st.session_state.get('data_path')
-    if not data_path:
-        return None
-    return Path(data_path) / FILTER_PRESET_FILE
+# Page setup
+st.set_page_config(page_title="Drill Library - Player Platform", page_icon="🔍", layout="wide")
 
+require_auth()
 
-def _set_filter_state(state, rerun=False):
-    normalized = {}
-    for field, value in state.items():
-        if isinstance(value, list):
-            normalized[field] = list(value)
-        else:
-            normalized[field] = value
-    st.session_state.library_filters = normalized
-    for field, key in FILTER_WIDGET_KEYS.items():
-        st.session_state[key] = normalized[field]
-    if rerun:
-        st.experimental_rerun()
+st.session_state.drills_browsed = True
 
-st.set_page_config(page_title="Drill Library", page_icon="📚", layout="wide")
-
-ui_components.render_nav(active_label="📚 Drill Library")
+# Navigation
+ui_components.render_nav(active_label="Drill Library")
 st.divider()
 
-st.title("📚 Drill Library")
-st.markdown("Browse and search your complete drill collection")
+st.title("🔍 Drill Library")
+st.write("Browse and filter our comprehensive collection of training drills to practice your skills.")
+
+# Inject premium styles for presenter badges, contexts, and mistake cues
+st.markdown(
+    """
+    <style>
+    .presenter-badge {
+        display: inline-flex;
+        align-items: center;
+        background: linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%);
+        color: white;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 12px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .context-card {
+        background-color: #F8FAFC;
+        border-left: 4px solid #3B82F6;
+        padding: 12px 16px;
+        border-radius: 0 8px 8px 0;
+        margin: 12px 0;
+    }
+    .context-pro {
+        border-left-color: #10B981;
+        background-color: #F0FDF4;
+    }
+    .context-college {
+        border-left-color: #3B82F6;
+        background-color: #EFF6FF;
+    }
+    .context-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 4px;
+        color: #1E293B;
+    }
+    .context-text {
+        font-size: 0.85rem;
+        color: #475569;
+        line-height: 1.4;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+# Contextual Hints - Gated by player experience level
+current_level = experience_level.get_experience_level()
+is_advanced = current_level == "advanced"
+is_expert = current_level == "expert"
 
 session_state.init_session_state()
 
 if 'data_path' not in st.session_state:
     st.session_state.data_path = config.get_data_path()
 
-# Use canonical drill loader - ensures consistency across pages
 session_state.init_drills_in_session_state(st.session_state.data_path)
 
-if st.session_state.teams_df is None:
-    st.session_state.teams_df = data_loader.load_teams(st.session_state.data_path)
-
-if 'library_filters' not in st.session_state:
-    st.session_state.library_filters = FILTER_DEFAULTS.copy()
-for field, key in FILTER_WIDGET_KEYS.items():
-    if key not in st.session_state:
-        st.session_state[key] = st.session_state.library_filters[field]
-if 'library_filters_expanded' not in st.session_state:
-    st.session_state.library_filters_expanded = True
-
-session_state.render_team_selector(
-    label="Active team",
-    widget_key="team_selector_library"
-)
-
 drills_df = st.session_state.drills_df
-drill_load_error = drills_df.attrs.get('load_error')
-if drill_load_error:
-    st.error(drill_load_error)
-if len(drills_df) == 0:
-    st.info("Starter drills are preloaded for you. Add or edit drills anytime to customize your library.")
-    st.page_link("pages/4_Add_Drills.py", label="➕ Add a Drill")
+if drills_df is None or len(drills_df) == 0:
+    st.info("Starter drills are being loaded. Add custom drills to tailor your library!")
     st.stop()
 
-drill_repair = drills_df.attrs.get('repair_info')
-if drill_repair and drill_repair.get("was_repaired"):
-    added = ", ".join(drill_repair.get("added_columns", [])) or "columns"
-    st.warning(f"Drill library CSV was missing {added}; defaults were added automatically.")
+# Load Athlete Profile for personal recommendations
+athlete_profile = st.session_state.get("athlete_profile") or \
+    data_loader.load_athlete_profile(st.session_state.data_path)
 
-profile_status = session_state.get_team_profile_status()
-if profile_status["has_team"] and not profile_status["is_complete"]:
-    missing = ", ".join(profile_status["missing_fields"])
-    st.info(
-        f"Your team profile is missing {missing}. Update the Team Hub so suggestions "
-        "and filters can better reflect your priorities."
-    )
-
-team_profile_context = {}
-drill_recency = {}
-history_df = pd.DataFrame()
-if st.session_state.selected_team is not None:
-    team_id = st.session_state.selected_team['team_id']
-    history_mtime = practice_history.get_history_mtime(team_id, st.session_state.data_path)
-    history_df = practice_history.load_practice_history(team_id, st.session_state.data_path, history_mtime)
-    drill_recency = practice_history.get_cached_recency(history_df)
-    team_row = st.session_state.teams_df[st.session_state.teams_df['team_id'] == team_id]
-    if len(team_row):
-        team_data = team_row.iloc[0].to_dict()
-        def _clean(value):
-            if value is None:
-                return ""
-            return str(value).strip()
-        focus_tags = [
-            tag.strip() for tag in _clean(team_data.get('focus_areas', '')).split("|") if tag.strip()
-        ]
-        team_profile_context = {
-            "play_style": _clean(team_data.get('play_style', '')),
-            "focus_tags": focus_tags,
-        }
-
-def get_recency_label(drill_id):
-    info = drill_recency.get(drill_id)
-    if not info:
-        return "New"
-    return info.get("label", "New")
-all_tags = set()
-for tags_str in drills_df.get('tags', pd.Series([], dtype=str)).fillna(''):
-    all_tags.update(_split_tags(tags_str))
-tag_filter_options = sorted(all_tags.union(set(config.DRILL_TAGS)))
-tag_filter_choices = ['All'] + tag_filter_options if tag_filter_options else ['All']
-
-# Suggestions
-if history_df is not None and len(history_df):
-    with st.expander("Team suggestions", expanded=False):
-        recent_window = history_df.copy()
-        try:
-            recent_window['session_date'] = pd.to_datetime(recent_window['session_date'])
-            cutoff = datetime.utcnow() - timedelta(days=30)
-            recent_window = recent_window[recent_window['session_date'] >= cutoff]
-        except Exception:
-            recent_window = pd.DataFrame()
-        recent_cats = set()
-        if len(recent_window):
-            for cats in recent_window['categories'].fillna(""):
-                recent_cats.update([c.strip() for c in str(cats).split("|") if c.strip()])
-        underused = [cat for cat in config.CATEGORIES if cat not in recent_cats]
-        if underused:
-            st.markdown("**Underused categories this month:** " + ", ".join(underused))
+if athlete_profile and athlete_profile.get("focus_areas"):
+    focus_areas = athlete_profile.get("focus_areas", [])
+    with st.expander("🎯 Personal Recommendations", expanded=True):
+        st.write(f"Drills matching your focus areas: **{', '.join(focus_areas)}**")
+        tag_set = {t.lower() for t in focus_areas}
+        recommended_drills = []
+        for _, drill in drills_df.iterrows():
+            drill_tags = {tag.strip().lower() for tag in str(drill.get('tags', '')).split("|") if tag.strip()}
+            if drill_tags.intersection(tag_set):
+                recommended_drills.append(drill)
+            if len(recommended_drills) >= 5:
+                break
+        
+        if recommended_drills:
+            rec_cols = st.columns(len(recommended_drills))
+            for idx, r_drill in enumerate(recommended_drills):
+                with rec_cols[idx]:
+                    st.markdown(f"**{r_drill['drill_name']}**")
+                    st.caption(f"{r_drill['category']} • {r_drill['duration_minutes']} min")
+                    st.caption(f"Solo: {'Yes' if r_drill.get('solo_possible') else 'No'}")
         else:
-            st.markdown("Balanced category usage this month.")
+            st.info("No matching drills found. Add matching tags to your profile focus areas to unlock custom suggestions!")
+else:
+    st.info("Set up your player profile to get personalized drill recommendations.")
 
-        focus_tags = team_profile_context.get("focus_tags", [])
-        if focus_tags and drill_recency:
-            tag_set = {tag.lower() for tag in focus_tags}
-            recommended = []
-            for _, drill in drills_df.iterrows():
-                label = get_recency_label(drill['drill_id'])
-                drill_tags = {tag.strip().lower() for tag in str(drill.get('tags', '')).split("|") if tag.strip()}
-                if label == "Fresh" and drill_tags.intersection(tag_set):
-                    recommended.append(drill['drill_name'])
-                if len(recommended) >= 5:
-                    break
-            if recommended:
-                st.markdown("**Fresh drills aligned with team focus:**")
-                for name in recommended:
-                    st.markdown(f"- {name}")
-            else:
-                st.markdown("Focus tags set but no fresh drills match yet.")
-        else:
-            st.markdown("Add focus tags in Team Hub to receive drill suggestions.")
-
-# Summary metrics
+# Library Overview metrics
 st.subheader("Library Overview")
 col1, col2, col3, col4 = st.columns(4)
-
 with col1:
-    st.metric("Total Drills", len(drills_df))
+    st.metric("Total Drills Available", len(drills_df))
 with col2:
     avg_duration = int(drills_df['duration_minutes'].mean()) if len(drills_df) > 0 else 0
-    st.metric("Avg Duration", f"{avg_duration} min")
+    st.metric("Average Duration", f"{avg_duration} min")
 with col3:
-    avg_rating = round(drills_df['coach_rating'].mean(), 1) if len(drills_df) > 0 else 0
-    st.metric("Avg Rating", f"{'⭐' * int(avg_rating)}")
+    avg_rating = round(drills_df['coach_rating'].mean(), 1) if len(drills_df) > 0 else 0.0
+    st.metric("Average Rating", f"{'⭐' * int(avg_rating)} ({avg_rating})")
 with col4:
     unique_categories = drills_df['category'].nunique() if len(drills_df) > 0 else 0
     st.metric("Categories", unique_categories)
 
-if len(drills_df) < 5:
-    st.info("Tip: add more drills to unlock richer planning suggestions. Use the Add Drills page to grow your library.")
-
 st.divider()
 
+# Initialize filter state
+if 'library_filters' not in st.session_state:
+    st.session_state.library_filters = FILTER_DEFAULTS.copy()
+
+for field, key in FILTER_WIDGET_KEYS.items():
+    if key not in st.session_state:
+        st.session_state[key] = st.session_state.library_filters.get(field, FILTER_DEFAULTS.get(field))
+
 filter_state = st.session_state.library_filters
-preset_payload = load_presets(_filter_preset_path())
-presets = preset_payload.get("presets", [])
-preset_warning = preset_payload.get("warning")
-sort_options = ["Most Recent", "Most Used", "Highest Rated", "Alphabetical"]
+sort_options = ["Most Recent", "Highest Rated", "Alphabetical"]
 
-with st.expander("Filters & Sorting", expanded=st.session_state.library_filters_expanded):
-    if preset_warning:
-        st.warning(preset_warning + " You can recreate presets below.")
-    col1, col2, col3, col4 = st.columns(4)
-
-    category_filter = col1.multiselect(
-        "Category",
-        options=['All'] + config.CATEGORIES,
-        default=filter_state["categories"],
-        key=FILTER_WIDGET_KEYS["categories"]
+# Filter widget layouts
+with st.expander("🔍 Advanced Filters & Sorting", expanded=True):
+    col_cat, col_diff, col_int, col_tag = st.columns(4)
+    category_filter = col_cat.multiselect("Category", options=['All'] + config.CATEGORIES, default=filter_state.get("categories", ["All"]), key=FILTER_WIDGET_KEYS["categories"])
+    difficulty_filter = col_diff.multiselect("Difficulty", options=['All'] + config.DIFFICULTY_LEVELS, default=filter_state.get("difficulty", ["All"]), key=FILTER_WIDGET_KEYS["difficulty"])
+    intensity_filter = col_int.multiselect("Intensity", options=['All'] + config.INTENSITY_LEVELS, default=filter_state.get("intensity", ["All"]), key=FILTER_WIDGET_KEYS["intensity"])
+    
+    all_tags = set()
+    for tags_str in drills_df.get('tags', pd.Series([], dtype=str)).fillna(''):
+        all_tags.update(_split_tags(tags_str))
+    tag_filter_options = sorted(all_tags.union(set(config.DRILL_TAGS)))
+    tag_filter_choices = ['All'] + tag_filter_options if tag_filter_options else ['All']
+    tag_filter = col_tag.multiselect("Tags", options=tag_filter_choices, default=filter_state.get("tags", ["All"]), key=FILTER_WIDGET_KEYS["tags"])
+    
+    # 3 Pivot Filters (Position, Skill Category, Solo Possible)
+    col_pos, col_skill, col_solo, col_sort = st.columns(4)
+    position_filter = col_pos.multiselect(
+        "Position Relevance",
+        options=[
+            'All', 'Goalkeeper', 'Center Back', 'Full Back',
+            'Defensive Midfielder', 'Central Midfielder',
+            'Attacking Midfielder', 'Winger', 'Striker'
+        ],
+        default=filter_state.get("position_relevance", ["All"]),
+        key=FILTER_WIDGET_KEYS["position_relevance"]
     )
+    skill_category_filter = col_skill.multiselect("Skill Category", options=['All', 'Technical', 'Tactical', 'Physical', 'Mental'], default=filter_state.get("skill_category", ["All"]), key=FILTER_WIDGET_KEYS["skill_category"])
+    solo_only = col_solo.toggle("Solo Possible Only", value=filter_state.get("solo_only", False), key=FILTER_WIDGET_KEYS["solo_only"])
+    sort_choice = col_sort.selectbox("Sort by", options=sort_options, index=sort_options.index(filter_state.get("sort", "Most Recent")) if filter_state.get("sort") in sort_options else 0, key=FILTER_WIDGET_KEYS["sort"])
+    
+    col_search, col_fav, col_rec = st.columns([2, 1, 1])
+    search_query = col_search.text_input("Search Drill Name", placeholder="e.g. Cone Weave", value=filter_state.get("search", ""), key=FILTER_WIDGET_KEYS["search"])
+    favorites_only = col_fav.toggle("⭐ Favorites Only", value=filter_state.get("favorites_only", False), key=FILTER_WIDGET_KEYS["favorites_only"])
+    hide_recent = col_rec.toggle("🔄 Hide Recently Practiced", value=filter_state.get("hide_recent", False), key=FILTER_WIDGET_KEYS["hide_recent"])
 
-    difficulty_filter = col2.multiselect(
-        "Difficulty",
-        options=['All'] + config.DIFFICULTY_LEVELS,
-        default=filter_state["difficulty"],
-        key=FILTER_WIDGET_KEYS["difficulty"]
-    )
+    # Clear filters button
+    if st.button("Clear Filters", use_container_width=True):
+        st.session_state.library_filters = FILTER_DEFAULTS.copy()
+        for field, key in FILTER_WIDGET_KEYS.items():
+            if key in st.session_state:
+                st.session_state[key] = FILTER_DEFAULTS[field]
+        st.rerun()
 
-    intensity_filter = col3.multiselect(
-        "Intensity",
-        options=['All'] + config.INTENSITY_LEVELS,
-        default=filter_state["intensity"],
-        key=FILTER_WIDGET_KEYS["intensity"]
-    )
-
-    tag_filter = col4.multiselect(
-        "Tags",
-        options=tag_filter_choices,
-        default=filter_state["tags"],
-        key=FILTER_WIDGET_KEYS["tags"],
-        help="Filter by drill tags like Finishing, Transition, etc."
-    )
-
-    col_search, col_fav = st.columns([3, 1])
-    search_query = col_search.text_input(
-        "Search drills",
-        placeholder="Enter drill name...",
-        value=filter_state["search"],
-        key=FILTER_WIDGET_KEYS["search"]
-    )
-    favorites_only = col_fav.toggle(
-        "Favorites only",
-        value=filter_state["favorites_only"],
-        key=FILTER_WIDGET_KEYS["favorites_only"],
-        help="Show only drills you've starred as favorites."
-    )
-    hide_recent_drills = st.toggle(
-        "Hide recency 'Recent'",
-        value=filter_state["hide_recent"],
-        key=FILTER_WIDGET_KEYS["hide_recent"],
-        help="Exclude drills used within the last 7 days to encourage variety."
-    )
-
-    sort_choice = st.selectbox(
-        "Sort by",
-        options=sort_options,
-        index=sort_options.index(filter_state["sort"]) if filter_state["sort"] in sort_options else 0,
-        key=FILTER_WIDGET_KEYS["sort"]
-    )
-
-    action_cols = st.columns([1, 2])
-    with action_cols[0]:
-        if st.button("Clear all filters"):
-            _set_filter_state(FILTER_DEFAULTS.copy(), rerun=True)
-    with action_cols[1]:
-        preset_name = st.text_input("Save current filters as", placeholder="e.g. Defensive Focus")
-        if st.button("Save preset"):
-            if preset_name:
-                new_state = {
-                    "categories": list(category_filter) or ["All"],
-                    "difficulty": list(difficulty_filter) or ["All"],
-                    "intensity": list(intensity_filter) or ["All"],
-                    "tags": list(tag_filter) or ["All"],
-                    "search": search_query or "",
-                    "favorites_only": favorites_only,
-                    "hide_recent": hide_recent_drills,
-                    "sort": sort_choice,
-                }
-                existing = [p for p in presets if p.get("name") == preset_name]
-                presets = [p for p in presets if p.get("name") != preset_name]
-                presets.append({"name": preset_name, "filters": new_state})
-                save_presets(_filter_preset_path(), presets)
-                st.success(f"Preset '{preset_name}' saved.")
-            else:
-                st.warning("Enter a preset name before saving.")
-
-    preset_options = ["Select preset"] + [p["name"] for p in presets]
-    preset_choice = st.selectbox("Load preset", options=preset_options)
-    preset_action_cols = st.columns(2)
-    with preset_action_cols[0]:
-        if st.button("Apply preset") and preset_choice != "Select preset":
-            preset = next((p for p in presets if p["name"] == preset_choice), None)
-            if preset:
-                _set_filter_state(preset["filters"].copy(), rerun=True)
-    with preset_action_cols[1]:
-        if st.button("Delete preset") and preset_choice != "Select preset":
-            presets = [p for p in presets if p["name"] != preset_choice]
-            save_presets(_filter_preset_path(), presets)
-            st.success(f"Preset '{preset_choice}' deleted.")
-            st.experimental_rerun()
-
-filter_state = {
-    "categories": list(category_filter) or ["All"],
-    "difficulty": list(difficulty_filter) or ["All"],
-    "intensity": list(intensity_filter) or ["All"],
-    "tags": list(tag_filter) or ["All"],
-    "search": search_query or "",
-    "favorites_only": favorites_only,
-    "hide_recent": hide_recent_drills,
-    "sort": sort_choice,
-}
-st.session_state.library_filters = filter_state
-
-# Apply filters
-category_filter = filter_state["categories"]
-difficulty_filter = filter_state["difficulty"]
-intensity_filter = filter_state["intensity"]
-tag_filter = filter_state["tags"]
-search_query = filter_state["search"]
-favorites_only = filter_state["favorites_only"]
-hide_recent_drills = filter_state["hide_recent"]
-sort_choice = filter_state["sort"]
-
+# Apply Filters to dataframe
 filtered_df = drills_df.copy()
 
 if 'All' not in category_filter and len(category_filter) > 0:
@@ -364,198 +262,178 @@ if 'All' not in intensity_filter and len(intensity_filter) > 0:
     filtered_df = filtered_df[filtered_df['intensity'].isin(intensity_filter)]
 
 if search_query:
-    filtered_df = filtered_df[
-        filtered_df['drill_name'].str.contains(search_query, case=False, na=False)
-    ]
+    filtered_df = filtered_df[filtered_df['drill_name'].str.contains(search_query, case=False, na=False)]
 
-if 'All' not in tag_filter:
+if 'All' not in tag_filter and len(tag_filter) > 0:
     tag_set = set(tag_filter)
-    filtered_df = filtered_df[
-        filtered_df['tags'].apply(
-            lambda cell: bool(set(_split_tags(cell)).intersection(tag_set))
-        )
-    ]
+    filtered_df = filtered_df[filtered_df['tags'].apply(lambda cell: bool(set(_split_tags(cell)).intersection(tag_set)))]
+
+# Position relevance filter
+if 'All' not in position_filter and len(position_filter) > 0:
+    def matches_position(cell):
+        if not cell or pd.isna(cell):
+            return False
+        parts = [p.strip().lower() for p in str(cell).split("|") if p.strip()]
+        if 'universal' in parts or 'all' in parts:
+            return True
+        return any(pos.lower() in parts for pos in position_filter)
+    filtered_df = filtered_df[filtered_df['position_relevance'].apply(matches_position)]
+
+# Skill Category filter
+if 'All' not in skill_category_filter and len(skill_category_filter) > 0:
+    filtered_df = filtered_df[filtered_df['skill_category'].isin(skill_category_filter)]
+
+# Solo filter
+if solo_only:
+    filtered_df = filtered_df[filtered_df['solo_possible'] == True]
 
 if favorites_only:
-    filtered_df = filtered_df[filtered_df['is_favorite'] == True]  # noqa: E712
-if hide_recent_drills:
-    filtered_df = filtered_df[
-        filtered_df['drill_id'].apply(lambda x: get_recency_label(x) != "Recent")
-    ]
+    filtered_df = filtered_df[filtered_df['is_favorite'] == True]
 
-# Sorting
-if len(filtered_df):
+# Sort results
+if len(filtered_df) > 0:
     if sort_choice == "Most Recent":
         filtered_df['__last_used'] = pd.to_datetime(filtered_df.get('last_used_date'), errors='coerce')
         filtered_df = filtered_df.sort_values('__last_used', ascending=False, na_position='last')
-    elif sort_choice == "Most Used":
-        filtered_df = filtered_df.sort_values('times_used', ascending=False, na_position='last')
+        filtered_df = filtered_df.drop(columns=['__last_used'])
     elif sort_choice == "Highest Rated":
-        filtered_df = filtered_df.sort_values('coach_rating', ascending=False, na_position='last')
+        filtered_df = filtered_df.sort_values('coach_rating', ascending=False)
     elif sort_choice == "Alphabetical":
         filtered_df = filtered_df.sort_values('drill_name', ascending=True)
-    filtered_df = filtered_df.drop(columns=[col for col in ['__last_used'] if col in filtered_df.columns])
 
-st.divider()
-
-# Category breakdown
+# Render Drill Lists
 st.subheader(f"Drills ({len(filtered_df)} found)")
 
-if len(filtered_df) > 0:
-    # Show category tabs
-    categories = sorted(filtered_df['category'].unique())
+def render_drill_card(drill, drills_df):
+    favorite_icon = "⭐ " if drill.get('is_favorite') else ""
+    with st.expander(f"{favorite_icon}{drill['drill_name']} ({drill['duration_minutes']} min)"):
+        col_main, col_meta = st.columns([2, 1])
 
+        # Presenter Badge lookup
+        presenter_id = drill.get("presenter_id", "")
+        presenter_badge_html = ""
+        if presenter_id and "presenters_df" in st.session_state:
+            df_p = st.session_state.presenters_df
+            match = df_p[df_p["presenter_id"] == presenter_id]
+            if not match.empty:
+                p_row = match.iloc[0]
+                d_name = p_row.get("display_name", "")
+                t_level = p_row.get("team_level", "")
+                badge_text = f"🎥 Lead Presenter: {d_name} ({t_level})" if t_level else f"🎥 Lead Presenter: {d_name}"
+                presenter_badge_html = f'<div class="presenter-badge">{badge_text}</div>'
+
+        with col_main:
+            if presenter_badge_html:
+                st.markdown(presenter_badge_html, unsafe_allow_html=True)
+
+            st.markdown(f"**Description:** {drill['description']}")
+            st.markdown(f"**Training Tips:** {drill['coaching_points']}")
+            
+            # Coaching cues
+            cues_str = drill.get('coaching_cues') or drill.get('coach_cues') or ''
+            cues_list = [c.strip() for c in str(cues_str).split('|') if c.strip()]
+            if cues_list:
+                st.markdown("**Key Focus Cues:**")
+                for cue in cues_list:
+                    st.markdown(f"- {cue}")
+            
+            # Common Mistakes (Clarification 2)
+            common_mistakes = drill.get("common_mistakes", "")
+            if common_mistakes:
+                st.markdown("**Common Mistakes:**")
+                for mistake in [m.strip() for m in common_mistakes.split("|") if m.strip()]:
+                    st.markdown(f"⚠️ {mistake}")
+
+            # Game Application Callout
+            if drill.get('game_application'):
+                st.info(f"⚽ **Game Application:** {drill['game_application']}")
+
+            # College/Pro Context Cards
+            if drill.get("college_context"):
+                st.markdown(
+                    f'<div class="context-card context-college">'
+                    f'<div class="context-title">🎓 College Playing Context</div>'
+                    f'<div class="context-text">{drill["college_context"]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+            if drill.get("pro_context"):
+                st.markdown(
+                    f'<div class="context-card context-pro">'
+                    f'<div class="context-title">⚽ Pro Playing Context</div>'
+                    f'<div class="context-text">{drill["pro_context"]}</div>'
+                    f'</div>',
+                    unsafe_allow_html=True
+                )
+
+            if drill['equipment']:
+                st.markdown(f"**Equipment:** {drill['equipment']}")
+            if drill.get('min_equipment'):
+                st.markdown(f"**Minimum Gear:** {drill['min_equipment']}")
+                
+            st.markdown(f"**Setup Instructions:** {drill['setup_data']}")
+            
+            # Video player integration
+            st.markdown("**Video Demonstration:**")
+            ui_components.render_video(drill.get('video_url') or drill.get('video_youtube_url'))
+
+            # Setup Diagram
+            diagram_path = str(drill.get('diagram_path', '') or '').strip()
+            if diagram_path:
+                diagram_file = config.get_diagram_file(diagram_path)
+                st.markdown("**Setup Diagram:**")
+                if diagram_file and diagram_file.exists():
+                    st.image(str(diagram_file), use_column_width=True)
+                else:
+                    st.caption("Diagram coming soon.")
+
+        with col_meta:
+            # Position Relevance
+            pos_rel = drill.get('position_relevance') or ''
+            pos_list = [p.strip() for p in str(pos_rel).split('|') if p.strip()]
+            st.markdown(f"**Positions:** {', '.join(pos_list) if pos_list else 'Universal'}")
+            
+            st.markdown(f"**Skill Category:** {drill.get('skill_category', 'Technical')}")
+            st.markdown(f"**Solo Friendly:** {'Yes ✅' if drill.get('solo_possible') else 'Requires Partner'}")
+            st.markdown(f"**Duration:** {drill['duration_minutes']} min")
+            st.markdown(f"**Difficulty:** {drill['difficulty'].title()}")
+            st.markdown(f"**Intensity:** {drill['intensity'].title()}")
+            
+            if drill.get("position_track"):
+                st.markdown(f"**Track:** {drill['position_track']}")
+            if drill.get("series_name"):
+                order_suffix = f" (#{drill['series_order']})" if drill.get("series_order") else ""
+                st.markdown(f"**Series:** {drill['series_name']}{order_suffix}")
+            if drill.get("rrs_benchmark"):
+                st.markdown(f"**Level:** {drill['rrs_benchmark']}")
+
+            favorite_state = bool(drill.get('is_favorite', False))
+            new_favorite = st.checkbox("⭐ Save to Favorites", value=favorite_state, key=f"favorite_{drill['drill_id']}")
+            if new_favorite != favorite_state:
+                drills_df.loc[drills_df['drill_id'] == drill['drill_id'], 'is_favorite'] = new_favorite
+                _persist_drills(drills_df)
+                st.rerun()
+
+            rating = drill.get('coach_rating')
+            if pd.notna(rating):
+                st.markdown(f"**Drill Rating:** {'⭐' * int(rating)}")
+
+
+if len(filtered_df) > 0:
+    categories = sorted(filtered_df['category'].unique())
     if len(categories) > 1:
         tabs = st.tabs(categories)
-
         for idx, category in enumerate(categories):
             with tabs[idx]:
                 category_drills = filtered_df[filtered_df['category'] == category]
-
                 st.markdown(f"**{len(category_drills)} {category} drills**")
-
-                # Display drills in this category
                 for _, drill in category_drills.iterrows():
-                    favorite_icon = "⭐ " if drill.get('is_favorite') else ""
-                    with st.expander(f"{favorite_icon}{drill['drill_name']} ({drill['duration_minutes']} min)"):
-                        col1, col2 = st.columns([2, 1])
-
-                        with col1:
-                            st.markdown(f"**Description:** {drill['description']}")
-                            st.markdown(f"**Coaching Points:** {drill['coaching_points']}")
-                            if drill['equipment']:
-                                st.markdown(f"**Equipment:** {drill['equipment']}")
-                            st.markdown(f"**Setup:** {drill['setup_data']}")
-                            current_tags = _split_tags(drill.get('tags', ''))
-                            tag_options = sorted(set(tag_filter_options).union(set(current_tags)))
-                            new_tags = st.multiselect(
-                                "Tags",
-                                options=tag_options if tag_options else current_tags,
-                                default=current_tags,
-                                key=f"tags_{drill['drill_id']}"
-                            )
-                        if set(new_tags) != set(current_tags):
-                            drills_df.loc[drills_df['drill_id'] == drill['drill_id'], 'tags'] = "|".join(new_tags)
-                            _persist_drills(drills_df)
-
-                        diagram_path = str(drill.get('diagram_path', '') or '').strip()
-                        if diagram_path:
-                            diagram_file = config.get_diagram_file(diagram_path)
-                            st.markdown("**Diagram**")
-                            if diagram_file and diagram_file.exists():
-                                st.image(str(diagram_file), use_column_width=True)
-                            else:
-                                st.caption("Diagram coming soon.")
-
-                    with col2:
-                        st.markdown(f"**ID:** `{drill['drill_id']}`")
-                        st.markdown(f"**Recency:** {get_recency_label(drill['drill_id'])}")
-                        st.markdown(f"**Players:** {drill['players_min']}-{drill['players_max']}")
-                        st.markdown(f"**Duration:** {drill['duration_minutes']} min")
-                        st.markdown(f"**Field:** {drill['field_type']}")
-                        st.markdown(f"**Difficulty:** {drill['difficulty'].title()}")
-                        st.markdown(f"**Intensity:** {drill['intensity'].title()}")
-                        favorite_state = bool(drill.get('is_favorite', False))
-                        new_favorite = st.checkbox(
-                            "⭐ Favorite",
-                            value=favorite_state,
-                            key=f"favorite_{drill['drill_id']}"
-                        )
-                        if new_favorite != favorite_state:
-                            drills_df.loc[drills_df['drill_id'] == drill['drill_id'], 'is_favorite'] = new_favorite
-                            _persist_drills(drills_df)
-
-                        rating = drill['coach_rating']
-                        if pd.notna(rating):
-                            st.markdown(f"**Rating:** {'⭐' * int(rating)}")
-
-                        action_col1, action_col2 = st.columns(2)
-                        with action_col1:
-                            if st.button("Edit Drill", key=f"edit_{drill['drill_id']}"):
-                                st.session_state.prefill_drill = drill.to_dict()
-                                st.session_state.selected_drill_id = drill['drill_id']
-                                st.switch_page("pages/6_✏️_Edit_Drill.py")
-                        with action_col2:
-                            if st.button("Duplicate Drill", key=f"duplicate_{drill['drill_id']}"):
-                                new_id = drills.suggest_next_drill_id(drills_df, category=drill['category'])
-                                duplicate_data = drill.to_dict()
-                                duplicate_data['drill_id'] = new_id
-                                duplicate_name = duplicate_data['drill_name']
-                                duplicate_data['drill_name'] = f"{duplicate_name} Copy"
-                                st.session_state.prefill_drill = duplicate_data
-                                st.session_state.selected_drill_id = new_id
-                                st.switch_page("pages/6_✏️_Edit_Drill.py")
+                    render_drill_card(drill, drills_df)
     else:
-        # Single category - just show drills
-        category = categories[0]
-        st.markdown(f"**{len(filtered_df)} drills**")
-
         for _, drill in filtered_df.iterrows():
-            favorite_icon = "⭐ " if drill.get('is_favorite') else ""
-            with st.expander(f"{favorite_icon}{drill['drill_name']} ({drill['duration_minutes']} min)"):
-                col1, col2 = st.columns([2, 1])
-
-                with col1:
-                    st.markdown(f"**Description:** {drill['description']}")
-                    st.markdown(f"**Coaching Points:** {drill['coaching_points']}")
-                    if drill['equipment']:
-                        st.markdown(f"**Equipment:** {drill['equipment']}")
-                    st.markdown(f"**Setup:** {drill['setup_data']}")
-                    current_tags = _split_tags(drill.get('tags', ''))
-                    tag_options = sorted(set(tag_filter_options).union(set(current_tags)))
-                    new_tags = st.multiselect(
-                        "Tags",
-                        options=tag_options if tag_options else current_tags,
-                        default=current_tags,
-                        key=f"tags_{drill['drill_id']}"
-                    )
-                    if set(new_tags) != set(current_tags):
-                        drills_df.loc[drills_df['drill_id'] == drill['drill_id'], 'tags'] = "|".join(new_tags)
-                        _persist_drills(drills_df)
-
-                with col2:
-                    st.markdown(f"**ID:** `{drill['drill_id']}`")
-                    st.markdown(f"**Recency:** {get_recency_label(drill['drill_id'])}")
-                    st.markdown(f"**Players:** {drill['players_min']}-{drill['players_max']}")
-                    st.markdown(f"**Duration:** {drill['duration_minutes']} min")
-                    st.markdown(f"**Field:** {drill['field_type']}")
-                    st.markdown(f"**Difficulty:** {drill['difficulty'].title()}")
-                    st.markdown(f"**Intensity:** {drill['intensity'].title()}")
-                    favorite_state = bool(drill.get('is_favorite', False))
-                    new_favorite = st.checkbox(
-                        "⭐ Favorite",
-                        value=favorite_state,
-                        key=f"favorite_{drill['drill_id']}"
-                    )
-                    if new_favorite != favorite_state:
-                        drills_df.loc[drills_df['drill_id'] == drill['drill_id'], 'is_favorite'] = new_favorite
-                        _persist_drills(drills_df)
-
-                    rating = drill['coach_rating']
-                    if pd.notna(rating):
-                        st.markdown(f"**Rating:** {'⭐' * int(rating)}")
-
-                action_col1, action_col2 = st.columns(2)
-                with action_col1:
-                    st.page_link(
-                        "pages/6_✏️_Edit_Drill.py",
-                        label="Edit Drill",
-                        args={"drill_id": drill['drill_id']},
-                        use_container_width=True
-                    )
-                with action_col2:
-                    if st.button("Duplicate Drill", key=f"duplicate_{drill['drill_id']}"):
-                        new_id = drills.suggest_next_drill_id(drills_df, category=drill['category'])
-                        duplicate_data = drill.to_dict()
-                        duplicate_data['drill_id'] = new_id
-                        duplicate_name = duplicate_data['drill_name']
-                        duplicate_data['drill_name'] = f"{duplicate_name} Copy"
-                        st.session_state.prefill_drill = duplicate_data
-                        st.session_state.selected_drill_id = new_id
-                        st.switch_page("pages/6_✏️_Edit_Drill.py")
+            render_drill_card(drill, drills_df)
 else:
     st.warning("No drills found matching your filters. Try adjusting the filters above.")
 
-# Footer
 st.divider()
 st.caption(f"Showing {len(filtered_df)} of {len(drills_df)} total drills")

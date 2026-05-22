@@ -1,169 +1,432 @@
-"""Coach Home - dashboard landing for coaches."""
+"""Player Development Platform - My Dashboard"""
+import streamlit as st
 import sys
 from pathlib import Path
-from datetime import date
-import pandas as pd
-import streamlit as st
+from datetime import datetime
 
 # Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
+import importlib
 import config
 import data_loader
-import practice_history
 import session_state
 import ui_components
+import completion_tracker
+import rrs_calculator
 
+# Force reload of custom modules to clear Streamlit's running process cache
+try:
+    importlib.reload(config)
+    importlib.reload(data_loader)
+    importlib.reload(session_state)
+    importlib.reload(ui_components)
+    importlib.reload(completion_tracker)
+    importlib.reload(rrs_calculator)
+except Exception:
+    pass
+
+from auth import require_auth
+
+# Page configuration
 st.set_page_config(
-    page_title="Coach Home",
-    page_icon="⚽",
+    page_title="My Dashboard - Player Development Platform",
+    page_icon="🏠",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# Initialize session state and core data
+# Enforce authentication
+require_auth()
+
+# Initialize session state
 session_state.init_session_state()
-data_path = st.session_state.get("data_path") or config.get_data_path()
-st.session_state.data_path = data_path
-if st.session_state.drills_df is None:
-    st.session_state.drills_df = data_loader.load_drills(data_path)
-if st.session_state.teams_df is None:
-    st.session_state.teams_df = data_loader.load_teams(data_path)
+if "data_path" not in st.session_state:
+    st.session_state.data_path = config.get_data_path()
 
-ui_components.render_nav(active_label="Home")
-st.divider()
+# Load profile details
+athlete_profile = data_loader.load_athlete_profile(st.session_state.data_path)
 
-st.title("Coach Dashboard")
-st.caption("Start here to plan and review your sessions.")
-
-teams_df = st.session_state.teams_df
-
-# Empty-state: no teams yet
-if teams_df is None or teams_df.empty:
-    st.info("You don't have any teams set up yet.")
-    st.page_link("pages/0_Coach_Onboarding.py", label="Create your first team")
+# If no profile exists, route to Profile Setup
+if not athlete_profile or not athlete_profile.get("name"):
+    st.session_state.redirect_banner = "Please set up your Player Profile first to access your dashboard!"
+    st.switch_page("pages/5_Team_Hub.py")
     st.stop()
 
-# Team selector and summary
-selected_team = session_state.render_team_selector(
-    label="Active team",
-    widget_key="coach_home_team_selector",
-    help_text="Pick a team to personalize focus and recommendations.",
+# Store in session state
+st.session_state.athlete_profile = athlete_profile
+
+# Load weekly plan and completion log
+plan = data_loader.load_weekly_training_plan(st.session_state.data_path)
+completion_log = data_loader.load_completion_log(st.session_state.data_path)
+
+# Calculate RRS
+drills_df = st.session_state.get("drills_df")
+rrs = rrs_calculator.calculate_rrs(
+    athlete_profile,
+    completion_log,
+    drills_df,
+    plan
 )
-if not selected_team:
-    st.warning("Select a team above to get started.")
-    st.stop()
 
-team_id = selected_team.get("team_id")
-team_name = selected_team.get("team_name", "Team")
-age_group = selected_team.get("age_group", "")
-
-# History summary
-practice_count = 0
-last_practice_date = None
-history_df = None
-if team_id:
-    history_mtime = practice_history.get_history_mtime(team_id, data_path)
-    history_df = practice_history.load_practice_history(team_id, data_path, history_mtime)
-    practice_count = len(history_df) if history_df is not None else 0
-    if practice_count:
-        try:
-            last_practice_date = practice_history.load_practice_history(team_id, data_path, history_mtime)['session_date'].max()
-        except Exception:
-            last_practice_date = None
-
-with st.container():
-    st.markdown(
-        """
-        <div style="padding: 10px 12px; background-color: #f6f8fa; border-radius: 8px; border: 1px solid #e5e7eb;">
-        """,
-        unsafe_allow_html=True,
-    )
-    summary_cols = st.columns(3)
-    summary_cols[0].markdown("**⚽ Team**")
-    summary_cols[0].markdown(f"<div style='font-size:20px; font-weight:600'>{team_name} {f'({age_group})' if age_group else ''}</div>", unsafe_allow_html=True)
-    summary_cols[1].markdown("**Saved practices**")
-    summary_cols[1].markdown(f"<div style='font-size:20px; font-weight:600'>{practice_count}</div>", unsafe_allow_html=True)
-    summary_cols[2].markdown("**📅 Last practice**")
-    summary_cols[2].markdown(
-        f"<div style='font-size:20px; font-weight:600'>{str(last_practice_date) if last_practice_date else 'None yet'}</div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("</div>", unsafe_allow_html=True)
+# Render standard navigation
+ui_components.render_nav(active_label="My Dashboard")
 
 st.divider()
 
-# Main CTA cards
-st.subheader("Quick actions")
-cta_items = [
-    ("Generate practice", "Build today's session using your team profile and history.", "pages/2_Practice_Generator.py", "Generate"),
-    ("Past sessions", "Review and reuse past sessions.", "pages/3_Practice_History.py", "Open history"),
-    ("Team profile", "Edit formation, style, and season goals.", "pages/5_Team_Hub.py", "Edit team"),
-    ("Drill library", "Browse and filter your drill collection.", "pages/1_Drill_Library.py", "Browse drills"),
-]
-cta_cols = st.columns(len(cta_items))
-for col, (title, desc, page, btn_label) in zip(cta_cols, cta_items):
-    with col:
-        with st.container():
-            st.markdown(f"**{title}**")
-            st.caption(desc)
-            if st.button(btn_label, use_container_width=True, key=f"cta_{title}"):
-                st.switch_page(page)
+# Get stats
+total_completed = completion_tracker.get_total_sessions_completed(st.session_state.data_path)
+current_streak = completion_tracker.get_current_streak(st.session_state.data_path)
 
-st.divider()
+# Calculate weekly progress
+completed_this_week = 0
+total_this_week = 0
+active_sessions = []
 
-# Focus overview for selected team
-st.subheader("Recent focus & gaps")
-if history_df is None or len(history_df) == 0:
-    st.info("Once you've saved a few practices, we'll highlight which areas need more attention.")
+if plan:
+    for week in plan.get("weeks", []):
+        if week.get("week_number") == 1:
+            active_sessions = week.get("sessions", [])
+            total_this_week = len(active_sessions)
+            completed_this_week = sum(1 for s in active_sessions if s.get("completed", False))
+
+# Beautiful CSS for Premium Styling
+st.markdown("""
+<style>
+.dashboard-header {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    color: white;
+    border-radius: 12px;
+    padding: 32px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+.stat-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    text-align: center;
+    transition: transform 0.2s;
+}
+.stat-card:hover {
+    transform: translateY(-2px);
+}
+.stat-value {
+    font-size: 36px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 4px;
+}
+.stat-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+}
+.session-row {
+    background-color: #ffffff;
+    border-radius: 8px;
+    padding: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.session-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #1e293b;
+}
+.session-meta {
+    font-size: 13px;
+    color: #64748b;
+}
+.status-badge-complete {
+    background-color: #dcfce7;
+    color: #166534;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.status-badge-remaining {
+    background-color: #f1f5f9;
+    color: #475569;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 700;
+}
+.rrs-locked-card {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%);
+    border-radius: 12px;
+    padding: 32px;
+    text-align: center;
+    color: white;
+    margin-bottom: 16px;
+}
+.rrs-locked-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.rrs-locked-sub {
+    font-size: 16px;
+    opacity: 0.9;
+    margin-bottom: 16px;
+}
+.rrs-locked-progress-label {
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.8;
+}
+.rrs-score-card {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.07);
+    text-align: center;
+    height: 100%;
+}
+.rrs-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+.rrs-number {
+    font-size: 72px;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+}
+.rrs-benchmark-label {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+.rrs-delta {
+    font-size: 14px;
+    font-weight: 600;
+}
+.milestone-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-left: 4px solid #3b82f6;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-top: 16px;
+    margin-bottom: 16px;
+}
+.milestone-title {
+    font-size: 16px;
+    font-weight: 800;
+    color: #1e293b;
+    margin-bottom: 8px;
+}
+.milestone-sub {
+    font-size: 14px;
+    color: #475569;
+    margin-bottom: 8px;
+}
+.milestone-actions {
+    margin: 0;
+    padding-left: 20px;
+    color: #334155;
+    font-size: 14px;
+}
+.milestone-actions li {
+    margin-bottom: 4px;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# 1. Header Banner
+player_name = athlete_profile.get("name", "Player")
+focus_areas_str = ", ".join(athlete_profile.get("focus_areas", [])) or "None selected"
+st.markdown(f"""
+<div class="dashboard-header">
+    <h1 style="margin:0 0 8px 0; color:white;">⚽ Welcome Back, {player_name}!</h1>
+    <p style="margin:0; font-size:16px; opacity:0.9;">Playing Level: <strong>{athlete_profile.get('level')}</strong> | Target: <strong>{focus_areas_str}</strong></p>
+</div>
+""", unsafe_allow_html=True)
+
+# 2. Stats Grid / RRS Metrics
+if not rrs["unlocked"]:
+    sessions_done = completion_tracker.get_total_sessions_completed(st.session_state.data_path)
+    sessions_needed = 5
+    progress_val = min(1.0, sessions_done / sessions_needed)
+
+    st.markdown(f"""
+    <div class="rrs-locked-card">
+        <div class="rrs-locked-title">🎯 Recruit Readiness Score</div>
+        <div class="rrs-locked-sub">
+            Complete your first 5 sessions to unlock your score
+        </div>
+        <div class="rrs-locked-progress-label">
+            {sessions_done} of {sessions_needed} sessions completed
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.progress(progress_val)
+    st.caption("Most players see their first score after completing one full week of training.")
 else:
-    try:
-        focus = practice_history.compute_recent_focus(history_df, days=28, drills_df=st.session_state.drills_df)
-        cat_minutes = focus.get("category_minutes", {})
-        total = focus.get("total_minutes") or 0
-        if total == 0 or not cat_minutes:
-            st.info("No recent practices to analyze. Generate your next session to start tracking focus.")
-        else:
-            cat_sorted = sorted(cat_minutes.items(), key=lambda kv: kv[1], reverse=True)
-            top = cat_sorted[0][0] if cat_sorted else None
-            weak = cat_sorted[-1] if cat_sorted else None
-            if top and weak:
-                st.caption(f"Last 4 weeks: most time on **{top}**, least on **{weak[0]}**.")
-            threshold = total * 0.10
-            weak_categories = [cat for cat, mins in cat_minutes.items() if mins < threshold]
-            if weak_categories:
-                st.markdown("Under-focused areas:")
-                for cat in weak_categories[:3]:
-                    st.markdown(f"- `{cat}`")
-                if st.button("Plan a session for weak areas", type="primary"):
-                    session_state.set_focus_boost_attributes(weak_categories)
-                    st.switch_page("pages/2_Practice_Generator.py")
-            else:
-                with st.container():
-                    st.success("Balanced training", icon="✅")
-                    st.caption("Training time looks evenly distributed across your main areas.")
-    except Exception:
-        st.info("Focus overview is unavailable right now.")
+    col_l, col_r = st.columns([3, 2])
+    with col_l:
+        benchmark = rrs["benchmark"]
+        overall = rrs["overall"]
+        delta = rrs["weekly_delta"]
+        delta_str = f"▲ +{delta} this week" if delta > 0 else (
+                    f"▼ {delta} this week" if delta < 0 else "No change this week")
+        delta_color = "#10b981" if delta > 0 else ("#ef4444" if delta < 0 else "#64748b")
+
+        st.markdown(f"""
+        <div class="rrs-score-card">
+            <div class="rrs-label">RECRUIT READINESS SCORE</div>
+            <div class="rrs-number" style="color:{benchmark['current_color']}">
+                {overall}
+            </div>
+            <div class="rrs-benchmark-label" style="color:{benchmark['current_color']}">
+                {benchmark['current_label']}
+            </div>
+            <div class="rrs-delta" style="color:{delta_color}">{delta_str}</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_r:
+        # Keep streak + weekly progress but smaller, styled to match
+        st.markdown(f"""
+        <div class="stat-card" style="margin-bottom:12px;">
+            <div class="stat-value" style="font-size:28px;">🔥 {current_streak}</div>
+            <div class="stat-label" style="font-size:11px;">Day Streak</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value" style="font-size:28px;">🎯 {completed_this_week}/{total_this_week}</div>
+            <div class="stat-label" style="font-size:11px;">Weekly Progress</div>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    # Next Milestone Card - always show when unlocked
+    benchmark = rrs["benchmark"]
+    if benchmark["next_label"]:
+        actions_html = "".join(
+            f'<li>{a}</li>' for a in rrs["next_actions"]
+        )
+        st.markdown(f"""
+        <div class="milestone-card">
+            <div class="milestone-title">
+                🎯 Next Milestone: {benchmark['next_label']}
+                ({benchmark['next_threshold']})
+            </div>
+            <div class="milestone-sub">
+                You need <strong>{benchmark['points_needed']} more points</strong>.
+                Focus on:
+            </div>
+            <ul class="milestone-actions">{actions_html}</ul>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.success("🏆 You've reached D1 Ready status. Elite level achieved.", icon="🏆")
+
+st.write("")
+st.write("")
+
+# 3. Call To Action (Start Today's Session)
+next_session = None
+if active_sessions:
+    for session in active_sessions:
+        if not session.get("completed", False):
+            next_session = session
+            break
+
+if next_session:
+    st.subheader("🔥 Next Up")
+    # Show attractive CTA panel
+    cta_cols = st.columns([3, 1])
+    with cta_cols[0]:
+        st.info(f"💡 **Session {next_session['day_number']}** is waiting! Ready to build your skill category? Let's check the details, watch the video cues, and get to training.", icon="⚽")
+    with cta_cols[1]:
+        if st.button("🚀 Start Training", type="primary", use_container_width=True):
+            st.switch_page("pages/2_Practice_Generator.py")
+else:
+    st.success("🎉 Incredible work! You've finished all your custom training sessions for this week. Enjoy your rest or head over to the **Drill Library** to practice solo!", icon="🎉")
 
 st.divider()
 
-# Data health / repairs (coach-safe)
-def _has_repairs(df):
-    repairs = getattr(df, "attrs", {}).get("repairs")
-    if not repairs:
-        return False
-    return any(repairs.get(key) for key in ("added_columns", "coerced_columns", "filled_values"))
+# Mentor Feed teaser
+feed = data_loader.load_mentor_feed(st.session_state.data_path)
+latest_posts = feed.get("posts", [])[:2]  # show 2 most recent
 
-coach_mode = config.DEFAULT_USER_MODE == "coach" or session_state.is_coach_mode()
-drill_repairs = _has_repairs(st.session_state.drills_df)
-team_repairs = _has_repairs(st.session_state.teams_df)
-history_repairs = _has_repairs(history_df) if history_df is not None else False
+if latest_posts:
+    st.markdown("#### 🎙️ Latest from Your Mentors")
+    teaser_cols = st.columns(len(latest_posts))
 
-if coach_mode and (drill_repairs or team_repairs or history_repairs):
-    st.info("We fixed some data issues behind the scenes. Everything is safe to use. Detailed repair logs are available in dev mode.")
-elif not coach_mode:
-    # Dev mode: show quick link to diagnostics
-    st.caption("Dev mode: See detailed repairs in Dev Diagnostics.")
-    st.page_link("pages/13_Dev_Diagnostics.py", label="Open Dev Diagnostics")
+    for idx, post in enumerate(latest_posts):
+        # Look up presenter
+        presenter_name = ""
+        presenters_df = st.session_state.get("presenters_df")
+        if presenters_df is None:
+            presenters_df = data_loader.load_presenters(st.session_state.data_path)
+            st.session_state["presenters_df"] = presenters_df
 
-st.caption("Looking for advanced tools? Turn on developer mode to access templates and diagnostics in the sidebar.")
+        if presenters_df is not None:
+            match = presenters_df[
+                presenters_df["presenter_id"] ==
+                post.get("presenter_id", "")
+            ]
+            if not match.empty:
+                presenter_name = match.iloc[0].get("display_name", "")
+
+        with teaser_cols[idx]:
+            st.markdown(f"""
+            <div style="background:white; border:1px solid #e2e8f0;
+                        border-left:4px solid #3b82f6; border-radius:8px;
+                        padding:14px; height:100%;">
+                <div style="font-size:11px; font-weight:700; color:#3b82f6;
+                            text-transform:uppercase; margin-bottom:6px;">
+                    {presenter_name}
+                </div>
+                <div style="font-size:14px; font-weight:700; color:#0f172a;
+                            line-height:1.4;">
+                    {post.get("title", "")}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    st.write("")
+    if st.button("View all mentor posts →", use_container_width=False):
+        st.switch_page("pages/6_Mentor_Feed.py")
+    st.write("")
+
+st.divider()
+
+# 4. Weekly Plan Overview
+st.subheader("📅 Weekly Training Schedule")
+if not active_sessions:
+    st.info("No training schedule generated yet. Head to My Training Plan to generate one.")
+else:
+    for s in active_sessions:
+        # Build drill names preview
+        drills_list = s.get("drills", [])
+        drill_names = [d.get("drill_name", "") for d in drills_list]
+        drill_preview = " ➔ ".join(drill_names) if drill_names else "No drills selected"
+        
+        status_badge = '<span class="status-badge-complete">✅ Completed</span>' if s.get("completed") else '<span class="status-badge-remaining">⏳ Remaining</span>'
+        
+        st.markdown(f"""
+        <div class="session-row">
+            <div>
+                <div class="session-title">Session {s.get('day_number')} - {s.get('duration_minutes')} Min Session</div>
+                <div class="session-meta">{drill_preview}</div>
+            </div>
+            <div>
+                {status_badge}
+            </div>
+        </div>
+        """, unsafe_allow_html=True)

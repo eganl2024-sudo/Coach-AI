@@ -1,0 +1,97 @@
+{
+  "team_1": {
+    "practice_days": [
+      "Tue",
+      "Thu"
+    ],
+    "default_practice_start_time": "17:00",
+    "default_practice_duration": 90,
+    "play_style_identity": "Balanced",
+    "season_objectives": "First touch, Pressing",
+    "focus_tags": [
+      "First touch",
+      "Pressing"
+    ]
+  },
+  "team_2": {
+    "preferred_formation": "4-3-3",
+    "play_style_identity": "Balanced",
+    "custom_play_style": "Balanced",
+    "season_objective": "First touch, Pressing",
+    "custom_objective": "First touch, Pressing",
+    "focus_tags": [
+      "First touch",
+      "Pressing",
+      "Dribbling",
+      "Positioning"
+    ],
+    "extra_focus_tags": "",
+    "key_players_notes": "nan",
+    "injury_notes": "nan",
+    "general_notes": "",
+    "upcoming_match_date": "2025-12-02",
+    "kickoff_time": "5:00 PM",
+    "upcoming_opponent": "nan",
+    "location": ""
+  },
+  "team_3": {
+    "preferred_formation": "4-3-3",
+    "play_style_identity": "Balanced",
+    "custom_play_style": "Balanced",
+    "season_objective": "First touch, Pressing",
+    "custom_objective": "First touch, Pressing",
+    "focus_tags": [
+      "First touch",
+      "Pressing",
+      "Dribbling"
+    ],
+    "extra_focus_tags": "",
+    "key_players_notes": "nan",
+    "injury_notes": "nan",
+    "general_notes": "",
+    "upcoming_match_date": "2025-12-02",
+    "kickoff_time": "5:00 PM",
+    "upcoming_opponent": "nan",
+    "location": ""
+  },
+  "team_4": {
+    "practice_days": [
+      "Tue",
+      "Thu"
+    ],
+    "default_practice_start_time": "17:00",
+    "default_practice_duration": 90,
+    "play_style_identity": "Balanced",
+    "season_objectives": "First touch, Pressing"
+  },
+  "team_5": {
+    "practice_days": [
+      "Tue",
+      "Thu"
+    ],
+    "default_practice_start_time": "17:00",
+    "default_practice_duration": 90,
+    "play_style_identity": "Balanced",
+    "season_objectives": "First touch, Pressing"
+  },
+  "team_6": {
+    "preferred_formation": "4-3-3",
+    "play_style_identity": "Balanced",
+    "custom_play_style": "Balanced",
+    "season_objective": "First touch, Pressing",
+    "custom_objective": "First touch, Pressing",
+    "focus_tags": [
+      "First touch",
+      "Pressing",
+      "Dribbling"
+    ],
+    "extra_focus_tags": "",
+    "key_players_notes": "nan",
+    "injury_notes": "nan",
+    "general_notes": "",
+    "upcoming_match_date": "2025-12-02",
+    "kickoff_time": "5:00 PM",
+    "upcoming_opponent": "nan",
+    "location": ""
+  }
+}
