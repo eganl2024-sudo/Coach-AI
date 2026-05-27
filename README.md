@@ -42,11 +42,11 @@ At the heart of the platform is the **RRS Engine** (`src/rrs_calculator.py`), wh
 
 ## 📁 Project Architecture & Tour
 
-The codebase has been refactored down to **7 clean, high-performance Streamlit modules** backed by 22 highly cohesive helper files.
+The codebase is organized as a co-existing system with two core applications: a **Python Streamlit dashboard application** for rapid prototyping and coach tools, and a new **Next.js & TypeScript React application** representing our pivoted web application frontend.
 
 ```
-Coach AI/
-├── app.py                      # Main Bootstrapper & Onboarding Route
+Coach AI/ (Root Directory)
+├── app.py                      # Main Python Streamlit Bootstrapper
 ├── requirements.txt            # Python Dependencies
 ├── pytest.ini                  # Pytest Configuration
 │
@@ -59,13 +59,27 @@ Coach AI/
 │   ├── 5_Team_Hub.py           # Athlete Profile Setup (Skill target, Focus area selector)
 │   └── 6_Mentor_Feed.py        # Curator feedback stream matching the athlete's profile
 │
-├── src/                        # Platform Business Logic Modules
-│   ├── rrs_calculator.py       # Propriertary RRS Score engine
+├── src/                        # Platform Business Logic Modules (Python)
+│   ├── rrs_calculator.py       # Proprietary RRS Score engine
 │   ├── data_loader.py          # State persistence, CSV auto-repair, and fallback data
+│   ├── db.py                   # Supabase database client interface
 │   ├── training_plan_generator.py # Smart weekly planner and duration distributor
 │   ├── experience_level.py     # Sidebar tier switcher & progressive disclosure manager
-│   ├── auth.py                 # Multi-user login structures (bypassed for friction-free testing)
-│   └── ui_components.py        # Curated charts, widgets, and modern CSS frameworks
+│   ├── auth.py                 # Multi-user login & password encryption modules
+│   └── ui_components.py        # Curated charts, widgets, and modern CSS styling
+│
+├── web/                        # [NEW] Next.js Web Application Frontend
+│   ├── package.json            # Node.js project configuration and dependencies
+│   ├── tsconfig.json           # TypeScript configuration
+│   ├── app/                    # Next.js App Router
+│   │   ├── page.tsx            # Home page with Glassmorphic design querying Supabase
+│   │   ├── layout.tsx          # Global HTML/meta template layout
+│   │   └── globals.css         # Tailwind & custom CSS resets
+│   ├── utils/supabase/         # Supabase Client & Cookie Sync Helpers
+│   │   ├── client.ts           # Browser component Supabase client
+│   │   ├── server.ts           # Server component Supabase client
+│   │   └── middleware.ts       # Router middleware session keeping helper
+│   └── .env.local              # Local environment secrets (ignored from git)
 │
 └── archive/                    # Archived legacy scripts and 20+ old sub-pages
 ```
@@ -74,9 +88,9 @@ Coach AI/
 
 ## ⚡ Quick Start
 
-Get the application running locally in less than 3 minutes.
+Get both applications running locally in less than 3 minutes.
 
-### 1. Installation
+### 🐍 1. Running the Streamlit App (Python)
 
 Cloning the repository and initializing the Python virtual environment:
 
@@ -89,28 +103,38 @@ cd "Coach AI"
 
 # Install requirements
 pip install -r requirements.txt
-```
 
-### 2. Run the Application
-
-```powershell
-streamlit run app.py
-```
-*Note: If your local editor triggers reload refreshes, launch using:*
-```powershell
+# Run the Streamlit application
 streamlit run app.py --server.fileWatcherType none
 ```
 Open **[http://localhost:8501](http://localhost:8501)** in your browser!
+
+### ⚛️ 2. Running the Next.js App (TypeScript / React)
+
+Bootstrapping and launching the web application:
+
+```bash
+# Navigate to the web folder
+cd web
+
+# Install Node dependencies
+npm install
+
+# Start the Next.js local development server
+npm run dev
+```
+Open **[http://localhost:3000](http://localhost:3000)** in your browser!
 
 ---
 
 ## 🧪 Testing Suite
 
-We maintain a rigorous standard of code reliability. The codebase includes 42 end-to-end and unit tests verifying:
+We maintain a rigorous standard of code reliability. The codebase includes 45 end-to-end and unit tests verifying:
 * Drill loading resilience & schema auto-repair.
 * Experience level switcher and locked page navigations.
 * RRS calculation pillars, bonuses, and milestone thresholds.
 * Plan Rollover (automatic weekly rollover intervals).
+* Multi-user registration & secure credential verification.
 
 Run all tests via:
 ```powershell
@@ -125,17 +149,20 @@ This repository is optimized for one-click deployment on **Streamlit Community C
 1. Connect your GitHub account at **[share.streamlit.io](https://share.streamlit.io/)**.
 2. Click **"New App"** and select this repository: `eganl2024-sudo/MDP_APP`.
 3. Set the **Main file path** to `app.py`.
-4. Click **"Deploy!"** 
-
-### frictionless Partner Testing
-To facilitate rapid feedback and partner review, `src/auth.py` is currently configured to **auto-bypass** password checks. Your partners can access and interact with the application live on the web instantly.
+4. Add your database environment variables under **App Settings -> Secrets**:
+   ```toml
+   SUPABASE_URL = "https://ejfuesjtzsxxjdzaywjb.supabase.co"
+   SUPABASE_KEY = "sb_publishable_Uvv5du2PbYcI2IEGp6b4kA_hAMhV-oL"
+   ```
+5. Click **"Deploy!"**
 
 ---
 
 ## 📈 Tech Stack
 
-* **Front-End & Router:** [Streamlit](https://streamlit.io/) (Interactive web applications in Python)
-* **Data Visualization:** [Altair](https://altair-viz.github.io/) & [Plotly](https://plotly.com/) (D1 intensity distribution curves & RRS metric pillars)
+* **Front-End & Dashboards:** [Streamlit](https://streamlit.io/) (Rapid Python prototyping) & [Next.js 15 App Router](https://nextjs.org/) (Production-ready React UI)
+* **Data Visualization:** [Plotly](https://plotly.com/) (D1 intensity curves & dynamic radar charts)
+* **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL cloud database, Auth engine, User isolation)
 * **Data Management:** Pandas, CSV Data Layer, Schema auto-repair engines
 * **Unit Testing:** Pytest
 
@@ -143,7 +170,8 @@ To facilitate rapid feedback and partner review, `src/auth.py` is currently conf
 
 ## 🌟 Future Roadmap
 
-* **CSV to PostgreSQL Migration:** Enable concurrent multi-user database clusters.
+* **CSV to Supabase Migration:** Fully complete the data migration for drilling datasets to cloud PostgreSQL tables.
+* **Full Next.js Feature Parity:** Rebuild the full Streamlit dashboard experience (RRS calculations, intensity maps, history tracking) as a native React Next.js application.
 * **Mobile App (React Native):** Solo training tracker optimized for outdoor field use.
 * **Advanced Video Analytics:** Integrate computer-vision-based footwork analysis into the Highlight Reel.
 
@@ -151,4 +179,5 @@ To facilitate rapid feedback and partner review, `src/auth.py` is currently conf
 
 **Developed by:** Liam Jegatheeswaran  
 **Notre Dame MSBA '26 / D1 NCAA Goalkeeper**  
-*Project Version: 2.1 (Beta-Ready)*
+*Project Version: 2.2 (Database-Ready)*
+
