@@ -92,25 +92,41 @@ def test_user_signup_and_login_flow(tmp_path):
         
     mock_session = MockSessionState()
     
-    # Patch config paths
+    # In-memory mock database
+    mock_db_users = {}
+    
+    def mock_get_user(username):
+        return mock_db_users.get(username)
+        
+    def mock_create_user(username, password_hash, salt):
+        if username in mock_db_users:
+            raise RuntimeError("Username already exists")
+        mock_db_users[username] = {
+            "username": username,
+            "password_hash": password_hash,
+            "salt": salt
+        }
+
+    # Patch config paths and db methods
     with patch("config.PRODUCTION_DATA_DIR", prod_dir), \
          patch("config.DATA_DIR", data_dir), \
          patch("streamlit.error") as mock_error, \
          patch("streamlit.success") as mock_success, \
-         patch("streamlit.session_state", mock_session):
+         patch("streamlit.session_state", mock_session), \
+         patch("db.get_user", side_effect=mock_get_user), \
+         patch("db.create_user", side_effect=mock_create_user):
          
-        # Ensure users file is empty initially
-        assert auth.load_users() == {}
+        # Ensure users database is empty initially
+        assert mock_db_users == {}
         
         # Test signup
         signup_ok = auth.signup_user("test_user", "password123")
         assert signup_ok is True
         
-        # Check users file contains the entry
-        users = auth.load_users()
-        assert "test_user" in users
-        assert "password_hash" in users["test_user"]
-        assert "salt" in users["test_user"]
+        # Check users database contains the entry
+        assert "test_user" in mock_db_users
+        assert "password_hash" in mock_db_users["test_user"]
+        assert "salt" in mock_db_users["test_user"]
         
         # Check isolated directory was bootstrapped
         user_dir = prod_dir / "users" / "test_user"
@@ -134,4 +150,5 @@ def test_user_signup_and_login_flow(tmp_path):
         dup_signup = auth.signup_user("test_user", "newpassword")
         assert dup_signup is False
         mock_error.assert_any_call("Username is already taken.")
+
 

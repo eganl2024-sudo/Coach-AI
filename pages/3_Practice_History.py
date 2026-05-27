@@ -64,8 +64,8 @@ rrs_history = data_loader.load_rrs_history(st.session_state.data_path)
 
 if not athlete_profile or not athlete_profile.get("name"):
     st.warning("Please complete your Profile Setup first to begin tracking progress!", icon="⚠️")
-    if st.button("Set Up Profile Now"):
-        st.switch_page("pages/5_Team_Hub.py")
+    st.page_link("pages/5_Team_Hub.py", label="Set Up Profile Now")
+
     st.stop()
 
 st.title("📅 My Progress")
@@ -370,8 +370,8 @@ with col_left:
     
     if not completions:
         st.info("No training sessions completed yet. Head to your Training Plan and mark your first session complete to start logging history!")
-        if st.button("Open My Training Plan", type="primary"):
-            st.switch_page("pages/2_Practice_Generator.py")
+        st.page_link("pages/2_Practice_Generator.py", label="Open My Training Plan")
+
     else:
         # Display completions in reverse chronological order
         sorted_completions = sorted(completions, key=lambda x: x.get("timestamp", ""), reverse=True)

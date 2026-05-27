@@ -352,8 +352,8 @@ if next_session:
     with cta_cols[0]:
         st.info(f"💡 **Session {next_session['day_number']}** is waiting! Ready to build your skill category? Let's check the details, watch the video cues, and get to training.", icon="⚽")
     with cta_cols[1]:
-        if st.button("🚀 Start Training", type="primary", use_container_width=True):
-            st.switch_page("pages/2_Practice_Generator.py")
+        st.page_link("pages/2_Practice_Generator.py", label="🚀 Start Training", use_container_width=True)
+
 else:
     st.success("🎉 Incredible work! You've finished all your custom training sessions for this week. Enjoy your rest or head over to the **Drill Library** to practice solo!", icon="🎉")
 
@@ -400,8 +400,8 @@ if latest_posts:
             """, unsafe_allow_html=True)
 
     st.write("")
-    if st.button("View all mentor posts →", use_container_width=False):
-        st.switch_page("pages/6_Mentor_Feed.py")
+    st.page_link("pages/6_Mentor_Feed.py", label="View all mentor posts →")
+
     st.write("")
 
 st.divider()
