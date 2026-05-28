@@ -126,7 +126,7 @@ def check_file_freshness(filepath, last_mtime):
 
 def load_drills(data_path):
     """
-    Load drills from CSV file
+    Load drills from CSV file or Supabase Database
 
     Args:
         data_path: Path to data folder
@@ -134,30 +134,49 @@ def load_drills(data_path):
     Returns:
         DataFrame with drills
     """
-    drill_path = Path(data_path) / 'drill_library.csv'
-    try:
-        if drill_path.exists():
-            drills_df = pd.read_csv(drill_path)
-        else:
-            # Bootstrap from seed drills if available
-            seed_path = config.get_seed_drills_path()
-            if seed_path and seed_path.exists():
-                drill_path.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copy(seed_path, drill_path)
+    loaded_from_supabase = False
+    drills_df = None
+
+    # 1. Try loading from Supabase first
+    import os as _os
+    if not _os.environ.get("COACH_AI_DISABLE_AUTH", "").strip().lower() in {"1", "true", "yes", "on"}:
+        try:
+            client = db.get_client()
+            response = client.table("drills").select("*").execute()
+            if response.data:
+                drills_df = pd.DataFrame(response.data)
+                drills_df.attrs['load_info'] = "Drill library loaded from Supabase Cloud"
+                loaded_from_supabase = True
+        except Exception:
+            pass
+
+    # 2. Local fallback loading
+    if not loaded_from_supabase:
+        drill_path = Path(data_path) / 'drill_library.csv'
+        try:
+            if drill_path.exists():
                 drills_df = pd.read_csv(drill_path)
-                drills_df.attrs['load_info'] = f"Drill library bootstrapped from seed file {seed_path}"
             else:
-                drills_df = pd.DataFrame(columns=DRILL_COLUMNS)
-                drills_df.attrs['load_error'] = f"Drill library not found at {drill_path}."
-                drills_df.attrs['repair_info'] = {"dataset": "drills", "was_repaired": False, "added_columns": []}
-                return drills_df
-    except Exception as exc:
-        drills_df = pd.DataFrame(columns=DRILL_COLUMNS)
-        drills_df.attrs['load_error'] = f"Failed to load drill library: {exc}"
-        drills_df.attrs['repair_info'] = {"dataset": "drills", "was_repaired": False, "added_columns": []}
-        return drills_df
+                # Bootstrap from seed drills if available
+                seed_path = config.get_seed_drills_path()
+                if seed_path and seed_path.exists():
+                    drill_path.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copy(seed_path, drill_path)
+                    drills_df = pd.read_csv(drill_path)
+                    drills_df.attrs['load_info'] = f"Drill library bootstrapped from seed file {seed_path}"
+                else:
+                    drills_df = pd.DataFrame(columns=DRILL_COLUMNS)
+                    drills_df.attrs['load_error'] = f"Drill library not found at {drill_path}."
+                    drills_df.attrs['repair_info'] = {"dataset": "drills", "was_repaired": False, "added_columns": []}
+                    return drills_df
+        except Exception as exc:
+            drills_df = pd.DataFrame(columns=DRILL_COLUMNS)
+            drills_df.attrs['load_error'] = f"Failed to load drill library: {exc}"
+            drills_df.attrs['repair_info'] = {"dataset": "drills", "was_repaired": False, "added_columns": []}
+            return drills_df
 
     repairs, drills_df = ensure_columns(drills_df, DRILL_DEFAULTS)
+
 
     validation_errors = []
     validated_rows = []
