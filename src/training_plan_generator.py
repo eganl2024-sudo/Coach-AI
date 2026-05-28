@@ -145,7 +145,7 @@ def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
         ] or filtered_drills
         
     # 5. Helper function to score and select a drill
-    def select_best_drills(candidates: List[dict], count: int, exclude_names: set, preferred_type: Optional[str] = None) -> List[dict]:
+    def select_best_drills(candidates: List[dict], count: int, exclude_names: set, preferred_type: Optional[str] = None, preferred_intensity: Optional[str] = None) -> List[dict]:
         scored_candidates = []
         for c in candidates:
             if c.get("drill_name", "") in exclude_names:
@@ -189,6 +189,12 @@ def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
                 c_type = str(c.get("drill_type", "")).strip().lower()
                 if c_type == preferred_type.strip().lower():
                     score += 10.0
+                    
+            # Preferred intensity boost
+            if preferred_intensity:
+                c_intensity = str(c.get("intensity", "")).strip().lower()
+                if c_intensity == preferred_intensity.strip().lower():
+                    score += 8.0
 
             # Random slight variance to avoid duplicate plans
             score += random.uniform(0.0, 1.0)
@@ -206,10 +212,10 @@ def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
     used_drill_names = set()
     
     for day in range(1, sessions_per_week + 1):
-        day_warmups = select_best_drills(warmups, 1, used_drill_names)
+        day_warmups = select_best_drills(warmups, 1, used_drill_names, preferred_intensity="low")
         if not day_warmups:
             # Re-allow already used drills if needed
-            day_warmups = select_best_drills(warmups, 1, set())
+            day_warmups = select_best_drills(warmups, 1, set(), preferred_intensity="low")
             
         # Determine drill count and duration allocations
         # Let's support 20, 30, 45, 60 minutes
@@ -232,33 +238,52 @@ def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
             main_dur = 10
             cool_dur = 10
             include_game_app = True
-        else: # 60 minutes
+        elif session_duration <= 60:
             warmup_dur = 10
             main_count = 3
             main_dur = 15
             cool_dur = 5
             include_game_app = True
+        elif session_duration <= 75:
+            warmup_dur = 10
+            main_count = 3
+            main_dur = 18
+            cool_dur = 11
+            include_game_app = True
+        elif session_duration <= 90:
+            warmup_dur = 15
+            main_count = 3
+            main_dur = 20
+            cool_dur = 15
+            include_game_app = True
+        else: # 120+ minutes
+            warmup_dur = 15
+            main_count = 4
+            main_dur = 22
+            cool_dur = 17
+            include_game_app = True
             
+        pref_intensity = "medium" if level == "Recreational" else "high"
         pref_type = "Isolation" if day <= 2 else "Pressure"
-        day_mains = select_best_drills(main_drills, main_count, used_drill_names, preferred_type=pref_type)
+        day_mains = select_best_drills(main_drills, main_count, used_drill_names, preferred_type=pref_type, preferred_intensity=pref_intensity)
         if len(day_mains) < main_count:
             # Re-allow already used drills
-            day_mains += select_best_drills(main_drills, main_count - len(day_mains), set(), preferred_type=pref_type)
+            day_mains += select_best_drills(main_drills, main_count - len(day_mains), set(), preferred_type=pref_type, preferred_intensity=pref_intensity)
             
         day_cools = []
         if include_game_app:
-            day_cools = select_best_drills(game_apps, 1, used_drill_names)
+            day_cools = select_best_drills(game_apps, 1, used_drill_names, preferred_intensity="low")
             if not day_cools:
-                day_cools = select_best_drills(game_apps, 1, set())
+                day_cools = select_best_drills(game_apps, 1, set(), preferred_intensity="low")
         if not day_cools:
             # Fall back to cooldown drills first, then warmup drills
-            day_cools = select_best_drills(cooldowns_pool, 1, used_drill_names)
+            day_cools = select_best_drills(cooldowns_pool, 1, used_drill_names, preferred_intensity="low")
             if not day_cools:
-                day_cools = select_best_drills(cooldowns_pool, 1, set())
+                day_cools = select_best_drills(cooldowns_pool, 1, set(), preferred_intensity="low")
         if not day_cools:
-            day_cools = select_best_drills(warmups, 1, used_drill_names)
+            day_cools = select_best_drills(warmups, 1, used_drill_names, preferred_intensity="low")
             if not day_cools:
-                day_cools = select_best_drills(warmups, 1, set())
+                day_cools = select_best_drills(warmups, 1, set(), preferred_intensity="low")
                 
         # Build SessionDrills with allocated times
         session_drills = []
@@ -284,11 +309,15 @@ def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
         allocated_total = sum(d["allocated_time"] for d in session_drills)
         diff = session_duration - allocated_total
         if diff != 0 and session_drills:
-            # Distribute the difference to the first main drill
-            for sd in session_drills:
-                if sd.get("block_type") == "technical":
-                    sd["allocated_time"] += diff
-                    break
+            # Distribute the difference evenly across technical drills
+            technical_drills = [d for d in session_drills if d.get("block_type") == "technical"]
+            if technical_drills:
+                base_diff = diff // len(technical_drills)
+                rem = diff % len(technical_drills)
+                for idx, sd in enumerate(technical_drills):
+                    sd["allocated_time"] += base_diff
+                    if idx < rem:
+                        sd["allocated_time"] += 1
             else:
                 session_drills[0]["allocated_time"] += diff
                 

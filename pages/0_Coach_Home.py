@@ -244,6 +244,38 @@ st.markdown("""
 .milestone-actions li {
     margin-bottom: 4px;
 }
+.onboarding-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    margin-bottom: 24px;
+}
+.onboarding-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1e3a8a;
+    margin-bottom: 4px;
+}
+.onboarding-sub {
+    font-size: 13px;
+    color: #64748b;
+    margin-bottom: 16px;
+}
+.onboarding-progress-bar {
+    background-color: #e2e8f0;
+    border-radius: 9999px;
+    height: 8px;
+    position: relative;
+    overflow: hidden;
+}
+.onboarding-progress-fill {
+    background: linear-gradient(90deg, #3b82f6 0%, #10b981 100%);
+    height: 100%;
+    border-radius: 9999px;
+    transition: width 0.4s ease;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -256,6 +288,88 @@ st.markdown(f"""
     <p style="margin:0; font-size:16px; opacity:0.9;">Playing Level: <strong>{athlete_profile.get('level')}</strong> | Target: <strong>{focus_areas_str}</strong></p>
 </div>
 """, unsafe_allow_html=True)
+
+# Check onboarding milestones
+profile_completed = bool(
+    athlete_profile and 
+    athlete_profile.get("name") and 
+    athlete_profile.get("level") and 
+    athlete_profile.get("position")
+)
+plan_completed = bool(
+    plan and 
+    plan.get("weeks") and 
+    len(plan.get("weeks")) > 0
+)
+first_completion_done = bool(
+    completion_log and 
+    len(completion_log.get("completions", [])) > 0
+)
+rrs_unlocked = bool(
+    rrs and 
+    rrs.get("unlocked", False)
+)
+
+milestones = [
+    {"label": "Profile Setup Completed", "status": profile_completed, "link": "pages/5_Team_Hub.py", "desc": "Fill out your play position and details under Profile Setup."},
+    {"label": "Weekly Plan Generated", "status": plan_completed, "link": "pages/2_Practice_Generator.py", "desc": "Generate your first personalized AI weekly training schedule."},
+    {"label": "First Session Logged", "status": first_completion_done, "link": "pages/2_Practice_Generator.py", "desc": "Complete and log your very first session to start building your habits."},
+    {"label": "Recruit Score Unlocked", "status": rrs_unlocked, "link": "pages/2_Practice_Generator.py", "desc": "Log 5 completed sessions to unlock your dynamic Recruit Readiness Score (RRS)."}
+]
+
+onboarding_active = not (profile_completed and plan_completed and first_completion_done and rrs_unlocked)
+
+if onboarding_active:
+    st.markdown("""
+    <div class="onboarding-card">
+        <div class="onboarding-title">🚀 Your Onboarding Journey</div>
+        <div class="onboarding-sub">Complete these 4 quick milestones to unlock the full potential of your Player Development Platform!</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Calculate progress
+    completed_milestones = sum(1 for m in milestones if m["status"])
+    progress_pct = completed_milestones / 4
+    
+    # Progress bar and status
+    st.markdown(f"""
+    <div style="margin-top:-16px; margin-bottom:20px; padding: 0 24px;">
+        <div style="display:flex; justify-content:space-between; font-size:13px; font-weight:700; color:#475569; margin-bottom:6px;">
+            <span>Onboarding Progress</span>
+            <span>{completed_milestones} of 4 Completed ({int(progress_pct * 100)}%)</span>
+        </div>
+        <div class="onboarding-progress-bar">
+            <div class="onboarding-progress-fill" style="width: {int(progress_pct * 100)}%;"></div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Render milestones using columns
+    m_cols = st.columns(4)
+    for idx, milestone in enumerate(milestones):
+        with m_cols[idx]:
+            status_symbol = "✅" if milestone["status"] else "⏳"
+            bg_color = "#f0fdf4" if milestone["status"] else "#f8fafc"
+            border_color = "#bbf7d0" if milestone["status"] else "#e2e8f0"
+            border_left = "4px solid #10b981" if milestone["status"] else "4px solid #94a3b8"
+            
+            st.markdown(f"""
+            <div style="background:{bg_color}; border:1px solid {border_color}; border-left:{border_left}; border-radius:8px; padding:16px; height:150px; display:flex; flex-direction:column; justify-content:space-between;">
+                <div>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                        <span style="font-size:14px; font-weight:700; color:#1e293b; line-height: 1.2;">{milestone['label']}</span>
+                        <span style="font-size:16px;">{status_symbol}</span>
+                    </div>
+                    <p style="font-size:11px; color:#475569; margin:0; line-height:1.3;">{milestone['desc']}</p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            st.write("") # Add spacing before button
+            if not milestone["status"]:
+                st.page_link(milestone["link"], label="Complete Task", use_container_width=True)
+            else:
+                st.button("Completed", disabled=True, use_container_width=True, key=f"comp_{idx}")
+    st.write("")
 
 # 2. Stats Grid / RRS Metrics
 if not rrs["unlocked"]:

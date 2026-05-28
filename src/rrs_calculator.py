@@ -40,27 +40,33 @@ def get_benchmark_for_score(score: int) -> Tuple[str, str]:
 
 def _calculate_streak(completions: list) -> int:
     """
-    Calculate the consecutive days streak of completions.
+    Calculate the consecutive days streak of completions allowing up to a 3-day gap.
     """
-    unique_dates = set()
-    for entry in completions:
-        d_str = entry.get("date")
-        if d_str:
-            unique_dates.add(d_str)
+    unique_dates = sorted(list({c.get("date") for c in completions if c.get("date")}))
     if not unique_dates:
         return 0
-    current_date = date.today()
-    yesterday = current_date - timedelta(days=1)
-    if current_date.isoformat() in unique_dates:
-        check_date = current_date
-    elif yesterday.isoformat() in unique_dates:
-        check_date = yesterday
-    else:
+    
+    parsed_dates = []
+    for d_str in unique_dates:
+        try:
+            parsed_dates.append(date.fromisoformat(d_str))
+        except ValueError:
+            continue
+            
+    if not parsed_dates:
         return 0
-    streak = 0
-    while check_date.isoformat() in unique_dates:
-        streak += 1
-        check_date -= timedelta(days=1)
+        
+    # Ensure the streak is currently active (last session within past 3 days)
+    if (date.today() - parsed_dates[-1]).days > 3:
+        return 0
+        
+    streak = 1
+    for i in range(len(parsed_dates) - 1, 0, -1):
+        gap = (parsed_dates[i] - parsed_dates[i-1]).days
+        if gap <= 3:
+            streak += 1
+        else:
+            break
     return streak
 
 def _calculate_consistency(completions: list, sessions_per_week: int) -> float:
@@ -143,13 +149,17 @@ def _get_drill_info(drill_name: str, drills_df) -> Optional[dict]:
                 return d
     return None
 
-def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: dict) -> float:
+def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: dict,
+                        primary_position: Optional[str] = None,
+                        secondary_position: Optional[str] = None) -> float:
     """
     Pillar 3 - Coverage (weight: 0.25)
-    Measures whether the player is training their stated weak spots.
+    Measures whether the player is training their stated focus areas and position relevance.
     """
     if not focus_areas:
-        return 50.0
+        focus_ratio = 0.5
+    else:
+        focus_ratio = None
         
     fourteen_days_ago = date.today() - timedelta(days=14)
     recent_completions = []
@@ -177,27 +187,69 @@ def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: d
                                 if name:
                                     drill_names.append(name)
                                     
-    focus_areas_trained = 0
-    for fa in focus_areas:
-        fa_lower = fa.lower()
-        trained = False
-        for name in drill_names:
-            d_info = _get_drill_info(name, drills_df)
-            if d_info:
-                cat = str(d_info.get("skill_category", "")).lower()
-                tags = str(d_info.get("tags", "")).lower()
-                if fa_lower in cat or fa_lower in tags:
-                    trained = True
-                    break
-        if trained:
-            focus_areas_trained += 1
-            
-    coverage_ratio = focus_areas_trained / len(focus_areas)
-    score = round(coverage_ratio * 100)
+    if not drill_names:
+        return 50.0
+        
+    # Calculate focus area ratio
+    if focus_ratio is None:
+        focus_areas_trained = 0
+        for fa in focus_areas:
+            fa_lower = fa.lower()
+            trained = False
+            for name in drill_names:
+                d_info = _get_drill_info(name, drills_df)
+                if d_info:
+                    cat = str(d_info.get("skill_category", "")).lower()
+                    tags = str(d_info.get("tags", "")).lower()
+                    if fa_lower in cat or fa_lower in tags:
+                        trained = True
+                        break
+            if trained:
+                focus_areas_trained += 1
+        focus_ratio = focus_areas_trained / len(focus_areas)
+        
+    # Calculate position alignment score
+    primary_lower = primary_position.lower().strip() if primary_position else ""
+    secondary_lower = secondary_position.lower().strip() if secondary_position else ""
+    if secondary_lower == "none":
+        secondary_lower = ""
+        
+    primary_matches = 0
+    secondary_matches = 0
+    
+    for name in drill_names:
+        d_info = _get_drill_info(name, drills_df)
+        if d_info:
+            pos_rel_raw = d_info.get("position_relevance", "")
+            pos_rel_parts = []
+            if isinstance(pos_rel_raw, list):
+                pos_rel_parts = [p.lower().strip() for p in pos_rel_raw if p.strip()]
+            elif pos_rel_raw:
+                pos_rel_parts = [p.lower().strip() for p in str(pos_rel_raw).split("|") if p.strip()]
+                
+            # If no position relevance details, it's a universal drill
+            if not pos_rel_parts:
+                primary_matches += 1
+                secondary_matches += 1
+            else:
+                if primary_lower and primary_lower in pos_rel_parts:
+                    primary_matches += 1
+                if secondary_lower and secondary_lower in pos_rel_parts:
+                    secondary_matches += 1
+                    
+    primary_ratio = primary_matches / len(drill_names)
+    secondary_ratio = secondary_matches / len(drill_names)
+    
+    if secondary_lower:
+        position_alignment = 0.70 * primary_ratio + 0.30 * secondary_ratio
+    else:
+        position_alignment = primary_ratio
+        
+    score = round((0.70 * focus_ratio + 0.30 * position_alignment) * 100)
     
     # Weak Foot Development bonus
     has_weak_foot_bonus = False
-    if "Weak Foot Development" in focus_areas:
+    if focus_areas and "Weak Foot Development" in focus_areas:
         for name in drill_names:
             d_info = _get_drill_info(name, drills_df)
             if d_info:
@@ -211,27 +263,36 @@ def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: d
         
     return min(100.0, float(score))
 
+REWARD_MATRIX = {
+    "Recreational": {
+        "beginner": 1.0,
+        "intermediate": 1.0,
+        "advanced": 1.2,
+        "elite": 1.4
+    },
+    "Competitive Club": {
+        "beginner": 0.5,
+        "intermediate": 1.0,
+        "advanced": 1.0,
+        "elite": 1.2
+    },
+    "Academy/Select": {
+        "beginner": 0.2,
+        "intermediate": 0.6,
+        "advanced": 1.0,
+        "elite": 1.0
+    }
+}
+
 def _calculate_progression(completions: list, current_level: str, plan: dict, drills_df) -> float:
     """
     Pillar 4 - Progression (weight: 0.25)
     Measures whether training difficulty matches the player's goals.
     """
-    if current_level == "Recreational":
-        expected_min = 1
-        expected_max = 2
-    elif current_level == "Competitive Club":
-        expected_min = 2
-        expected_max = 3
-    elif current_level == "Academy/Select":
-        expected_min = 3
-        expected_max = 4
-    else:
-        expected_min = 1
-        expected_max = 4
-        
-    on_tier = 0
-    stretch = 0
+    level_rewards = REWARD_MATRIX.get(current_level, REWARD_MATRIX["Recreational"])
+    
     total_drills_checked = 0
+    total_points = 0.0
     
     for c in completions:
         c_week = c.get("week")
@@ -247,21 +308,15 @@ def _calculate_progression(completions: list, current_level: str, plan: dict, dr
                                     d_info = _get_drill_info(name, drills_df)
                                     if d_info:
                                         diff = str(d_info.get("difficulty", "intermediate")).lower().strip()
-                                        if diff in TIER_VALUES:
-                                            diff_val = TIER_VALUES[diff]
+                                        if diff in level_rewards:
+                                            total_points += level_rewards[diff]
                                             total_drills_checked += 1
-                                            if diff_val >= expected_min:
-                                                on_tier += 1
-                                            if diff_val > expected_max:
-                                                stretch += 1
-                                                
+                                            
     if total_drills_checked == 0:
         return 50.0
         
-    base_score = min(100, round((on_tier / total_drills_checked) * 100))
-    stretch_bonus = min(10, stretch * 2)
-    
-    return min(100.0, float(base_score + stretch_bonus))
+    prog_score = (total_points / total_drills_checked) * 100.0
+    return min(100.0, float(round(prog_score)))
 
 def calculate_rrs(athlete_profile: dict, completion_log: dict,
                   drills_df, plan: dict) -> dict:
@@ -298,7 +353,9 @@ def calculate_rrs(athlete_profile: dict, completion_log: dict,
         volume_score = _calculate_volume(completions, created_date_str, sessions_per_week)
         
         focus_areas = athlete_profile.get("focus_areas", [])
-        coverage_score = _calculate_coverage(completions, focus_areas, drills_df, plan)
+        primary_pos = athlete_profile.get("position", "")
+        secondary_pos = athlete_profile.get("secondary_position", "")
+        coverage_score = _calculate_coverage(completions, focus_areas, drills_df, plan, primary_pos, secondary_pos)
         
         current_level = athlete_profile.get("level", "Recreational")
         progression_score = _calculate_progression(completions, current_level, plan, drills_df)

@@ -177,3 +177,107 @@ def test_resiliency_none_and_empty():
     assert rrs["overall"] == 0
     assert rrs["sessions_until_unlock"] == 5
     assert rrs["pillars"]["consistency"]["score"] == 0
+
+def test_rrs_resilient_streak():
+    from rrs_calculator import _calculate_streak
+    
+    today = date.today()
+    
+    # Strictly consecutive completions
+    completions_consecutive = [
+        {"date": (today - timedelta(days=2)).isoformat()},
+        {"date": (today - timedelta(days=1)).isoformat()},
+        {"date": today.isoformat()},
+    ]
+    assert _calculate_streak(completions_consecutive) == 3
+    
+    # 3-day gap completions (e.g. Mon, Wed, Fri)
+    completions_gaps = [
+        {"date": (today - timedelta(days=6)).isoformat()},
+        {"date": (today - timedelta(days=3)).isoformat()},
+        {"date": today.isoformat()},
+    ]
+    assert _calculate_streak(completions_gaps) == 3
+    
+    # Over 3 days gap completion (e.g. gap of 4 days)
+    completions_large_gap = [
+        {"date": (today - timedelta(days=5)).isoformat()},
+        {"date": today.isoformat()},
+    ]
+    assert _calculate_streak(completions_large_gap) == 1
+    
+    # Inactive streak (last session was 4 days ago)
+    completions_inactive = [
+        {"date": (today - timedelta(days=6)).isoformat()},
+        {"date": (today - timedelta(days=4)).isoformat()},
+    ]
+    assert _calculate_streak(completions_inactive) == 0
+
+def test_rrs_multi_tier_progression():
+    from rrs_calculator import _calculate_progression
+    
+    completions = [
+        {"date": "2026-05-28", "week": 1, "day": 1},
+        {"date": "2026-05-28", "week": 1, "day": 2},
+        {"date": "2026-05-28", "week": 1, "day": 3},
+    ]
+    plan = {
+        "weeks": [
+            {
+                "week_number": 1,
+                "sessions": [
+                    {"day_number": 1, "drills": [{"drill_name": "Drill A"}]},
+                    {"day_number": 2, "drills": [{"drill_name": "Drill B"}]},
+                    {"day_number": 3, "drills": [{"drill_name": "Drill C"}]},
+                ]
+            }
+        ]
+    }
+    drills_df = [
+        {"drill_name": "Drill A", "difficulty": "beginner"},
+        {"drill_name": "Drill B", "difficulty": "advanced"},
+        {"drill_name": "Drill C", "difficulty": "elite"},
+    ]
+    
+    # Recreational player:
+    # beginner -> 1.0, intermediate -> 1.0, advanced -> 1.2, elite -> 1.4
+    recreational_prog = _calculate_progression(completions, "Recreational", plan, drills_df)
+    assert recreational_prog == 100.0
+    
+    # Academy player:
+    # beginner -> 0.2, intermediate -> 0.6, advanced -> 1.0, elite -> 1.0
+    # Expected points: 0.2 + 1.0 + 1.0 = 2.2. 2.2 / 3 = 0.733 -> 73%
+    academy_prog = _calculate_progression(completions, "Academy/Select", plan, drills_df)
+    assert academy_prog == 73.0
+
+def test_rrs_coverage_secondary_position():
+    from rrs_calculator import _calculate_coverage
+    
+    completions = [
+        {"date": date.today().isoformat(), "week": 1, "day": 1}
+    ]
+    plan = {
+        "weeks": [
+            {
+                "week_number": 1,
+                "sessions": [
+                    {"day_number": 1, "drills": [{"drill_name": "Drill A"}]}
+                ]
+            }
+        ]
+    }
+    drills_df = [
+        {
+            "drill_name": "Drill A",
+            "skill_category": "Dribbling",
+            "tags": "dribbling|weak foot",
+            "position_relevance": ""
+        }
+    ]
+    
+    # Expected: focus_ratio = 0.5 (Drill A matches Dribbling, but not Weak Foot Development itself).
+    # position: striker, winger. Universal Drill A matches both: primary_ratio=1.0, secondary_ratio=1.0 -> alignment = 1.0.
+    # combined: 0.7 * 0.5 + 0.3 * 1.0 = 0.65.
+    # weak foot bonus: +10 -> 75%
+    score = _calculate_coverage(completions, ["Dribbling", "Weak Foot Development"], drills_df, plan, "Striker", "Winger")
+    assert score == 75.0
