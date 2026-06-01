@@ -105,6 +105,39 @@ def _bootstrap_demo_sandbox(user_dir: Path) -> None:
         if src.exists():
             shutil.copy(src, dst)
 
+def _seed_demo_to_supabase() -> None:
+    """
+    Write Alex's demo data directly into Supabase under
+    username='demo'. Called on every demo login so the
+    account always resets to the clean seed state.
+    Silently skips if Supabase is unavailable.
+    """
+    import json
+    from pathlib import Path
+    import config
+
+    demo_src = config.DEMO_DATA_DIR
+
+    # Map filename → data_key used in user_data table
+    files = {
+        "athlete_profile.json":      "athlete_profile",
+        "completion_log.json":        "completion_log",
+        "weekly_training_plan.json":  "weekly_training_plan",
+        "rrs_history.json":           "rrs_history",
+        "mentor_feed.json":           "mentor_feed",
+    }
+
+    for filename, data_key in files.items():
+        src = demo_src / filename
+        if not src.exists():
+            continue
+        try:
+            with open(src, "r", encoding="utf-8") as f:
+                data_value = f.read()
+            db.save_user_data("demo", data_key, data_value)
+        except Exception:
+            pass  # Never crash the login flow
+
 def is_valid_username(username: str) -> bool:
     """Validate username formats (e.g. email or standard names)."""
     return bool(re.match(r'^[a-zA-Z0-9_\-\.@]+$', username)) and len(username) >= 3
@@ -157,7 +190,7 @@ def login_user(username, password) -> bool:
         # Demo account: always re-bootstrap sandbox on login so it resets
         # to the clean seed state every time. No drift, no stale data.
         if username == "demo":
-            bootstrap_user_sandbox("demo")
+            _seed_demo_to_supabase()
         st.session_state.authenticated = True
         st.session_state.username = username
         st.session_state.data_path = (

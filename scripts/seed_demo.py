@@ -536,5 +536,35 @@ def seed():
         print("  Demo user sandbox not found locally — run on"
               " Streamlit Cloud or after create_demo_account.py")
 
+    # Sync demo data to Supabase if credentials are available
+    print("")
+    print("Syncing to Supabase...")
+    try:
+        import sys, os
+        sys.path.insert(0, str(project_root / "src"))
+        import db
+        import config
+
+        files = {
+            "athlete_profile.json":      "athlete_profile",
+            "completion_log.json":        "completion_log",
+            "weekly_training_plan.json":  "weekly_training_plan",
+            "rrs_history.json":           "rrs_history",
+            "mentor_feed.json":           "mentor_feed",
+        }
+        demo_src = config.DEMO_DATA_DIR
+        for filename, data_key in files.items():
+            src = demo_src / filename
+            if not src.exists():
+                continue
+            with open(src, "r", encoding="utf-8") as f:
+                data_value = f.read()
+            db.save_user_data("demo", data_key, data_value)
+            print(f"  ✓ Supabase: demo/{data_key} updated")
+        print("Supabase sync complete.")
+    except Exception as e:
+        print(f"  ⚠ Supabase sync skipped: {e}")
+        print("  Set SUPABASE_URL and SUPABASE_KEY to sync.")
+
 if __name__ == '__main__':
     seed()

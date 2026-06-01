@@ -19,13 +19,7 @@ def _get_username() -> str | None:
     ).strip().lower() in {"1", "true", "yes", "on"}
     if disable_auth:
         return None
-    username = st.session_state.get("username")
-    # Demo account always uses filesystem sandbox,
-    # never Supabase — so treat it as unauthenticated
-    # for data routing purposes.
-    if username == "demo":
-        return None
-    return username
+    return st.session_state.get("username")
 
 
 DRILL_COLUMNS = [
