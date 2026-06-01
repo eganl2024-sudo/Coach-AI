@@ -1,183 +1,226 @@
 # Player AI ⚽🚀
 
-**An AI-powered, data-driven training ecosystem that structures personalized development, visualizes athletic metrics, and calculates Recruit Readiness.**
+**An AI-powered, data-driven training ecosystem that structures personalized development, visualizes athletic metrics, and calculates Recruit Readiness — built for competitive soccer athletes.**
 
-[![Status](https://img.shields.io/badge/status-production--ready-success.svg?style=flat-square)](https://github.com/eganl2024-sudo/MDP_APP)
-[![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg?style=flat-square)](https://python.org)
+[![Status](https://img.shields.io/badge/status-live%20on%20Streamlit%20Cloud-success.svg?style=flat-square)](https://mdpapp.streamlit.app)
+[![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?style=flat-square)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/streamlit-1.51%2B-red.svg?style=flat-square)](https://streamlit.io)
 [![Tests](https://img.shields.io/badge/tests-53%2F53%20passed-brightgreen.svg?style=flat-square)](https://github.com/eganl2024-sudo/MDP_APP)
 
 ---
 
+## 🔗 Try It Now
+
+**Live app:** [https://mdpapp.streamlit.app](https://mdpapp.streamlit.app)
+
+**Demo login — no sign-up required:**
+
+| Field | Value |
+|---|---|
+| Username | `demo` |
+| Password | `PlayerAI2026` |
+
+The demo account loads **Alex's pre-seeded dashboard** — RRS 62, 3 weeks of training history, current week in progress. It resets to this clean state automatically on every login, so it's always ready to show.
+
+---
+
 ## 🎯 What is Player AI?
 
-The **Player AI** (formerly Coach AI) transforms individual soccer development by acting as an automated personal trainer and athletic advisor. It helps competitive soccer athletes optimize their training efficiency, log completions, build streaks, upload highlights, and measure progress through a proprietary quantitative engine.
+**Player AI** transforms individual soccer development by acting as an automated personal trainer and athletic advisor. It helps competitive soccer athletes structure their weekly training, log completions, build streaks, and measure readiness through a proprietary quantitative scoring engine.
 
-Through a **progressive disclosure model**, the platform caters to three distinct tiers:
-* ⚡ **Essential Mode:** Simple dashboard, 3-click weekly training plan generation, and basic log completions.
-* 🎯 **Advanced Mode:** Unlocks interactive player profile settings, advanced drill browsing, and detailed focus tagging.
-* 🔧 **Expert Mode:** Opens developer analytics, template building, and custom database diagnostic tools.
-
----
-
-## 🧠 Scientific Core: The Recruit Readiness Score (RRS) Engine
-
-At the heart of the platform is the **RRS Engine** (`src/rrs_calculator.py`), which calculates a unified score from **0 to 100** that gauges an athlete's preparedness for high-level competitive environments:
-
-### The 4 Pillars of RRS
-1. **Consistency (30% weight):** Measures training habit reliability over the last 4 weeks. Includes consecutive days streak bonuses (+5 points for 14-day streaks).
-2. **Volume (20% weight):** Measures cumulative training hours and completed sessions against expectations since account creation.
-3. **Coverage (25% weight):** Audits recent sessions against stated weak spots (e.g., *Weak Foot Development*, *Passing Speed*). Gives a +10 point bonus for targeted technical drills.
-4. **Progression (25% weight):** Evaluates if the average drill difficulty aligns with the athlete's collegiate or professional goals.
-
-### Milestones & Benchmarks
-* 🥈 **0–24:** *Getting Started* (Recreational/Youth)
-* 🥉 **25–44:** *Recreational Player*
-* 🥇 **45–59:** *Club Level* (Competitive Club threshold)
-* 🏆 **60–74:** *Varsity Starter* (Academy/Select threshold)
-* 🔥 **75–87:** *College Prospect*
-* 👑 **88–100:** *D1 Ready* (Elite college goalkeeper/field player readiness)
+Core capabilities:
+- 🗓️ **Multi-week training plan persistence** — plans roll over automatically after 7 days; all history is preserved across weeks
+- 📊 **Recruit Readiness Score (RRS)** — proprietary 0–100 score across 4 measurable pillars
+- 🔐 **Per-user sandboxed accounts** — every player's data is fully isolated
+- 🎥 **Highlight Reel** — video feed curated to the player's position and focus areas
+- 💬 **Mentor Feed** — coach commentary matched to the athlete's development profile
 
 ---
 
-## 📁 Project Architecture & Tour
+## 🧠 The Recruit Readiness Score (RRS) Engine
 
-The codebase is organized as a co-existing system with two core applications: a **Python Streamlit dashboard application** for rapid prototyping and coach tools, and a new **Next.js & TypeScript React application** representing our pivoted web application frontend.
+The RRS (`src/rrs_calculator.py`) produces a unified **0–100** score across 4 weighted pillars:
+
+| Pillar | Weight | What It Measures |
+|---|---|---|
+| **Consistency** | 30% | Training habit reliability — weighted 4-week window + streak bonuses |
+| **Volume** | 20% | Total sessions completed vs. expectation since account creation |
+| **Coverage** | 25% | Whether recent sessions trained the player's stated focus areas |
+| **Progression** | 25% | Whether drill difficulty aligns with the athlete's stated level |
+
+### Benchmark Thresholds
+
+| Score | Label |
+|---|---|
+| 0–24 | Getting Started |
+| 25–44 | Recreational Player |
+| 45–59 | Club Level |
+| 60–74 | Varsity Starter |
+| 75–87 | College Prospect |
+| 88–100 | D1 Ready |
+
+---
+
+## 📁 Project Architecture
 
 ```
-Coach AI/ (Root Directory)
-├── app.py                      # Main Python Streamlit Bootstrapper
-├── requirements.txt            # Python Dependencies
-├── pytest.ini                  # Pytest Configuration
+Coach AI/
+├── app.py                          # Streamlit entry point
+├── requirements.txt
+├── pytest.ini
 │
-├── pages/                      # The 7 Consolidated Streamlit Pages
-│   ├── 0_Coach_Home.py         # Dashboard (RRS Analytics, Milestones, Active Streak)
-│   ├── 1_Drill_Library.py      # Drill browser (Filtered by Skills, Category, Difficulty)
-│   ├── 2_Practice_Generator.py # AI-Powered Training Plan Generator (Intensity Curve charts)
-│   ├── 3_Practice_History.py   # Training Plan Log (Save/Restore historic sessions)
-│   ├── 4_Highlight_Reel.py     # Media hub (Video clips, progress uploads)
-│   ├── 5_Team_Hub.py           # Athlete Profile Setup (Skill target, Focus area selector)
-│   └── 6_Mentor_Feed.py        # Curator feedback stream matching the athlete's profile
+├── pages/                          # 7 Streamlit pages
+│   ├── 0_Coach_Home.py             # Dashboard — RRS, active streak, weekly progress
+│   ├── 1_Drill_Library.py          # Drill browser — filter by skill, category, difficulty
+│   ├── 2_Practice_Generator.py     # Training plan generator + 7-day auto-rollover
+│   ├── 3_Practice_History.py       # Multi-week history — week selector, archived view
+│   ├── 4_Highlight_Reel.py         # Video & media hub
+│   ├── 5_Team_Hub.py               # Athlete profile setup
+│   └── 6_Mentor_Feed.py            # Position-matched coach commentary feed
 │
-├── src/                        # Platform Business Logic Modules (Python)
-│   ├── rrs_calculator.py       # Proprietary RRS Score engine
-│   ├── data_loader.py          # State persistence, CSV auto-repair, and fallback data
-│   ├── db.py                   # Supabase database client interface
-│   ├── training_plan_generator.py # Smart weekly planner and duration distributor
-│   ├── experience_level.py     # Sidebar tier switcher & progressive disclosure manager
-│   ├── auth.py                 # Multi-user login & password encryption modules
-│   └── ui_components.py        # Curated charts, widgets, and modern CSS styling
+├── src/                            # Business logic
+│   ├── rrs_calculator.py           # RRS engine (4 pillars, benchmarks, next actions)
+│   ├── training_plan_generator.py  # Multi-week plan builder + archival logic
+│   ├── data_loader.py              # Persistence layer + format migration helpers
+│   ├── completion_tracker.py       # Session completion + streak tracking
+│   ├── auth.py                     # Login, signup, per-user sandbox, demo account reset
+│   ├── db.py                       # Supabase client (users, user_data tables)
+│   ├── config.py                   # Paths, constants, mode flags
+│   └── ui_components.py            # Shared nav, CSS, chart widgets
 │
-├── web/                        # [NEW] Next.js Web Application Frontend
-│   ├── package.json            # Node.js project configuration and dependencies
-│   ├── tsconfig.json           # TypeScript configuration
-│   ├── app/                    # Next.js App Router
-│   │   ├── page.tsx            # Home page with Glassmorphic design querying Supabase
-│   │   ├── layout.tsx          # Global HTML/meta template layout
-│   │   └── globals.css         # Tailwind & custom CSS resets
-│   ├── utils/supabase/         # Supabase Client & Cookie Sync Helpers
-│   │   ├── client.ts           # Browser component Supabase client
-│   │   ├── server.ts           # Server component Supabase client
-│   │   └── middleware.ts       # Router middleware session keeping helper
-│   └── .env.local              # Local environment secrets (ignored from git)
+├── data/
+│   ├── demo/                       # Pre-seeded demo data (Alex, RRS 62, 3 weeks)
+│   │   ├── athlete_profile.json
+│   │   ├── weekly_training_plan.json   # 3-week multi-week format
+│   │   ├── completion_log.json         # 10 sessions across weeks 1, 2, 3
+│   │   ├── rrs_history.json
+│   │   └── mentor_feed.json
+│   └── production/
+│       ├── drill_library.csv           # Master drill database
+│       ├── mentor_feed.json
+│       └── users/                      # Per-user sandboxes (auto-created on signup)
+│           └── demo/                   # Demo account sandbox (resets on every login)
 │
-└── archive/                    # Archived legacy scripts and 20+ old sub-pages
+├── scripts/
+│   ├── seed_demo.py                # Reset demo data to known state + refresh sandbox
+│   └── create_demo_account.py      # One-time: register demo user in Supabase
+│
+└── tests/                          # 53 unit + end-to-end tests
 ```
 
 ---
 
-## ⚡ Quick Start
-
-Get both applications running locally in less than 3 minutes.
-
-### 🐍 1. Running the Streamlit App (Python)
-
-Cloning the repository and initializing the Python virtual environment:
+## ⚡ Quick Start (Local)
 
 ```powershell
-# Navigate to the project folder
-cd "Coach AI"
-
-# Initialize or activate the virtual environment (Windows PowerShell)
+# Activate venv
 .\.venv\Scripts\Activate.ps1
 
-# Install requirements
+# Install dependencies
 pip install -r requirements.txt
 
-# Run the Streamlit application
+# Run the app
 streamlit run app.py --server.fileWatcherType none
 ```
-Open **[http://localhost:8501](http://localhost:8501)** in your browser!
 
-### ⚛️ 2. Running the Next.js App (TypeScript / React)
+Open **[http://localhost:8501](http://localhost:8501)**. Log in with any account or use the demo credentials above.
 
-Bootstrapping and launching the web application:
+---
 
-```bash
-# Navigate to the web folder
-cd web
+## 🗓️ Multi-Week Training Plan Persistence
 
-# Install Node dependencies
-npm install
+As of June 2026, training plans are fully **multi-week persistent**:
 
-# Start the Next.js local development server
-npm run dev
+- **No data loss between weeks** — when a week rolls over, the old plan is archived and the new week is appended. Completion history is never cleared.
+- **7-day auto-rollover** — `pages/2_Practice_Generator.py` detects when the current week's `generated_date` is > 7 days old and automatically archives it and generates week N+1
+- **Week selector in History** — `pages/3_Practice_History.py` shows all archived weeks via dropdown; archived weeks are read-only, current week has Mark Complete buttons
+- **RRS uses all weeks** — Consistency and Volume use all-time completions; Coverage and Progression look up drills across all plan weeks
+- **Backward compatible** — old single-week plans are silently migrated to the new multi-week format on first load (no manual action needed)
+
+The demo account demonstrates this across 3 full weeks (weeks 1+2 archived at 4/4, week 3 in progress at 2/4).
+
+---
+
+## 🔐 Demo Account
+
+The `demo` user is a **permanent account in Supabase** with automatic reset behavior:
+
+- **Sandbox resets on every login** — `auth.py` overwrites the demo sandbox with fresh files from `data/demo/` immediately after `verify_password()` succeeds
+- **No drift** — regardless of what a previous visitor completed, the next login always sees Alex's clean baseline (RRS 62, 10 sessions, week 3 in progress)
+- **Credentials:** `demo` / `PlayerAI2026`
+
+### Maintenance Commands
+
+```powershell
+# Reset demo seed data and refresh sandbox (if it exists)
+python scripts/seed_demo.py
+
+# Re-register demo account in Supabase (safe to re-run; skips if exists)
+$env:SUPABASE_URL="https://ejfuesjtzsxxjdzaywjb.supabase.co"
+$env:SUPABASE_KEY="your-key"
+python scripts/create_demo_account.py
 ```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser!
 
 ---
 
 ## 🧪 Testing Suite
 
-We maintain a rigorous standard of code reliability. The codebase includes 53 end-to-end and unit tests verifying:
-* Drill loading resilience & schema auto-repair.
-* Experience level switcher and locked page navigations.
-* RRS calculation pillars, bonuses, and milestone thresholds.
-* Plan Rollover (automatic weekly rollover intervals).
-* Multi-user registration & secure credential verification.
+53 unit and end-to-end tests covering:
 
-Run all tests via:
+- Drill loading resilience & schema auto-repair
+- RRS calculation: all 4 pillars, bonuses, milestone thresholds
+- Multi-week plan generation, rollover, and week number incrementing
+- `get_current_week()` / `get_all_weeks()` data_loader helper correctness
+- Multi-user registration & secure PBKDF2 credential verification
+- Completion tracker streak logic
+
 ```powershell
 pytest
+# 53 passed in ~5s
 ```
 
 ---
 
 ## 🚀 Streamlit Cloud Deployment
 
-This repository is optimized for one-click deployment on **Streamlit Community Cloud**:
-1. Connect your GitHub account at **[share.streamlit.io](https://share.streamlit.io/)**.
-2. Click **"New App"** and select this repository: `eganl2024-sudo/MDP_APP`.
-3. Set the **Main file path** to `app.py`.
-4. Add your database environment variables under **App Settings -> Secrets**:
+**Live:** [https://mdpapp.streamlit.app](https://mdpapp.streamlit.app)
+
+To deploy your own instance:
+1. Fork `eganl2024-sudo/MDP_APP` and connect at [share.streamlit.io](https://share.streamlit.io/)
+2. Set **Main file path** to `app.py`
+3. Add secrets under **App Settings → Secrets**:
    ```toml
    SUPABASE_URL = "https://ejfuesjtzsxxjdzaywjb.supabase.co"
-   SUPABASE_KEY = "sb_publishable_Uvv5du2PbYcI2IEGp6b4kA_hAMhV-oL"
+   SUPABASE_KEY = "your-service-role-key"
    ```
-5. Click **"Deploy!"**
+4. Click **Deploy!**
+5. Run `python scripts/create_demo_account.py` once from the Cloud shell to register the demo user
 
 ---
 
 ## 📈 Tech Stack
 
-* **Front-End & Dashboards:** [Streamlit](https://streamlit.io/) (Rapid Python prototyping) & [Next.js 15 App Router](https://nextjs.org/) (Production-ready React UI)
-* **Data Visualization:** [Plotly](https://plotly.com/) (D1 intensity curves & dynamic radar charts)
-* **Database & Auth:** [Supabase](https://supabase.com/) (PostgreSQL cloud database, Auth engine, User isolation)
-* **Data Management:** Pandas, CSV Data Layer, Schema auto-repair engines
-* **Unit Testing:** Pytest
+| Layer | Technology |
+|---|---|
+| App framework | Streamlit 1.51+ |
+| Language | Python 3.12 |
+| Database & auth | Supabase (PostgreSQL) |
+| Visualization | Plotly (radar charts, line charts) |
+| Data layer | Pandas, JSON, CSV |
+| Testing | Pytest (53 tests) |
+| Hosting | Streamlit Community Cloud |
 
 ---
 
-## 🌟 Future Roadmap
+## 🌟 Roadmap
 
-* **CSV to Supabase Migration:** Fully complete the data migration for drilling datasets to cloud PostgreSQL tables.
-* **Full Next.js Feature Parity:** Rebuild the full Streamlit dashboard experience (RRS calculations, intensity maps, history tracking) as a native React Next.js application.
-* **Mobile App (React Native):** Solo training tracker optimized for outdoor field use.
-* **Advanced Video Analytics:** Integrate computer-vision-based footwork analysis into the Highlight Reel.
+- **Native mobile app** — React Native solo training tracker optimized for field use
+- **Video analytics** — Computer-vision footwork analysis in the Highlight Reel
+- **Full Next.js frontend** — Rebuild the full dashboard as a production React application
+- **Supabase drill table** — Migrate `drill_library.csv` to cloud PostgreSQL for real-time coach edits
 
 ---
 
 **Developed by:** Liam Jegatheeswaran  
 **Notre Dame MSBA '26 / D1 NCAA Goalkeeper**  
-*Project Version: 2.2 (Database-Ready)*
-
+*Project Version: 3.0 — Multi-Week Persistence + Live Demo Account*

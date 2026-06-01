@@ -49,3 +49,10 @@ Desktop.ini
 .pytest_cache/
 .coverage
 htmlcov/
+.pytest_tmp/
+
+# ===== Per-user sandbox data (never commit) =====
+data/production/users/
+
+# ===== Scratch / agent working files =====
+scratch/
