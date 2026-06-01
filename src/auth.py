@@ -52,6 +52,13 @@ def verify_password(password: str, pwd_hash_hex: str, salt_hex: str) -> bool:
 
 def bootstrap_user_sandbox(username: str) -> Path:
     """Bootstrap isolated sandboxed directory with starter files."""
+    # Demo account: always reset from data/demo/ on every call.
+    if username == "demo":
+        user_dir = config.PRODUCTION_DATA_DIR / 'users' / 'demo'
+        user_dir.mkdir(parents=True, exist_ok=True)
+        _bootstrap_demo_sandbox(user_dir)
+        return user_dir
+
     user_dir = config.PRODUCTION_DATA_DIR / 'users' / username
     user_dir.mkdir(parents=True, exist_ok=True)
     
@@ -74,6 +81,29 @@ def bootstrap_user_sandbox(username: str) -> Path:
         shutil.copy(pres_src, pres_dst)
         
     return user_dir
+
+
+def _bootstrap_demo_sandbox(user_dir: Path) -> None:
+    """
+    Populate the demo user sandbox from data/demo/.
+    Always overwrites — demo account resets to seed state
+    on every login so it never drifts from Alex's profile.
+    """
+    demo_src = config.DEMO_DATA_DIR
+    files_to_copy = [
+        "athlete_profile.json",
+        "completion_log.json",
+        "weekly_training_plan.json",
+        "rrs_history.json",
+        "mentor_feed.json",
+        "drill_library.csv",
+        "presenters.csv",
+    ]
+    for filename in files_to_copy:
+        src = demo_src / filename
+        dst = user_dir / filename
+        if src.exists():
+            shutil.copy(src, dst)
 
 def is_valid_username(username: str) -> bool:
     """Validate username formats (e.g. email or standard names)."""
@@ -124,6 +154,10 @@ def login_user(username, password) -> bool:
         st.error("Invalid username or password.")
         return False
     if verify_password(password, user_data["password_hash"], user_data["salt"]):
+        # Demo account: always re-bootstrap sandbox on login so it resets
+        # to the clean seed state every time. No drift, no stale data.
+        if username == "demo":
+            bootstrap_user_sandbox("demo")
         st.session_state.authenticated = True
         st.session_state.username = username
         st.session_state.data_path = (

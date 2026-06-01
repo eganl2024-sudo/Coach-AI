@@ -509,8 +509,32 @@ def seed():
     with open(demo_dir / 'mentor_feed.json', 'w', encoding='utf-8') as f:
         json.dump(mentor_feed, f, indent=2)
     print("✓ data/demo/mentor_feed.json")
-    
+
     print("Demo account ready. Set DEMO_MODE = True in src/config.py to use it.")
+
+    # Refresh the live demo sandbox if it exists locally
+    # (i.e. create_demo_account.py has already run and created the directory)
+    demo_user_dir = project_root / "data" / "production" / "users" / "demo"
+    if demo_user_dir.exists():
+        import shutil as _shutil
+        files = [
+            "athlete_profile.json",
+            "completion_log.json",
+            "weekly_training_plan.json",
+            "rrs_history.json",
+            "mentor_feed.json",
+            "drill_library.csv",
+            "presenters.csv",
+        ]
+        for f in files:
+            src = demo_dir / f
+            dst = demo_user_dir / f
+            if src.exists():
+                _shutil.copy(src, dst)
+        print("✓ data/production/users/demo/ — sandbox refreshed")
+    else:
+        print("  Demo user sandbox not found locally — run on"
+              " Streamlit Cloud or after create_demo_account.py")
 
 if __name__ == '__main__':
     seed()
