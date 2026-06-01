@@ -13,17 +13,19 @@ import config
 from validation import validate_drill, validate_team_profile
 
 def _get_username() -> str | None:
-    """
-    Return the active username from session state, or None if auth is 
-    disabled (local dev mode) or no user is logged in.
-    """
     import os
     disable_auth = str(
         os.environ.get("COACH_AI_DISABLE_AUTH", "")
     ).strip().lower() in {"1", "true", "yes", "on"}
     if disable_auth:
         return None
-    return st.session_state.get("username")
+    username = st.session_state.get("username")
+    # Demo account always uses filesystem sandbox,
+    # never Supabase — so treat it as unauthenticated
+    # for data routing purposes.
+    if username == "demo":
+        return None
+    return username
 
 
 DRILL_COLUMNS = [
