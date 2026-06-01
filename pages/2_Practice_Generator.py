@@ -271,13 +271,24 @@ if plan:
             try:
                 gen_date = datetime.fromisoformat(gen_date_str)
                 if (datetime.now() - gen_date) > timedelta(days=7):
-                    drills = st.session_state.drills_df.to_dict("records")
-                    rolled_plan = training_plan_generator.generate_training_plan(
-                        athlete_profile, drills, existing_plan=plan
-                    )
-                    data_loader.save_weekly_training_plan(rolled_plan, st.session_state.data_path)
-                    plan = rolled_plan
-                    st.toast("🗓️ New week auto-generated! Your previous sessions are preserved in History.", icon="✅")
+                    drills_df = st.session_state.get("drills_df")
+                    if drills_df is not None and not drills_df.empty:
+                        drills = drills_df.to_dict("records")
+                        rolled_plan = training_plan_generator.generate_training_plan(
+                            athlete_profile, drills, existing_plan=plan
+                        )
+                        data_loader.save_weekly_training_plan(
+                            rolled_plan, st.session_state.data_path
+                        )
+                        plan = rolled_plan
+                        st.toast(
+                            "🗓️ New week auto-generated! Your previous "
+                            "sessions are preserved in History.",
+                            icon="✅"
+                        )
+                    # If drills_df not loaded yet, skip rollover silently
+                    # — it will trigger on the next page load when drills
+                    # are available.
             except (ValueError, TypeError):
                 pass  # unparseable date — skip rollover
 

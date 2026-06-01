@@ -423,7 +423,7 @@ def seed():
 
     week1_gen = (today - timedelta(weeks=3)).isoformat()
     week2_gen = (today - timedelta(weeks=2)).isoformat()
-    week3_gen = (today - timedelta(weeks=1)).isoformat()
+    week3_gen = today.isoformat()
     week1_archived = (today - timedelta(weeks=2)).isoformat()
     week2_archived = (today - timedelta(weeks=1)).isoformat()
 

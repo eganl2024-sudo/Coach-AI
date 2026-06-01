@@ -1,6 +1,6 @@
 {
   "current_week_number": 3,
-  "generated_date": "2026-05-25",
+  "generated_date": "2026-06-01",
   "weeks": [
     {
       "week_number": 1,
@@ -2202,7 +2202,7 @@
     },
     {
       "week_number": 3,
-      "generated_date": "2026-05-25",
+      "generated_date": "2026-06-01",
       "archived_date": null,
       "sessions": [
         {
