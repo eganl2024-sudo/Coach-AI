@@ -340,6 +340,7 @@ for week in plan.get("weeks", []):
     st.header(f"📅 Week {week.get('week_number')}")
     
     for session in week.get("sessions", []):
+        week_num = week.get("week_number", 1)
         day_num = session.get("day_number")
         completed = session.get("completed", False)
         duration = session.get("duration_minutes")
@@ -355,7 +356,7 @@ for week in plan.get("weeks", []):
             
             with act_col1:
                 if not completed:
-                    if st.button(f"✅ Mark Session {day_num} Complete", key=f"complete_btn_{day_num}", type="primary", use_container_width=True):
+                    if st.button(f"✅ Mark Session {day_num} Complete", key=f"complete_btn_w{week_num}_s{day_num}", type="primary", use_container_width=True):
                         completion_tracker.mark_session_complete(week.get("week_number"), day_num, st.session_state.data_path)
                         st.success(f"Great job completing Session {day_num}! Keep up the streak! 🎉")
                         st.rerun()
@@ -386,7 +387,7 @@ for week in plan.get("weeks", []):
                     data=html_export,
                     file_name=f"training_plan_session_{day_num}.html",
                     mime="text/html",
-                    key=f"dl_html_{day_num}",
+                    key=f"dl_html_w{week_num}_s{day_num}",
                     use_container_width=True
                 )
                 
