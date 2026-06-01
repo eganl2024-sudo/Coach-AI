@@ -1097,7 +1097,7 @@
             }
           ],
           "completed": true,
-          "completed_date": "2026-05-16T16:45:00"
+          "completed_date": "2026-05-15T16:45:00"
         }
       ]
     },
@@ -1650,7 +1650,7 @@
             }
           ],
           "completed": true,
-          "completed_date": "2026-05-20T17:00:00"
+          "completed_date": "2026-05-19T17:00:00"
         },
         {
           "day_number": 3,
@@ -1852,7 +1852,7 @@
               "slug": "ssg-001",
               "common_mistakes": "",
               "allocated_time": 20,
-              "block_type": "technical",
+              "block_type": "cooldown",
               "block_index": 2
             },
             {
@@ -1923,7 +1923,7 @@
             }
           ],
           "completed": true,
-          "completed_date": "2026-05-22T15:30:00"
+          "completed_date": "2026-05-21T15:30:00"
         },
         {
           "day_number": 4,
@@ -2125,7 +2125,7 @@
               "slug": "tact-001",
               "common_mistakes": "",
               "allocated_time": 20,
-              "block_type": "technical",
+              "block_type": "cooldown",
               "block_index": 2
             },
             {
@@ -2196,7 +2196,7 @@
             }
           ],
           "completed": true,
-          "completed_date": "2026-05-23T16:15:00"
+          "completed_date": "2026-05-22T16:15:00"
         }
       ]
     },
@@ -2476,7 +2476,7 @@
             }
           ],
           "completed": true,
-          "completed_date": "2026-05-25T16:30:00"
+          "completed_date": "2026-05-29T16:30:00"
         },
         {
           "day_number": 2,
@@ -2749,7 +2749,7 @@
             }
           ],
           "completed": true,
-          "completed_date": "2026-05-26T17:25:00"
+          "completed_date": "2026-05-31T17:25:00"
         },
         {
           "day_number": 3,

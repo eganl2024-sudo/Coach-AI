@@ -56,8 +56,8 @@
     },
     {
       "session_id": "demo_session_004",
-      "timestamp": "2026-05-16T16:45:00",
-      "date": "2026-05-16",
+      "timestamp": "2026-05-15T16:45:00",
+      "date": "2026-05-15",
       "week": 1,
       "day": 4,
       "drills_completed": [
@@ -92,8 +92,8 @@
     },
     {
       "session_id": "demo_session_006",
-      "timestamp": "2026-05-20T17:00:00",
-      "date": "2026-05-20",
+      "timestamp": "2026-05-19T17:00:00",
+      "date": "2026-05-19",
       "week": 2,
       "day": 2,
       "drills_completed": [
@@ -110,8 +110,8 @@
     },
     {
       "session_id": "demo_session_007",
-      "timestamp": "2026-05-22T15:30:00",
-      "date": "2026-05-22",
+      "timestamp": "2026-05-21T15:30:00",
+      "date": "2026-05-21",
       "week": 2,
       "day": 3,
       "drills_completed": [
@@ -128,8 +128,8 @@
     },
     {
       "session_id": "demo_session_008",
-      "timestamp": "2026-05-23T16:15:00",
-      "date": "2026-05-23",
+      "timestamp": "2026-05-22T16:15:00",
+      "date": "2026-05-22",
       "week": 2,
       "day": 4,
       "drills_completed": [
@@ -146,8 +146,8 @@
     },
     {
       "session_id": "demo_session_009",
-      "timestamp": "2026-05-25T16:30:00",
-      "date": "2026-05-25",
+      "timestamp": "2026-05-29T16:30:00",
+      "date": "2026-05-29",
       "week": 3,
       "day": 1,
       "drills_completed": [
@@ -164,8 +164,8 @@
     },
     {
       "session_id": "demo_session_010",
-      "timestamp": "2026-05-26T17:25:00",
-      "date": "2026-05-26",
+      "timestamp": "2026-05-31T17:25:00",
+      "date": "2026-05-31",
       "week": 3,
       "day": 2,
       "drills_completed": [

@@ -73,15 +73,26 @@ def seed():
     # Week 1 (3 weeks ago): 4 sessions
     # Week 2 (2 weeks ago): 4 sessions
     # Week 3 / current week: 2 sessions complete
-    w1 = today - timedelta(weeks=3)
-    w2 = today - timedelta(weeks=2)
-    w3 = today - timedelta(weeks=1)
+    # Define exact relative dates for sessions
+    d_w1_s1 = today - timedelta(days=21)
+    d_w1_s2 = today - timedelta(days=20)
+    d_w1_s3 = today - timedelta(days=18)
+    d_w1_s4 = today - timedelta(days=17)
+
+    d_w2_s1 = today - timedelta(days=14)
+    d_w2_s2 = today - timedelta(days=13)
+    d_w2_s3 = today - timedelta(days=11)
+    d_w2_s4 = today - timedelta(days=10)
+
+    d_w3_s1 = today - timedelta(days=3)
+    d_w3_s2 = today - timedelta(days=1)
+
     completions = [
         # Week 1 sessions
         {
             "session_id": "demo_session_001",
-            "timestamp": w1.isoformat() + "T16:30:00",
-            "date": w1.isoformat(),
+            "timestamp": d_w1_s1.isoformat() + "T16:30:00",
+            "date": d_w1_s1.isoformat(),
             "week": 1,
             "day": 1,
             "drills_completed": ["TACT_001", "WARM_006", "TECH_003", "WARM_004"],
@@ -91,8 +102,8 @@ def seed():
         },
         {
             "session_id": "demo_session_002",
-            "timestamp": (w1 + timedelta(days=1)).isoformat() + "T17:25:00",
-            "date": (w1 + timedelta(days=1)).isoformat(),
+            "timestamp": d_w1_s2.isoformat() + "T17:25:00",
+            "date": d_w1_s2.isoformat(),
             "week": 1,
             "day": 2,
             "drills_completed": ["WARM_001", "TECH_002", "COOL_003", "COOL_005"],
@@ -102,8 +113,8 @@ def seed():
         },
         {
             "session_id": "demo_session_003",
-            "timestamp": (w1 + timedelta(days=3)).isoformat() + "T15:00:00",
-            "date": (w1 + timedelta(days=3)).isoformat(),
+            "timestamp": d_w1_s3.isoformat() + "T15:00:00",
+            "date": d_w1_s3.isoformat(),
             "week": 1,
             "day": 3,
             "drills_completed": ["WARM_004", "TECH_007", "SSG_001", "COOL_002"],
@@ -113,8 +124,8 @@ def seed():
         },
         {
             "session_id": "demo_session_004",
-            "timestamp": (w1 + timedelta(days=5)).isoformat() + "T16:45:00",
-            "date": (w1 + timedelta(days=5)).isoformat(),
+            "timestamp": d_w1_s4.isoformat() + "T16:45:00",
+            "date": d_w1_s4.isoformat(),
             "week": 1,
             "day": 4,
             "drills_completed": ["WARM_006", "TECH_003", "TECH_001", "COOL_004"],
@@ -125,8 +136,8 @@ def seed():
         # Week 2 sessions
         {
             "session_id": "demo_session_005",
-            "timestamp": w2.isoformat() + "T16:00:00",
-            "date": w2.isoformat(),
+            "timestamp": d_w2_s1.isoformat() + "T16:00:00",
+            "date": d_w2_s1.isoformat(),
             "week": 2,
             "day": 1,
             "drills_completed": ["WARM_001", "TECH_007", "TACT_001", "COOL_002"],
@@ -136,8 +147,8 @@ def seed():
         },
         {
             "session_id": "demo_session_006",
-            "timestamp": (w2 + timedelta(days=2)).isoformat() + "T17:00:00",
-            "date": (w2 + timedelta(days=2)).isoformat(),
+            "timestamp": d_w2_s2.isoformat() + "T17:00:00",
+            "date": d_w2_s2.isoformat(),
             "week": 2,
             "day": 2,
             "drills_completed": ["WARM_006", "TECH_003", "COOL_003", "COOL_004"],
@@ -147,8 +158,8 @@ def seed():
         },
         {
             "session_id": "demo_session_007",
-            "timestamp": (w2 + timedelta(days=4)).isoformat() + "T15:30:00",
-            "date": (w2 + timedelta(days=4)).isoformat(),
+            "timestamp": d_w2_s3.isoformat() + "T15:30:00",
+            "date": d_w2_s3.isoformat(),
             "week": 2,
             "day": 3,
             "drills_completed": ["WARM_004", "TECH_002", "SSG_001", "COOL_005"],
@@ -158,8 +169,8 @@ def seed():
         },
         {
             "session_id": "demo_session_008",
-            "timestamp": (w2 + timedelta(days=5)).isoformat() + "T16:15:00",
-            "date": (w2 + timedelta(days=5)).isoformat(),
+            "timestamp": d_w2_s4.isoformat() + "T16:15:00",
+            "date": d_w2_s4.isoformat(),
             "week": 2,
             "day": 4,
             "drills_completed": ["WARM_001", "TECH_007", "TACT_001", "COOL_002"],
@@ -170,8 +181,8 @@ def seed():
         # Week 3 (current) — 2 of 4 complete
         {
             "session_id": "demo_session_009",
-            "timestamp": w3.isoformat() + "T16:30:00",
-            "date": w3.isoformat(),
+            "timestamp": d_w3_s1.isoformat() + "T16:30:00",
+            "date": d_w3_s1.isoformat(),
             "week": 3,
             "day": 1,
             "drills_completed": ["TACT_001", "WARM_006", "TECH_003", "WARM_004"],
@@ -181,8 +192,8 @@ def seed():
         },
         {
             "session_id": "demo_session_010",
-            "timestamp": (w3 + timedelta(days=1)).isoformat() + "T17:25:00",
-            "date": (w3 + timedelta(days=1)).isoformat(),
+            "timestamp": d_w3_s2.isoformat() + "T17:25:00",
+            "date": d_w3_s2.isoformat(),
             "week": 3,
             "day": 2,
             "drills_completed": ["WARM_001", "TECH_002", "COOL_003", "COOL_005"],
@@ -204,7 +215,7 @@ def seed():
     rrs_history = {
         "snapshots": [
             {
-                "date": (today - timedelta(days=28)).isoformat(),
+                "date": (today - timedelta(days=21)).isoformat(),
                 "overall": 51,
                 "pillars": {
                     "consistency": 48,
@@ -214,7 +225,7 @@ def seed():
                 }
             },
             {
-                "date": (today - timedelta(days=21)).isoformat(),
+                "date": (today - timedelta(days=14)).isoformat(),
                 "overall": 55,
                 "pillars": {
                     "consistency": 54,
@@ -224,7 +235,7 @@ def seed():
                 }
             },
             {
-                "date": (today - timedelta(days=14)).isoformat(),
+                "date": (today - timedelta(days=7)).isoformat(),
                 "overall": 58,
                 "pillars": {
                     "consistency": 61,
@@ -234,7 +245,7 @@ def seed():
                 }
             },
             {
-                "date": (today - timedelta(days=7)).isoformat(),
+                "date": today.isoformat(),
                 "overall": 62,
                 "pillars": {
                     "consistency": 68,
@@ -275,7 +286,7 @@ def seed():
                 ["technical", "warmup", "technical", "warmup"]
             ),
             "completed": True,
-            "completed_date": week1_monday.isoformat() + "T16:30:00"
+            "completed_date": d_w1_s1.isoformat() + "T16:30:00"
         },
         {
             "day_number": 2,
@@ -287,7 +298,7 @@ def seed():
                 ["warmup", "technical", "cooldown", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week1_monday + timedelta(days=1)).isoformat() + "T17:25:00"
+            "completed_date": d_w1_s2.isoformat() + "T17:25:00"
         },
         {
             "day_number": 3,
@@ -299,7 +310,7 @@ def seed():
                 ["warmup", "technical", "technical", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week1_monday + timedelta(days=3)).isoformat() + "T15:00:00"
+            "completed_date": d_w1_s3.isoformat() + "T15:00:00"
         },
         {
             "day_number": 4,
@@ -311,7 +322,7 @@ def seed():
                 ["warmup", "technical", "technical", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week1_monday + timedelta(days=5)).isoformat() + "T16:45:00"
+            "completed_date": d_w1_s4.isoformat() + "T16:45:00"
         }
     ]
 
@@ -328,7 +339,7 @@ def seed():
                 ["warmup", "technical", "technical", "cooldown"]
             ),
             "completed": True,
-            "completed_date": week2_monday.isoformat() + "T16:00:00"
+            "completed_date": d_w2_s1.isoformat() + "T16:00:00"
         },
         {
             "day_number": 2,
@@ -340,7 +351,7 @@ def seed():
                 ["warmup", "technical", "cooldown", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week2_monday + timedelta(days=2)).isoformat() + "T17:00:00"
+            "completed_date": d_w2_s2.isoformat() + "T17:00:00"
         },
         {
             "day_number": 3,
@@ -349,10 +360,10 @@ def seed():
             "drills": make_drills(
                 ["WARM_004", "TECH_002", "SSG_001", "COOL_005"],
                 [10, 20, 20, 10],
-                ["warmup", "technical", "technical", "cooldown"]
+                ["warmup", "technical", "cooldown", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week2_monday + timedelta(days=4)).isoformat() + "T15:30:00"
+            "completed_date": d_w2_s3.isoformat() + "T15:30:00"
         },
         {
             "day_number": 4,
@@ -361,10 +372,10 @@ def seed():
             "drills": make_drills(
                 ["WARM_001", "TECH_007", "TACT_001", "COOL_002"],
                 [10, 15, 20, 5],
-                ["warmup", "technical", "technical", "cooldown"]
+                ["warmup", "technical", "cooldown", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week2_monday + timedelta(days=5)).isoformat() + "T16:15:00"
+            "completed_date": d_w2_s4.isoformat() + "T16:15:00"
         }
     ]
 
@@ -381,7 +392,7 @@ def seed():
                 ["technical", "warmup", "technical", "warmup"]
             ),
             "completed": True,
-            "completed_date": week3_monday.isoformat() + "T16:30:00"
+            "completed_date": d_w3_s1.isoformat() + "T16:30:00"
         },
         {
             "day_number": 2,
@@ -393,7 +404,7 @@ def seed():
                 ["warmup", "technical", "cooldown", "cooldown"]
             ),
             "completed": True,
-            "completed_date": (week3_monday + timedelta(days=1)).isoformat() + "T17:25:00"
+            "completed_date": d_w3_s2.isoformat() + "T17:25:00"
         },
         {
             "day_number": 3,

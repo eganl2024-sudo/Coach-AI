@@ -346,8 +346,83 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+# ── Pin next session ────────────────────────────────────
+next_session = None
+next_session_week = None
+current_week = data_loader.get_current_week(plan)
+if current_week:
+    for s in current_week.get("sessions", []):
+        if not s.get("completed", False):
+            next_session = s
+            next_session_week = current_week
+            break
+
+if next_session:
+    week_num = next_session_week.get("week_number", 1)
+    day_num = next_session.get("day_number")
+    duration = next_session.get("duration_minutes")
+    drills_list = next_session.get("drills", [])
+    drill_names = " → ".join(
+        d.get("drill_name", "") for d in drills_list
+    )
+    st.markdown(f"""
+    <div style="
+        background-color: #1e293b;
+        border: 1px solid #3b82f6;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 25px;
+    ">
+        <div style="
+            font-size: 11px;
+            color: #3b82f6;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        ">
+            🔥 UP NEXT — WEEK {week_num}, SESSION {day_num}
+        </div>
+        <div style="
+            font-size: 20px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4px;
+        ">
+            {duration} Min Training Session
+        </div>
+        <div style="
+            font-size: 13px;
+            color: #94a3b8;
+        ">
+            {drill_names}
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    up_next_col1, up_next_col2 = st.columns(2)
+    with up_next_col1:
+        if st.button(
+            f"✅ Mark Session {day_num} Complete",
+            key=f"up_next_complete_w{week_num}_s{day_num}",
+            type="primary",
+            use_container_width=True
+        ):
+            completion_tracker.mark_session_complete(
+                week_num, day_num, st.session_state.data_path
+            )
+            st.success("Great work! Session logged. 🎉")
+            st.rerun()
+
+st.divider()
+# ── Week loop below ──────────────────────────────────────
+
 # Loop through weeks and sessions
-for week in plan.get("weeks", []):
+for week in sorted(
+    plan.get("weeks", []),
+    key=lambda w: w.get("week_number", 0),
+    reverse=True
+):
     st.header(f"📅 Week {week.get('week_number')}")
     
     for session in week.get("sessions", []):
@@ -359,7 +434,10 @@ for week in plan.get("weeks", []):
         title_suffix = " (Completed ✅)" if completed else " (Remaining ⏳)"
         expander_label = f"Session {day_num}: {duration} min Player Session {title_suffix}"
         
-        with st.expander(expander_label, expanded=not completed):
+        current_week_num = plan.get("current_week_number", 1)
+        is_archived_week = week.get("week_number", 1) < current_week_num
+        should_expand = (not completed) and (not is_archived_week)
+        with st.expander(expander_label, expanded=should_expand):
             st.subheader(session.get("name"))
             
             # Action Row
