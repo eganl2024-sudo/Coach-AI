@@ -2,7 +2,7 @@
 
 **An AI-powered, data-driven training ecosystem that structures personalized development, visualizes athletic metrics, and calculates Recruit Readiness — built for competitive soccer athletes.**
 
-[![Status](https://img.shields.io/badge/status-live%20on%20Streamlit%20Cloud-success.svg?style=flat-square)](https://mdpapp.streamlit.app)
+[![Status](https://img.shields.io/badge/status-live%20on%20Streamlit%20Cloud-success.svg?style=flat-square)](https://soccermentor.streamlit.app)
 [![Python](https://img.shields.io/badge/python-3.12%2B-blue.svg?style=flat-square)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/streamlit-1.51%2B-red.svg?style=flat-square)](https://streamlit.io)
 [![Tests](https://img.shields.io/badge/tests-53%2F53%20passed-brightgreen.svg?style=flat-square)](https://github.com/eganl2024-sudo/MDP_APP)
@@ -11,7 +11,7 @@
 
 ## 🔗 Try It Now
 
-**Live app:** [https://mdpapp.streamlit.app](https://mdpapp.streamlit.app)
+**Live app:** [https://soccermentor.streamlit.app](https://soccermentor.streamlit.app)
 
 **Demo login — no sign-up required:**
 
@@ -183,7 +183,7 @@ pytest
 
 ## 🚀 Streamlit Cloud Deployment
 
-**Live:** [https://mdpapp.streamlit.app](https://mdpapp.streamlit.app)
+**Live:** [https://soccermentor.streamlit.app](https://soccermentor.streamlit.app)
 
 To deploy your own instance:
 1. Fork `eganl2024-sudo/MDP_APP` and connect at [share.streamlit.io](https://share.streamlit.io/)

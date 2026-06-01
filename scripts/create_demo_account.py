@@ -27,7 +27,7 @@ sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 DEMO_USERNAME = "demo"
 DEMO_PASSWORD = "PlayerAI2026"
-STREAMLIT_CLOUD_URL = "https://mdpapp.streamlit.app"   # update if URL changes
+STREAMLIT_CLOUD_URL = "https://soccermentor.streamlit.app"   # update if URL changes
 
 
 def main():
