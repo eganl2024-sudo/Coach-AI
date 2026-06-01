@@ -1,4 +1,4 @@
-"""Player Development Platform - My Profile"""
+"""Player AI - My Profile"""
 import streamlit as st
 import sys
 import json

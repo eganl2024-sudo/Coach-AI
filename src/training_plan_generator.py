@@ -1,5 +1,5 @@
 """
-Training Plan Generator for Player Development Platform.
+Training Plan Generator for Player AI.
 
 Selects, filters, and structures personalized weekly training plans for players.
 """

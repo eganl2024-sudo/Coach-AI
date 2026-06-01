@@ -1,4 +1,4 @@
-"""Player Development Platform - Main Bootstrapper"""
+"""Player AI - Main Bootstrapper"""
 from pathlib import Path
 import sys
 from datetime import datetime

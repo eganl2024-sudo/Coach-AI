@@ -1,4 +1,4 @@
-"""Player Development Platform - Mentor Feed"""
+"""Player AI - Mentor Feed"""
 import streamlit as st
 import sys
 from pathlib import Path
@@ -26,7 +26,7 @@ from auth import require_auth
 
 # Page configuration
 st.set_page_config(
-    page_title="Mentor Feed - Player AI",
+    page_title="Mentor Feed | Player AI",
     page_icon="🎙️",
     layout="wide",
     initial_sidebar_state="expanded",

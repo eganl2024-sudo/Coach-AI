@@ -1,4 +1,4 @@
-"""Player Development Platform - My Progress"""
+"""Player AI - My Progress"""
 import streamlit as st
 import pandas as pd
 import json

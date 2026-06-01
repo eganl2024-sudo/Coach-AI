@@ -1,0 +1,23 @@
+{
+  "name": "Alex",
+  "age": 16,
+  "preferred_foot": "Right",
+  "position": "Striker",
+  "secondary_position": "None",
+  "level": "Competitive Club",
+  "target_level": "College Prospect",
+  "sessions_per_week": 4,
+  "session_duration": 60,
+  "focus_areas": [
+    "Finishing",
+    "First Touch",
+    "1v1 Attacking"
+  ],
+  "equipment_available": [
+    "Ball only",
+    "Cones",
+    "Goal"
+  ],
+  "age_group": "U17",
+  "created_date": "2026-05-04"
+}

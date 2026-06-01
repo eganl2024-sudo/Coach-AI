@@ -1,4 +1,4 @@
-"""UI Components for Coach AI - Navigation and common widgets"""
+"""UI Components for Player AI - Navigation and common widgets"""
 
 import streamlit as st
 from typing import Optional, List, Tuple
@@ -34,7 +34,7 @@ except ImportError:
     USER_SETTINGS_AVAILABLE = False
 
 
-# Shared video renderer component for player development platform
+# Shared video renderer component for Player AI
 def render_video(video_url: str):
     if not video_url:
         st.info("Video demo coming soon.")
@@ -164,7 +164,7 @@ def _page_links_legacy() -> List[Tuple[str, str]]:
 
 def render_nav(active_label: Optional[str] = None, columns=None):
     """
-    Render the application navigation sidebar for the Player Development Platform.
+    Render the application navigation sidebar for Player AI.
     All six pages are accessible at the Essential tier by default.
 
     Args:
@@ -328,7 +328,7 @@ def clean_text(text: Optional[str], default: str = "") -> str:
 
 def render_nav_enhanced(active_label: Optional[str] = None):
     """
-    Enhanced navigation delegate for Player Development Platform.
+    Enhanced navigation delegate for Player AI.
     Delegates directly to render_nav for clean, simplified player navigation.
     """
     render_nav(active_label)

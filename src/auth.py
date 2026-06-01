@@ -1,4 +1,4 @@
-"""Authentication helpers for Coach AI."""
+"""Authentication helpers for Player AI."""
 
 import hashlib
 import os
@@ -252,7 +252,7 @@ def render_login_screen():
         st.markdown("<br>", unsafe_allow_html=True)
         
         if st.session_state.auth_mode == "login":
-            username = st.text_input("Username or Email", placeholder="e.g. coach_john", key="login_username")
+            username = st.text_input("Username or Email", placeholder="e.g. player_john", key="login_username")
             password = st.text_input("Password", type="password", placeholder="••••••••", key="login_password")
             
             st.markdown("<br>", unsafe_allow_html=True)
@@ -261,7 +261,7 @@ def render_login_screen():
                     st.success("Successfully logged in! Redirecting...")
                     st.rerun()
         else:
-            username = st.text_input("New Username or Email", placeholder="e.g. coach_john", key="signup_username")
+            username = st.text_input("New Username or Email", placeholder="e.g. player_john", key="signup_username")
             password = st.text_input("Password (min 6 characters)", type="password", placeholder="••••••••", key="signup_password")
             confirm_password = st.text_input("Confirm Password", type="password", placeholder="••••••••", key="signup_confirm")
             
@@ -282,7 +282,7 @@ def require_auth():
     if is_auth_disabled():
         st.session_state.authenticated = True
         if "username" not in st.session_state or not st.session_state.username:
-            st.session_state.username = "local_coach"
+            st.session_state.username = "local_player"
         if "data_path" not in st.session_state or not st.session_state.data_path:
             st.session_state.data_path = config.get_data_path()
         return True

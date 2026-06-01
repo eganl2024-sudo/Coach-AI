@@ -1,4 +1,4 @@
-"""Player Development Platform - Highlight Reel Guide"""
+"""Player AI - Highlight Reel Guide"""
 import streamlit as st
 import sys
 import pandas as pd
@@ -275,10 +275,39 @@ with col2:
 # ── Position Tabs ─────────────────────────────────────────────
 st.markdown('<div class="section-title">Position-Specific Requirements</div>', unsafe_allow_html=True)
 
-pos_tabs = st.tabs([
-    "⚽ Goalkeeper", "🛡️ Center Back", "🔄 Full Back",
-    "🎯 Midfielder", "⚡ Winger", "🥅 Striker"
-])
+# Load athlete profile for smart pre-selection
+athlete_profile = data_loader.load_athlete_profile(st.session_state.data_path) or {}
+player_position = athlete_profile.get("position", "")
+
+# Map the player's position to the correct tab index
+position_to_index = {
+    "Goalkeeper": 0,
+    "Center Back": 1,
+    "Full Back": 2,
+    "Midfielder": 3,
+    "Defensive Midfielder": 3,
+    "Central Midfielder": 3,
+    "Attacking Midfielder": 3,
+    "Winger": 4,
+    "Striker": 5,
+    "Forward": 5,
+}
+
+tab_index = 0
+if athlete_profile and player_position:
+    tab_index = position_to_index.get(player_position, 0)
+    st.info(f"Showing your position: {player_position}. Switch tabs to explore other positions.")
+
+tabs_list = [
+    "🧤 Goalkeeper",
+    "🛡️ Center Back",
+    "🏃‍♂️ Full Back",
+    "🏃 Midfielder",
+    "⚡ Winger",
+    "🥅 Striker"
+]
+default_tab = tabs_list[tab_index]
+pos_tabs = st.tabs(tabs_list, default=default_tab)
 
 # Goalkeeper
 with pos_tabs[0]:
@@ -479,25 +508,46 @@ with pos_tabs[5]:
     """, unsafe_allow_html=True)
 
 # ── Recruiting Timeline ───────────────────────────────────────
-st.markdown('<div class="section-title">Highlight Reel Recruiting Timeline</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Recruiting Timeline: When to Have Your Reel Ready</div>', unsafe_allow_html=True)
 st.markdown("""
 <div class="callout-box">
     Timing is everything in recruiting. Here is when you should have your highlight reel ready
     and updated throughout your high school career.
 </div>
-<table class="timeline-table">
-    <thead>
-        <tr><th style="width:25%;">Grade</th><th>Action Required</th></tr>
-    </thead>
-    <tbody>
-        <tr><td><b>8th Grade</b></td><td>Start collecting raw game footage. No reel needed yet.</td></tr>
-        <tr><td><b>Freshman (9th)</b></td><td>60-second "introduction reel" for ID camps and early contact.</td></tr>
-        <tr><td><b>Sophomore (10th)</b></td><td>Full 2–3 minute reel. Begin reaching out to programs.</td></tr>
-        <tr><td><b>Junior (11th)</b></td><td>Updated reel with junior year footage. Primary recruiting year.</td></tr>
-        <tr><td><b>Senior (12th)</b></td><td>Reel updates as needed. Focus on visits and verbal commits.</td></tr>
-    </tbody>
-</table>
 """, unsafe_allow_html=True)
+
+timeline_df = pd.DataFrame({
+    "Grade": [
+        "8th grade",
+        "9th grade",
+        "10th grade",
+        "11th grade",
+        "12th grade"
+    ],
+    "Target Date": [
+        "End of 8th grade year",
+        "Start of sophomore year",
+        "Summer before junior year",
+        "Fall of junior year",
+        "First month of school"
+    ],
+    "Reel Status": [
+        "Training clips only OK",
+        "First game reel ready",
+        "Full polished reel",
+        "Final reel locked",
+        "Signing reel ready"
+    ],
+    "Priority Action": [
+        "Attend showcases, get filmed",
+        "Submit to ID camps, build list",
+        "Email coaches, register NCSA",
+        "Official visits, verbal commits",
+        "NLI signing if committing"
+    ]
+})
+
+st.dataframe(timeline_df, use_container_width=True, hide_index=True)
 
 # ── Coming Soon ───────────────────────────────────────────────
 st.markdown("""
@@ -505,7 +555,7 @@ st.markdown("""
     <h3 style="margin:0 0 8px 0;">🚀 Highlight Reel Workshop — Coming Soon</h3>
     <p style="margin:0; opacity:0.9;">
         Player AI will soon offer personalized highlight reel feedback from our college and professional
-        coaching staff — Nick, Mitch, and Liam will review your footage and tell you exactly
+        coaching staff — Mitch, Nick, and Liam will review your footage and tell you exactly
         what to keep, what to cut, and how to structure your reel for maximum impact with college coaches.
     </p>
 </div>

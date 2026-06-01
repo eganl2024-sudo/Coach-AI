@@ -1,4 +1,4 @@
-﻿"""Configuration constants for drill scoring and validation"""
+"""Configuration constants for drill scoring and validation"""
 from pathlib import Path
 
 # Scoring weights
@@ -55,9 +55,12 @@ SEASON_SEGMENTS = [
     'Postseason'
 ]
 
-# Mode flags (safe defaults for coaches)
+# Mode flags (safe defaults for players)
 COACH_MODE = True
 DEV_MODE = False
+# Demo mode — set to True before a partner/beta demo, False after.
+# When True, all pages read from data/demo/ instead of data/production/.
+# Run scripts/seed_demo.py to reset demo data to a known state.
 DEMO_MODE = False
 
 PROJECT_ROOT = Path(__file__).parent.parent

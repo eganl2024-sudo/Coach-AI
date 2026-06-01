@@ -1,17 +1,17 @@
-# Player Development Platform (PDP) ⚽🚀
+# Player AI ⚽🚀
 
 **An AI-powered, data-driven training ecosystem that structures personalized development, visualizes athletic metrics, and calculates Recruit Readiness.**
 
 [![Status](https://img.shields.io/badge/status-production--ready-success.svg?style=flat-square)](https://github.com/eganl2024-sudo/MDP_APP)
 [![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg?style=flat-square)](https://python.org)
 [![Streamlit](https://img.shields.io/badge/streamlit-1.51%2B-red.svg?style=flat-square)](https://streamlit.io)
-[![Tests](https://img.shields.io/badge/tests-42%2F42%20passed-brightgreen.svg?style=flat-square)](https://github.com/eganl2024-sudo/MDP_APP)
+[![Tests](https://img.shields.io/badge/tests-53%2F53%20passed-brightgreen.svg?style=flat-square)](https://github.com/eganl2024-sudo/MDP_APP)
 
 ---
 
-## 🎯 What is the Player Development Platform?
+## 🎯 What is Player AI?
 
-The **Player Development Platform** (formerly Coach AI) transforms individual soccer development by acting as an automated personal trainer and athletic advisor. It helps competitive soccer athletes optimize their training efficiency, log completions, build streaks, upload highlights, and measure progress through a proprietary quantitative engine.
+The **Player AI** (formerly Coach AI) transforms individual soccer development by acting as an automated personal trainer and athletic advisor. It helps competitive soccer athletes optimize their training efficiency, log completions, build streaks, upload highlights, and measure progress through a proprietary quantitative engine.
 
 Through a **progressive disclosure model**, the platform caters to three distinct tiers:
 * ⚡ **Essential Mode:** Simple dashboard, 3-click weekly training plan generation, and basic log completions.
@@ -129,7 +129,7 @@ Open **[http://localhost:3000](http://localhost:3000)** in your browser!
 
 ## 🧪 Testing Suite
 
-We maintain a rigorous standard of code reliability. The codebase includes 45 end-to-end and unit tests verifying:
+We maintain a rigorous standard of code reliability. The codebase includes 53 end-to-end and unit tests verifying:
 * Drill loading resilience & schema auto-repair.
 * Experience level switcher and locked page navigations.
 * RRS calculation pillars, bonuses, and milestone thresholds.

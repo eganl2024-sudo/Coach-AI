@@ -1,4 +1,4 @@
-"""Player Development Platform - My Training Plan"""
+"""Player AI - My Training Plan"""
 import streamlit as st
 import sys
 import json

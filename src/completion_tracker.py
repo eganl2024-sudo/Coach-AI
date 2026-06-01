@@ -1,5 +1,5 @@
 """
-Completion Tracker for Player Development Platform.
+Completion Tracker for Player AI.
 
 Tracks player session completions, logs events to completion_log.json,
 and computes total sessions and streaks.

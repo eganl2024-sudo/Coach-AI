@@ -1,0 +1,44 @@
+{
+  "snapshots": [
+    {
+      "date": "2026-05-04",
+      "overall": 51,
+      "pillars": {
+        "consistency": 48,
+        "volume": 52,
+        "coverage": 44,
+        "progression": 58
+      }
+    },
+    {
+      "date": "2026-05-11",
+      "overall": 55,
+      "pillars": {
+        "consistency": 54,
+        "volume": 55,
+        "coverage": 49,
+        "progression": 61
+      }
+    },
+    {
+      "date": "2026-05-18",
+      "overall": 58,
+      "pillars": {
+        "consistency": 61,
+        "volume": 57,
+        "coverage": 52,
+        "progression": 63
+      }
+    },
+    {
+      "date": "2026-05-25",
+      "overall": 62,
+      "pillars": {
+        "consistency": 68,
+        "volume": 60,
+        "coverage": 57,
+        "progression": 64
+      }
+    }
+  ]
+}

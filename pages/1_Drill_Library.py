@@ -1,4 +1,4 @@
-"""Player Development Platform - Drill Library"""
+"""Player AI - Drill Library"""
 import streamlit as st
 import pandas as pd
 import sys
@@ -72,7 +72,7 @@ def _persist_drills(df):
 
 
 # Page setup
-st.set_page_config(page_title="Drill Library - Player Platform", page_icon="🔍", layout="wide")
+st.set_page_config(page_title="Drill Library | Player AI", page_icon="🔍", layout="wide")
 
 require_auth()
 

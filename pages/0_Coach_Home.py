@@ -1,4 +1,4 @@
-"""Player Development Platform - My Dashboard"""
+"""Player AI - My Dashboard"""
 import streamlit as st
 import sys
 from pathlib import Path
@@ -323,7 +323,7 @@ if onboarding_active:
     st.markdown("""
     <div class="onboarding-card">
         <div class="onboarding-title">🚀 Your Onboarding Journey</div>
-        <div class="onboarding-sub">Complete these 4 quick milestones to unlock the full potential of your Player Development Platform!</div>
+        <div class="onboarding-sub">Complete these 4 quick milestones to unlock the full potential of your Player AI!</div>
     </div>
     """, unsafe_allow_html=True)
     

@@ -409,7 +409,10 @@ def calculate_rrs(athlete_profile: dict, completion_log: dict,
         history = data_loader.load_rrs_history(d_path)
         snapshots = history.get("snapshots", [])
         if snapshots:
-            last_snapshot = snapshots[-1]
+            if len(snapshots) >= 2 and snapshots[-1].get("overall") == overall:
+                last_snapshot = snapshots[-2]
+            else:
+                last_snapshot = snapshots[-1]
             weekly_delta = overall - last_snapshot.get("overall", 0)
     except Exception:
         pass

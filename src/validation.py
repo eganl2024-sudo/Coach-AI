@@ -1,5 +1,5 @@
 """
-Central validation and migration helpers for Coach AI domain models.
+Central validation and migration helpers for Player AI domain models.
 
 These helpers normalize raw CSV/JSON rows into typed models and surface
 clear ValueError messages so bad data is quarantined early.
