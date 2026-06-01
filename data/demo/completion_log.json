@@ -2,148 +2,8 @@
   "completions": [
     {
       "session_id": "demo_session_001",
-      "timestamp": "2026-05-18T16:00:00",
-      "date": "2026-05-18",
-      "week": 2,
-      "day": 1,
-      "drills_completed": [
-        "WARM_001",
-        "TECH_001",
-        "COOL_001"
-      ],
-      "duration_minutes": 45,
-      "difficulty": "Intermediate",
-      "focus_areas": [
-        "First Touch"
-      ]
-    },
-    {
-      "session_id": "demo_session_002",
-      "timestamp": "2026-05-19T16:30:00",
-      "date": "2026-05-19",
-      "week": 2,
-      "day": 2,
-      "drills_completed": [
-        "WARM_002",
-        "TECH_004",
-        "COOL_002"
-      ],
-      "duration_minutes": 50,
-      "difficulty": "Intermediate",
-      "focus_areas": [
-        "First Touch"
-      ]
-    },
-    {
-      "session_id": "demo_session_003",
-      "timestamp": "2026-05-20T15:30:00",
-      "date": "2026-05-20",
-      "week": 2,
-      "day": 3,
-      "drills_completed": [
-        "WARM_003",
-        "TECH_002",
-        "COOL_001"
-      ],
-      "duration_minutes": 55,
-      "difficulty": "Intermediate",
-      "focus_areas": [
-        "First Touch"
-      ]
-    },
-    {
-      "session_id": "demo_session_004",
-      "timestamp": "2026-05-21T17:00:00",
-      "date": "2026-05-21",
-      "week": 2,
-      "day": 4,
-      "drills_completed": [
-        "WARM_001",
-        "TECH_005",
-        "COOL_002"
-      ],
-      "duration_minutes": 60,
-      "difficulty": "Intermediate",
-      "focus_areas": [
-        "First Touch"
-      ]
-    },
-    {
-      "session_id": "demo_session_005",
-      "timestamp": "2026-05-26T15:30:00",
-      "date": "2026-05-26",
-      "week": 2,
-      "day": 1,
-      "drills_completed": [
-        "WARM_001",
-        "TECH_006",
-        "SSG_003",
-        "COOL_001"
-      ],
-      "duration_minutes": 60,
-      "difficulty": "Advanced",
-      "focus_areas": [
-        "Finishing"
-      ]
-    },
-    {
-      "session_id": "demo_session_006",
-      "timestamp": "2026-05-27T16:30:00",
-      "date": "2026-05-27",
-      "week": 2,
-      "day": 2,
-      "drills_completed": [
-        "WARM_003",
-        "TECH_002",
-        "TECH_004",
-        "COOL_003"
-      ],
-      "duration_minutes": 65,
-      "difficulty": "Intermediate",
-      "focus_areas": [
-        "First Touch"
-      ]
-    },
-    {
-      "session_id": "demo_session_007",
-      "timestamp": "2026-05-28T17:30:00",
-      "date": "2026-05-28",
-      "week": 2,
-      "day": 3,
-      "drills_completed": [
-        "WARM_004",
-        "TECH_007",
-        "SSG_001",
-        "COOL_002"
-      ],
-      "duration_minutes": 70,
-      "difficulty": "Advanced",
-      "focus_areas": [
-        "1v1 Attacking"
-      ]
-    },
-    {
-      "session_id": "demo_session_008",
-      "timestamp": "2026-05-29T16:00:00",
-      "date": "2026-05-29",
-      "week": 2,
-      "day": 4,
-      "drills_completed": [
-        "WARM_006",
-        "TECH_003",
-        "TECH_001",
-        "COOL_004"
-      ],
-      "duration_minutes": 60,
-      "difficulty": "Advanced",
-      "focus_areas": [
-        "First Touch"
-      ]
-    },
-    {
-      "session_id": "demo_session_009",
-      "timestamp": "2026-06-01T15:30:00",
-      "date": "2026-06-01",
+      "timestamp": "2026-05-11T16:30:00",
+      "date": "2026-05-11",
       "week": 1,
       "day": 1,
       "drills_completed": [
@@ -159,10 +19,154 @@
       ]
     },
     {
-      "session_id": "demo_session_010",
-      "timestamp": "2026-06-02T16:30:00",
-      "date": "2026-06-02",
+      "session_id": "demo_session_002",
+      "timestamp": "2026-05-12T17:25:00",
+      "date": "2026-05-12",
       "week": 1,
+      "day": 2,
+      "drills_completed": [
+        "WARM_001",
+        "TECH_002",
+        "COOL_003",
+        "COOL_005"
+      ],
+      "duration_minutes": 55,
+      "difficulty": "Intermediate",
+      "focus_areas": [
+        "First Touch"
+      ]
+    },
+    {
+      "session_id": "demo_session_003",
+      "timestamp": "2026-05-14T15:00:00",
+      "date": "2026-05-14",
+      "week": 1,
+      "day": 3,
+      "drills_completed": [
+        "WARM_004",
+        "TECH_007",
+        "SSG_001",
+        "COOL_002"
+      ],
+      "duration_minutes": 60,
+      "difficulty": "Advanced",
+      "focus_areas": [
+        "1v1 Attacking"
+      ]
+    },
+    {
+      "session_id": "demo_session_004",
+      "timestamp": "2026-05-16T16:45:00",
+      "date": "2026-05-16",
+      "week": 1,
+      "day": 4,
+      "drills_completed": [
+        "WARM_006",
+        "TECH_003",
+        "TECH_001",
+        "COOL_004"
+      ],
+      "duration_minutes": 50,
+      "difficulty": "Advanced",
+      "focus_areas": [
+        "First Touch"
+      ]
+    },
+    {
+      "session_id": "demo_session_005",
+      "timestamp": "2026-05-18T16:00:00",
+      "date": "2026-05-18",
+      "week": 2,
+      "day": 1,
+      "drills_completed": [
+        "WARM_001",
+        "TECH_007",
+        "TACT_001",
+        "COOL_002"
+      ],
+      "duration_minutes": 60,
+      "difficulty": "Advanced",
+      "focus_areas": [
+        "Finishing"
+      ]
+    },
+    {
+      "session_id": "demo_session_006",
+      "timestamp": "2026-05-20T17:00:00",
+      "date": "2026-05-20",
+      "week": 2,
+      "day": 2,
+      "drills_completed": [
+        "WARM_006",
+        "TECH_003",
+        "COOL_003",
+        "COOL_004"
+      ],
+      "duration_minutes": 55,
+      "difficulty": "Intermediate",
+      "focus_areas": [
+        "First Touch"
+      ]
+    },
+    {
+      "session_id": "demo_session_007",
+      "timestamp": "2026-05-22T15:30:00",
+      "date": "2026-05-22",
+      "week": 2,
+      "day": 3,
+      "drills_completed": [
+        "WARM_004",
+        "TECH_002",
+        "SSG_001",
+        "COOL_005"
+      ],
+      "duration_minutes": 60,
+      "difficulty": "Advanced",
+      "focus_areas": [
+        "1v1 Attacking"
+      ]
+    },
+    {
+      "session_id": "demo_session_008",
+      "timestamp": "2026-05-23T16:15:00",
+      "date": "2026-05-23",
+      "week": 2,
+      "day": 4,
+      "drills_completed": [
+        "WARM_001",
+        "TECH_007",
+        "TACT_001",
+        "COOL_002"
+      ],
+      "duration_minutes": 50,
+      "difficulty": "Advanced",
+      "focus_areas": [
+        "First Touch"
+      ]
+    },
+    {
+      "session_id": "demo_session_009",
+      "timestamp": "2026-05-25T16:30:00",
+      "date": "2026-05-25",
+      "week": 3,
+      "day": 1,
+      "drills_completed": [
+        "TACT_001",
+        "WARM_006",
+        "TECH_003",
+        "WARM_004"
+      ],
+      "duration_minutes": 60,
+      "difficulty": "Intermediate",
+      "focus_areas": [
+        "Finishing"
+      ]
+    },
+    {
+      "session_id": "demo_session_010",
+      "timestamp": "2026-05-26T17:25:00",
+      "date": "2026-05-26",
+      "week": 3,
       "day": 2,
       "drills_completed": [
         "WARM_001",

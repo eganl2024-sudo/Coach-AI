@@ -3,22 +3,34 @@ Training Plan Generator for Player AI.
 
 Selects, filters, and structures personalized weekly training plans for players.
 """
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 import random
 from typing import List, Dict, Any, Optional
 from models import SessionDrill
 
-def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
+def generate_training_plan(
+    athlete_profile: dict,
+    drills: List[dict],
+    week_number: int = 1,
+    existing_plan: Optional[dict] = None,
+) -> dict:
     """
     Generate a personalized weekly training plan for a player.
-    
+
     Args:
-        athlete_profile: Dict containing player profiles and settings.
-        drills: List of raw drill dictionaries loaded from CSV.
-        
+        athlete_profile:  Dict containing player profiles and settings.
+        drills:           List of raw drill dictionaries loaded from CSV.
+        week_number:      Ignored when existing_plan is provided; used only
+                          when bootstrapping the very first plan.
+        existing_plan:    Full multi-week plan dict. When supplied the
+                          current week is archived and a new week is appended.
+
     Returns:
-        Dict representing the weekly training plan.
+        Dict representing the full multi-week training plan.
     """
+    # Derive week_number from existing plan when provided
+    if existing_plan and existing_plan.get("weeks"):
+        week_number = max(w.get("week_number", 1) for w in existing_plan["weeks"]) + 1
     # Filter out unpublished drills
     drills = [d for d in drills if str(d.get("status", "Published")).lower().strip() == "published"]
 
@@ -330,12 +342,33 @@ def generate_training_plan(athlete_profile: dict, drills: List[dict]) -> dict:
             "completed_date": None
         })
         
+    now_iso = datetime.now().isoformat()
+    new_week = {
+        "week_number": week_number,
+        "generated_date": now_iso,
+        "archived_date": None,
+        "sessions": sessions,
+    }
+
+    if existing_plan and existing_plan.get("weeks"):
+        # Archive the outgoing current week
+        current_num = existing_plan.get("current_week_number", 1)
+        updated_weeks = []
+        for w in existing_plan["weeks"]:
+            if w.get("week_number") == current_num and w.get("archived_date") is None:
+                w = dict(w)  # shallow copy to avoid mutating the original
+                w["archived_date"] = now_iso
+            updated_weeks.append(w)
+        updated_weeks.append(new_week)
+        return {
+            "current_week_number": week_number,
+            "generated_date": now_iso,
+            "weeks": updated_weeks,
+        }
+
+    # First-ever plan
     return {
-        "generated_date": datetime.now().isoformat(),
-        "weeks": [
-            {
-                "week_number": 1,
-                "sessions": sessions
-            }
-        ]
+        "current_week_number": week_number,
+        "generated_date": now_iso,
+        "weeks": [new_week],
     }

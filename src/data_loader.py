@@ -3,7 +3,7 @@ import os
 import json
 import shutil
 import uuid
-from typing import Optional
+from typing import Optional, List
 import pandas as pd
 from pathlib import Path
 import streamlit as st
@@ -399,7 +399,9 @@ def load_weekly_training_plan(data_path) -> Optional[dict]:
             raw = db.load_user_data(username, "weekly_training_plan")
             if raw:
                 plan = json.loads(raw)
-                return plan if plan else None
+                if plan:
+                    plan = _migrate_plan_format(plan, data_path)
+                    return plan
             return None
         except Exception:
             pass
@@ -408,10 +410,44 @@ def load_weekly_training_plan(data_path) -> Optional[dict]:
     if plan_path.exists():
         try:
             with open(plan_path, "r", encoding="utf-8") as f:
-                return json.load(f)
+                plan = json.load(f)
+            if plan:
+                plan = _migrate_plan_format(plan, data_path)
+                return plan
         except Exception:
             return None
     return None
+
+
+def _migrate_plan_format(plan: dict, data_path) -> dict:
+    """Silently migrate old single-week plan format to multi-week format.
+
+    Old format lacks a top-level 'current_week_number' key.
+    Migration adds it and sets archived_date: null on every existing week.
+    The migrated plan is saved back immediately.
+    """
+    if not isinstance(plan, dict) or "current_week_number" in plan:
+        return plan  # already new format
+
+    # Add current_week_number (default 1 for legacy plans)
+    weeks = plan.get("weeks", [])
+    if not weeks:
+        plan["current_week_number"] = 1
+        save_weekly_training_plan(plan, data_path)
+        return plan
+
+    max_week = max(w.get("week_number", 1) for w in weeks)
+    plan["current_week_number"] = max_week
+
+    # Add archived_date: null to all weeks that don't have it
+    for w in weeks:
+        if "archived_date" not in w:
+            w["archived_date"] = None
+        if "generated_date" not in w:
+            w["generated_date"] = plan.get("generated_date", "")
+
+    save_weekly_training_plan(plan, data_path)
+    return plan
 
 def save_weekly_training_plan(plan: dict, data_path) -> None:
     username = _get_username()
@@ -426,6 +462,25 @@ def save_weekly_training_plan(plan: dict, data_path) -> None:
     plan_path.parent.mkdir(parents=True, exist_ok=True)
     with open(plan_path, "w", encoding="utf-8") as f:
         json.dump(plan, f, indent=2, default=str)
+
+
+def get_current_week(plan: dict) -> Optional[dict]:
+    """Return the active week dict from a multi-week plan."""
+    if not plan or "weeks" not in plan:
+        return None
+    current = plan.get("current_week_number", 1)
+    for week in plan["weeks"]:
+        if week.get("week_number") == current:
+            return week
+    # Fallback: return the last week
+    return plan["weeks"][-1] if plan["weeks"] else None
+
+
+def get_all_weeks(plan: dict) -> List[dict]:
+    """Return all weeks including archived ones, oldest first."""
+    if not plan or "weeks" not in plan:
+        return []
+    return sorted(plan["weeks"], key=lambda w: w.get("week_number", 0))
 
 def load_rrs_history(data_path) -> dict:
     username = _get_username()

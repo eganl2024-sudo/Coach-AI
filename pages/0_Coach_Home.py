@@ -84,11 +84,11 @@ total_this_week = 0
 active_sessions = []
 
 if plan:
-    for week in plan.get("weeks", []):
-        if week.get("week_number") == 1:
-            active_sessions = week.get("sessions", [])
-            total_this_week = len(active_sessions)
-            completed_this_week = sum(1 for s in active_sessions if s.get("completed", False))
+    current_week = data_loader.get_current_week(plan)
+    if current_week:
+        active_sessions = current_week.get("sessions", [])
+        total_this_week = len(active_sessions)
+        completed_this_week = sum(1 for s in active_sessions if s.get("completed", False))
 
 # Beautiful CSS for Premium Styling
 st.markdown("""

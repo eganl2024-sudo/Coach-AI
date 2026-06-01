@@ -155,11 +155,11 @@ completed_this_week = 0
 total_this_week = 0
 active_sessions = []
 if plan:
-    for week in plan.get("weeks", []):
-        if week.get("week_number") == 1:
-            active_sessions = week.get("sessions", [])
-            total_this_week = len(active_sessions)
-            completed_this_week = sum(1 for s in active_sessions if s.get("completed", False))
+    current_week = data_loader.get_current_week(plan)
+    if current_week:
+        active_sessions = current_week.get("sessions", [])
+        total_this_week = len(active_sessions)
+        completed_this_week = sum(1 for s in active_sessions if s.get("completed", False))
 
 # Stats Grid / RRS Score Summary Row
 if not rrs["unlocked"]:
@@ -364,20 +364,96 @@ st.divider()
 col_left, col_right = st.columns([2, 1])
 
 with col_left:
-    st.subheader("📋 Session Completion History")
-    
-    completions = completion_log.get("completions", [])
-    
-    if not completions:
-        st.info("No training sessions completed yet. Head to your Training Plan and mark your first session complete to start logging history!")
-        st.page_link("pages/2_Practice_Generator.py", label="Open My Training Plan")
+    st.subheader("📋 Session History")
 
+    # ── Week selector ─────────────────────────────────────────────────────
+    all_weeks = data_loader.get_all_weeks(plan) if plan else []
+    current_week_number = plan.get("current_week_number", 1) if plan else 1
+
+    if all_weeks:
+        # Build labels newest-first for the selectbox
+        week_labels = [f"Week {w['week_number']}" + (" (Current)" if w["week_number"] == current_week_number else " ✓ Archived") for w in reversed(all_weeks)]
+        selected_label = st.selectbox("Select Week", week_labels, index=0, key="history_week_select")
+        selected_week_number = int(selected_label.split()[1])
+        selected_week = next((w for w in all_weeks if w["week_number"] == selected_week_number), None)
+        is_current = (selected_week_number == current_week_number)
     else:
-        # Display completions in reverse chronological order
+        selected_week = None
+        is_current = False
+
+    if not all_weeks or not selected_week:
+        st.info("No training sessions logged yet. Head to your Training Plan and mark your first session complete to start logging history!")
+        st.page_link("pages/2_Practice_Generator.py", label="Open My Training Plan")
+    else:
+        gen_date_str = selected_week.get("generated_date", "")
+        archived_str = selected_week.get("archived_date", "")
+        try:
+            gen_label = datetime.fromisoformat(gen_date_str).strftime("%b %d, %Y") if gen_date_str else ""
+        except ValueError:
+            gen_label = gen_date_str
+        try:
+            arch_label = datetime.fromisoformat(archived_str).strftime("%b %d, %Y") if archived_str else None
+        except (ValueError, TypeError):
+            arch_label = None
+
+        meta_parts = [f"Generated {gen_label}"] if gen_label else []
+        if arch_label:
+            meta_parts.append(f"Archived {arch_label}")
+        if meta_parts:
+            st.caption(" · ".join(meta_parts))
+
+        sessions = selected_week.get("sessions", [])
+        if not sessions:
+            st.info("No sessions found for this week.")
+        else:
+            import completion_tracker as ct_mod
+            for s in sessions:
+                day_num = s.get("day_number")
+                completed = s.get("completed", False)
+                duration = s.get("duration_minutes")
+                drills_list = s.get("drills", [])
+                drill_names = [d.get("drill_name", "") for d in drills_list]
+                drill_preview = " ➞ ".join(drill_names) if drill_names else "No drills"
+
+                if completed:
+                    comp_date = s.get("completed_date", "")
+                    try:
+                        comp_label = datetime.fromisoformat(comp_date).strftime("%b %d, %Y") if comp_date else ""
+                    except (ValueError, TypeError):
+                        comp_label = comp_date or ""
+                    st.markdown(f"""
+                    <div class="timeline-card">
+                        <div class="timeline-date">✅ Completed{' · ' + comp_label if comp_label else ''}</div>
+                        <div class="timeline-title">Week {selected_week_number}, Session {day_num} &bull; {duration} min</div>
+                        <div class="timeline-desc">{drill_preview}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.markdown(f"""
+                    <div class="timeline-card" style="border-left-color: #94a3b8;">
+                        <div class="timeline-date" style="color:#94a3b8;">⏳ Not Completed</div>
+                        <div class="timeline-title">Week {selected_week_number}, Session {day_num} &bull; {duration} min</div>
+                        <div class="timeline-desc">{drill_preview}</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    # Only show Mark Complete for the current week
+                    if is_current:
+                        if st.button(f"✅ Mark Session {day_num} Complete", key=f"hist_complete_{selected_week_number}_{day_num}", type="primary"):
+                            ct_mod.mark_session_complete(selected_week_number, day_num, st.session_state.data_path)
+                            st.success(f"Session {day_num} marked complete!")
+                            st.rerun()
+
+    st.divider()
+
+    # Session completion log (chronological log, all weeks)
+    st.subheader("🗒️ All Completed Sessions (Log)")
+    completions = completion_log.get("completions", [])
+
+    if not completions:
+        st.info("No completions logged yet.")
+    else:
         sorted_completions = sorted(completions, key=lambda x: x.get("timestamp", ""), reverse=True)
-        
         for entry in sorted_completions:
-            # Format date beautifully
             ts_str = entry.get("timestamp", "")
             formatted_date = ""
             if ts_str:
@@ -388,11 +464,10 @@ with col_left:
                     formatted_date = entry.get("date", "")
             else:
                 formatted_date = entry.get("date", "")
-                
+
             week = entry.get("week", 1)
             day = entry.get("day", 1)
-            
-            # Find the drill titles for this session
+
             drill_titles_str = "Custom Practice Workout"
             session_drills = []
             if plan:
@@ -403,50 +478,34 @@ with col_left:
                                 session_drills = s.get("drills", [])
                                 drill_names = [d.get("drill_name", "") for d in session_drills]
                                 if drill_names:
-                                    drill_titles_str = " ➔ ".join(drill_names)
+                                    drill_titles_str = " ➞ ".join(drill_names)
                                 break
-                                
-            # Calculate dynamic contributed pillars
+
             contributed = ["Consistency", "Volume"]
             focus_areas = athlete_profile.get("focus_areas", [])
             has_coverage = False
             has_progression = False
-            
             for sd in session_drills:
                 name = sd.get("drill_name", "")
                 d_info = rrs_calculator._get_drill_info(name, drills_df)
                 if d_info:
-                    # Coverage check
                     cat = str(d_info.get("skill_category", "")).lower()
                     tags = str(d_info.get("tags", "")).lower()
                     for fa in focus_areas:
                         if fa.lower() in cat or fa.lower() in tags:
                             has_coverage = True
                             break
-                            
-                    # Progression check
-                    level = athlete_profile.get("level", "Recreational")
-                    if level == "Recreational":
-                        expected_min = 1
-                    elif level == "Competitive Club":
-                        expected_min = 2
-                    elif level == "Academy/Select":
-                        expected_min = 3
-                    else:
-                        expected_min = 1
-                        
+                    level_str = athlete_profile.get("level", "Recreational")
+                    expected_min = {"Recreational": 1, "Competitive Club": 2, "Academy/Select": 3}.get(level_str, 1)
                     diff = str(d_info.get("difficulty", "intermediate")).lower().strip()
-                    if diff in rrs_calculator.TIER_VALUES:
-                        if rrs_calculator.TIER_VALUES[diff] >= expected_min:
-                            has_progression = True
-            
+                    if diff in rrs_calculator.TIER_VALUES and rrs_calculator.TIER_VALUES[diff] >= expected_min:
+                        has_progression = True
             if has_coverage:
                 contributed.append("Coverage")
             if has_progression:
                 contributed.append("Progression")
-                
             contributed_str = ", ".join(contributed)
-            
+
             st.markdown(f"""
             <div class="timeline-card">
                 <div class="timeline-date">🗓️ {formatted_date}</div>

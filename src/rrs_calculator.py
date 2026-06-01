@@ -420,9 +420,11 @@ def calculate_rrs(athlete_profile: dict, completion_log: dict,
     # Calculate completed_this_week for next actions
     completed_this_week = 0
     if plan:
+        current_week_number = plan.get("current_week_number", 1)
         for week in plan.get("weeks", []):
-            if week.get("week_number") == 1:
+            if week.get("week_number") == current_week_number:
                 completed_this_week = sum(1 for s in week.get("sessions", []) if s.get("completed", False))
+                break
                 
     # Next Actions
     next_actions = []

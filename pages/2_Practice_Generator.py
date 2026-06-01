@@ -3,7 +3,7 @@ import streamlit as st
 import sys
 import json
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
@@ -262,6 +262,25 @@ def build_printable_plan_html(practice, session_notes=None, export_mode="coach",
 # Load or generate plan
 plan = data_loader.load_weekly_training_plan(st.session_state.data_path)
 
+# ── 7-day rollover check ─────────────────────────────────────────────────────
+if plan:
+    current_week = data_loader.get_current_week(plan)
+    if current_week:
+        gen_date_str = current_week.get("generated_date", "")
+        if gen_date_str:
+            try:
+                gen_date = datetime.fromisoformat(gen_date_str)
+                if (datetime.now() - gen_date) > timedelta(days=7):
+                    drills = st.session_state.drills_df.to_dict("records")
+                    rolled_plan = training_plan_generator.generate_training_plan(
+                        athlete_profile, drills, existing_plan=plan
+                    )
+                    data_loader.save_weekly_training_plan(rolled_plan, st.session_state.data_path)
+                    plan = rolled_plan
+                    st.toast("🗓️ New week auto-generated! Your previous sessions are preserved in History.", icon="✅")
+            except (ValueError, TypeError):
+                pass  # unparseable date — skip rollover
+
 if not plan:
     st.subheader("⚽ Generate Your Weekly Training Plan")
     st.write("Click the button below to generate a customized week of training matching your profile parameters.")
@@ -413,11 +432,13 @@ for week in plan.get("weeks", []):
 
 # Overwrite Plan Confirmation
 st.subheader("🔄 Reset Training Plan")
-confirm_reset = st.checkbox("I want to regenerate my weekly plan (this will overwrite my current plan and history states for this week)")
+confirm_reset = st.checkbox("I want to regenerate my weekly plan (a new week will be created and your history preserved)")
 if confirm_reset:
     if st.button("Regenerate Weekly Plan", type="primary", use_container_width=True):
         drills = st.session_state.drills_df.to_dict('records')
-        new_plan = training_plan_generator.generate_training_plan(athlete_profile, drills)
+        new_plan = training_plan_generator.generate_training_plan(
+            athlete_profile, drills, existing_plan=plan
+        )
         data_loader.save_weekly_training_plan(new_plan, st.session_state.data_path)
-        st.success("A fresh, customized week of training has been created! Reloading...")
+        st.success("A fresh, customized week of training has been created — your history is preserved! Reloading...")
         st.rerun()
