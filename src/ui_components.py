@@ -173,6 +173,9 @@ def render_nav(active_label: Optional[str] = None, columns=None):
     """
     links = _page_links()
     
+    # Filter out admin pages from navigation
+    links = [link for link in links if "admin" not in link[0].lower()]
+    
     # Dynamic column sizing based on number of links
     if columns is None:
         # Adjust columns based on number of visible pages
