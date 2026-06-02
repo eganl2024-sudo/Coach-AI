@@ -308,50 +308,67 @@ function drawFieldBackdrop() {
   ctx.lineWidth = 1.5;
 
   if (activeLayout === 'full') {
-    // Outer boundary
-    ctx.strokeRect(60, 20, 540, 360);
+    const scX2 = 600/105, scY2 = 360/68;
+    const fx = (m) => 30 + m * scX2;
+    const fy = (m) => 20 + m * scY2;
+    const fw = (m) => m * scX2;
+    const fh = (m) => m * scY2;
 
-    // Center vertical line
+    // 1. Outer boundary:
+    ctx.strokeRect(30, 20, 600, 360);
+
+    // 2. Center line:
     ctx.beginPath();
-    ctx.moveTo(330, 20);
-    ctx.lineTo(330, 380);
+    ctx.moveTo(330, 20); ctx.lineTo(330, 380); ctx.stroke();
+
+    // 3. Center circle (9.15m radius):
+    ctx.beginPath();
+    ctx.arc(330, 200, fh(9.15), 0, Math.PI*2);
     ctx.stroke();
 
-    // Center circle
+    // 4. Center spot:
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
+    ctx.beginPath(); ctx.arc(330, 200, 3, 0, Math.PI*2);
+    ctx.fill();
+
+    // 5. LEFT penalty box (16.5m deep × 40.32m wide, centered):
+    ctx.strokeRect(30, fy((68-40.32)/2), fw(16.5), fh(40.32));
+
+    // 6. LEFT 6-yard box (5.5m deep × 18.32m wide):
+    ctx.strokeRect(30, fy((68-18.32)/2), fw(5.5), fh(18.32));
+
+    // 7. LEFT goal (2.44m deep × 7.32m wide):
+    ctx.strokeRect(30 - fw(2.44), fy((68-7.32)/2), fw(2.44), fh(7.32));
+
+    // 8. LEFT penalty spot (11m from left goal line):
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
     ctx.beginPath();
-    ctx.arc(330, 200, 50, 0, 2 * Math.PI);
+    ctx.arc(fx(11), fy(34), 3, 0, Math.PI*2);
+    ctx.fill();
+
+    // 9. LEFT penalty arc:
+    ctx.beginPath();
+    ctx.arc(fx(11), fy(34), fh(9.15), -0.75, 0.75);
     ctx.stroke();
 
-    // Center spot
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    // 10. RIGHT penalty box (mirrored: starts at 105-16.5 = 88.5m):
+    ctx.strokeRect(fx(88.5), fy((68-40.32)/2), fw(16.5), fh(40.32));
+
+    // 11. RIGHT 6-yard box (starts at 105-5.5 = 99.5m):
+    ctx.strokeRect(fx(99.5), fy((68-18.32)/2), fw(5.5), fh(18.32));
+
+    // 12. RIGHT goal (starts at 105m = right edge):
+    ctx.strokeRect(fx(105), fy((68-7.32)/2), fw(2.44), fh(7.32));
+
+    // 13. RIGHT penalty spot (11m from right = 94m from left):
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
     ctx.beginPath();
-    ctx.arc(330, 200, 3, 0, 2 * Math.PI);
+    ctx.arc(fx(94), fy(34), 3, 0, Math.PI*2);
     ctx.fill();
 
-    // Penalty boxes
-    ctx.strokeRect(60, 155, 90, 90);
-    ctx.strokeRect(510, 155, 90, 90);
-
-    // 6-yard boxes
-    ctx.strokeRect(60, 180, 35, 40);
-    ctx.strokeRect(565, 180, 35, 40);
-
-    // Penalty spots
+    // 14. RIGHT penalty arc:
     ctx.beginPath();
-    ctx.arc(120, 200, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    ctx.beginPath();
-    ctx.arc(540, 200, 3, 0, 2 * Math.PI);
-    ctx.fill();
-
-    // Penalty arcs
-    ctx.beginPath();
-    ctx.arc(120, 200, 50, -0.927, 0.927);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(540, 200, 50, Math.PI - 0.927, Math.PI + 0.927);
+    ctx.arc(fx(94), fy(34), fh(9.15), Math.PI-0.75, Math.PI+0.75);
     ctx.stroke();
 
   } else if (activeLayout === 'half') {
@@ -384,60 +401,80 @@ function drawFieldBackdrop() {
     ctx.stroke();
 
   } else if (activeLayout === 'attacking') {
-    // Outer boundary
-    ctx.strokeRect(20, 15, 620, 370);
+    const scXa = 600/42, scYa = 360/68;
+    const ax = (m) => 30 + m * scXa;
+    const ay = (m) => 20 + m * scYa;
+    const aw = (m) => m * scXa;
+    const ah = (m) => m * scYa;
 
-    // Goal (on left)
-    ctx.strokeRect(2, 155, 18, 90);
+    // 1. Outer boundary:
+    ctx.strokeRect(30, 20, 600, 360);
 
-    // Penalty box
-    ctx.strokeRect(20, 65, 440, 270);
+    // 2. Penalty box (16.5m deep × 40.32m wide, centered):
+    ctx.strokeRect(30, ay((68-40.32)/2), aw(16.5), ah(40.32));
 
-    // 6-yard box
-    ctx.strokeRect(20, 120, 120, 160);
+    // 3. 6-yard box (5.5m deep × 18.32m wide, centered):
+    ctx.strokeRect(30, ay((68-18.32)/2), aw(5.5), ah(18.32));
 
-    // Penalty spot
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    // 4. Goal (2.44m deep × 7.32m wide, off left edge):
+    ctx.strokeRect(30 - aw(2.44), ay((68-7.32)/2), aw(2.44), ah(7.32));
+
+    // 5. Penalty spot (11m from goal line, center of pitch):
+    ctx.fillStyle = 'rgba(255,255,255,0.65)';
     ctx.beginPath();
-    ctx.arc(196, 200, 3, 0, 2 * Math.PI);
+    ctx.arc(ax(11), ay(34), 3, 0, Math.PI*2);
     ctx.fill();
 
-    // Penalty arc
+    // 6. Penalty arc (9.15m radius, only portion outside the box):
     ctx.beginPath();
-    ctx.arc(196, 200, 65, -0.7, 0.7);
+    ctx.arc(ax(11), ay(34), ah(9.15), -0.72, 0.72);
     ctx.stroke();
 
-    // Subtle channel lines at x=167 and x=313 (dashed, 0.2 opacity)
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-    ctx.setLineDash([6, 6]);
+    // 7. Attacking third line (dashed, at 35m from left = 1/3 mark):
+    const thirdX = ax(35);
+    ctx.strokeStyle = 'rgba(255,255,255,0.28)';
+    ctx.setLineDash([6, 5]);
     ctx.beginPath();
-    ctx.moveTo(167, 15);
-    ctx.lineTo(167, 385);
-    ctx.moveTo(313, 15);
-    ctx.lineTo(313, 385);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    ctx.moveTo(thirdX, 20); ctx.lineTo(thirdX, 380);
+    ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+
+    // 8. Horizontal channel lines (divide pitch width into thirds):
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
+    [68/3, 68*2/3].forEach(m => {
+      ctx.beginPath();
+      ctx.moveTo(30, ay(m)); ctx.lineTo(630, ay(m));
+      ctx.stroke();
+    });
+    ctx.setLineDash([]); ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
 
   } else if (activeLayout === 'grid') {
-    // Outer boundary
-    ctx.strokeRect(60, 20, 540, 360);
+    // 1. Strong outer boundary (2px):
+    ctx.lineWidth = 2;
+    ctx.strokeRect(30, 20, 600, 360);
+    ctx.lineWidth = 1.5;
 
-    // Draw grid lines
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    // 2. Grid cells — 10 columns × 6 rows (60px × 60px each):
+    const cols = 10, rows = 6;
+    const cw = 600/cols, ch = 360/rows;
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
     ctx.lineWidth = 1;
-
-    for (let x = 100; x < 600; x += 40) {
+    for (let i = 1; i < cols; i++) {
       ctx.beginPath();
-      ctx.moveTo(x, 20);
-      ctx.lineTo(x, 380);
+      ctx.moveTo(30 + i * cw, 20);
+      ctx.lineTo(30 + i * cw, 380);
       ctx.stroke();
     }
-    for (let y = 60; y < 380; y += 40) {
+    for (let j = 1; j < rows; j++) {
       ctx.beginPath();
-      ctx.moveTo(60, y);
-      ctx.lineTo(600, y);
+      ctx.moveTo(30, 20 + j * ch);
+      ctx.lineTo(630, 20 + j * ch);
       ctx.stroke();
     }
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
   }
 }
 
