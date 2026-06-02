@@ -19,48 +19,22 @@ INTENSITY_LEVELS = ['low', 'medium', 'high']
 CATEGORIES = ['Warmup', 'Technical', 'Tactical', 'Small Sided Games', 'Conditioning', 'Cool Down']
 EQUIPMENT_TYPES = ['Cones', 'Balls', 'Pinnies', 'Goals', 'Agility Ladder', 'None']
 DRILL_TAGS = [
-    'Finishing',
-    'Passing',
-    'Dribbling',
-    'Transition',
-    'Defending',
-    'Conditioning',
-    'Positioning',
-    '1v1',
-    '2v2',
-    'Set Pieces'
+    'Finishing', 'Passing', 'Dribbling', 'Transition', 'Defending',
+    'Conditioning', 'Positioning', '1v1', '2v2', 'Set Pieces'
 ]
 TEAM_PLAY_STYLES = [
-    'Possession',
-    'Direct Play',
-    'Counter Attacking',
-    'High Press',
-    'Low Block',
-    'Wing Focus',
-    'Build From Back'
+    'Possession', 'Direct Play', 'Counter Attacking', 'High Press',
+    'Low Block', 'Wing Focus', 'Build From Back'
 ]
 TEAM_SEASON_OBJECTIVES = [
-    'Player Development',
-    'Win League',
-    'Top 3 Finish',
-    'Tournament Prep',
-    'Stay Competitive',
-    'Rebuild Season'
+    'Player Development', 'Win League', 'Top 3 Finish',
+    'Tournament Prep', 'Stay Competitive', 'Rebuild Season'
 ]
-SEASON_SEGMENTS = [
-    'Preseason',
-    'Early Season',
-    'Mid Season',
-    'Late Season',
-    'Postseason'
-]
+SEASON_SEGMENTS = ['Preseason', 'Early Season', 'Mid Season', 'Late Season', 'Postseason']
 
-# Mode flags (safe defaults for players)
+# Mode flags
 COACH_MODE = True
 DEV_MODE = False
-# Demo mode — set to True before a partner/beta demo, False after.
-# When True, all pages read from data/demo/ instead of data/production/.
-# Run scripts/seed_demo.py to reset demo data to a known state.
 DEMO_MODE = False
 
 PROJECT_ROOT = Path(__file__).parent.parent
@@ -71,11 +45,9 @@ DEMO_DATA_DIR = DATA_DIR / 'demo'
 PRODUCTION_DATA_DIR = DATA_DIR / 'production'
 SEED_DRILLS_FILE = DEMO_DATA_DIR / 'drill_library.csv'
 
-# Toggle dev-only tools (diagram generator, etc.)
 DEV_TOOLS = DEV_MODE
 DEVELOPER_MODE = DEV_MODE
-# Default user-facing mode
-DEFAULT_USER_MODE = "coach"  # "coach" or "developer"
+DEFAULT_USER_MODE = "coach"
 
 
 def get_data_path():
@@ -85,23 +57,18 @@ def get_data_path():
 
 
 def is_dev() -> bool:
-    """Whether the app is running with developer tooling enabled."""
     return DEV_MODE
 
 
 def is_demo() -> bool:
-    """Whether the app should read from demo data paths."""
     return DEMO_MODE
 
 
-# Pending changes staging file (mirrors other CSV/JSON storage locations)
 PENDING_CHANGES_FILE = get_data_path() / 'pending_changes.json'
 
 
-def get_diagram_file(diagram_path):
-    """
-    Resolve a diagram path to an absolute Path.
-    """
+def get_diagram_file(diagram_path: str):
+    """Resolve a diagram path string to an absolute Path object."""
     if not diagram_path:
         return None
     candidate = Path(diagram_path)
@@ -111,10 +78,4 @@ def get_diagram_file(diagram_path):
 
 
 def get_seed_drills_path() -> Path:
-    """
-    Return the path to the shipped starter drill library CSV.
-
-    Defaults to the demo drill library bundled in the repo.
-    """
     return SEED_DRILLS_FILE
-
