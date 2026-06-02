@@ -56,9 +56,14 @@ def _calculate_streak(completions: list) -> int:
     if not parsed_dates:
         return 0
         
-    # Ensure the streak is currently active (last session within past 3 days)
-    if (date.today() - parsed_dates[-1]).days > 3:
-        return 0
+    # Ensure the streak is currently active (last session within past 7 days)
+    days_since_last = (date.today() - parsed_dates[-1]).days
+    if days_since_last > 7:
+        return 0        # truly inactive — streak is gone
+    elif days_since_last > 4:
+        streak_penalty = True  # active but cooling — keep streak, no bonus
+    else:
+        streak_penalty = False  # fully active
         
     streak = 1
     for i in range(len(parsed_dates) - 1, 0, -1):
@@ -67,6 +72,9 @@ def _calculate_streak(completions: list) -> int:
             streak += 1
         else:
             break
+            
+    if streak_penalty:
+        return max(1, streak // 2)  # halved but not zeroed
     return streak
 
 def _calculate_consistency(completions: list, sessions_per_week: int) -> float:
@@ -100,7 +108,16 @@ def _calculate_consistency(completions: list, sessions_per_week: int) -> float:
                         sessions_that_week += 1
                 except ValueError:
                     continue
-        weekly_score = min(1.0, sessions_that_week / sessions_per_week)
+        if idx == 3:
+            days_elapsed_this_week = today.weekday()  # 0=Mon, 6=Sun
+            if days_elapsed_this_week == 0:
+                days_elapsed_this_week = 7  # full week if Monday
+            pace_factor = min(1.0, days_elapsed_this_week / 7.0)
+            expected_so_far = max(1, round(sessions_per_week * pace_factor))
+            paced_score = min(1.0, sessions_that_week / expected_so_far)
+            weekly_score = paced_score
+        else:
+            weekly_score = min(1.0, sessions_that_week / sessions_per_week)
         weighted_score += weekly_score * weights[idx]
         
     streak = _calculate_streak(completions)
@@ -131,7 +148,8 @@ def _calculate_volume(completions: list, profile_created_date: str, sessions_per
     actual_sessions = len(completions)
     raw_score = min(1.0, actual_sessions / expected_sessions)
     
-    return max(20.0, float(round(raw_score * 100)))
+    base_floor = 40.0 if actual_sessions >= 10 else 20.0
+    return max(base_floor, float(round(raw_score * 100)))
 
 def _get_drill_info(drill_name: str, drills_df) -> Optional[dict]:
     """
@@ -367,6 +385,40 @@ def calculate_rrs(athlete_profile: dict, completion_log: dict,
             progression_score * 0.25
         )
         
+    # Load snapshots for delta and momentum calculation
+    snapshots = []
+    try:
+        import config
+        import data_loader
+        d_path = None
+        try:
+            import streamlit as st
+            if "data_path" in st.session_state:
+                d_path = st.session_state.data_path
+        except Exception:
+            pass
+        if not d_path:
+            d_path = config.get_data_path()
+            
+        history = data_loader.load_rrs_history(d_path)
+        snapshots = history.get("snapshots", [])
+    except Exception:
+        pass
+
+    # Momentum floor — active players can't fall more than
+    # 3 points below their last snapshot
+    try:
+        recent_activity = any(
+            (date.today() - date.fromisoformat(c.get("date", "1900-01-01"))).days <= 7
+            for c in completions
+            if c.get("date")
+        )
+        if recent_activity and snapshots:
+            last_score = snapshots[-1].get("overall", 0)
+            overall = max(overall, last_score - 3)
+    except Exception:
+        pass
+        
     current_label, current_color = get_benchmark_for_score(overall)
     
     # Next benchmark milestone
@@ -394,26 +446,13 @@ def calculate_rrs(athlete_profile: dict, completion_log: dict,
     # Calculate weekly delta using loaded history
     weekly_delta = 0
     try:
-        import config
-        import data_loader
-        d_path = None
-        try:
-            import streamlit as st
-            if "data_path" in st.session_state:
-                d_path = st.session_state.data_path
-        except Exception:
-            pass
-        if not d_path:
-            d_path = config.get_data_path()
-            
-        history = data_loader.load_rrs_history(d_path)
-        snapshots = history.get("snapshots", [])
         if snapshots:
             if len(snapshots) >= 2 and snapshots[-1].get("overall") == overall:
                 last_snapshot = snapshots[-2]
             else:
                 last_snapshot = snapshots[-1]
-            weekly_delta = overall - last_snapshot.get("overall", 0)
+            raw_delta = overall - last_snapshot.get("overall", 0)
+            weekly_delta = max(-5, min(15, raw_delta))
     except Exception:
         pass
         

@@ -206,12 +206,19 @@ def test_rrs_resilient_streak():
     ]
     assert _calculate_streak(completions_large_gap) == 1
     
-    # Inactive streak (last session was 4 days ago)
+    # Inactive streak (last session was 8 days ago)
     completions_inactive = [
-        {"date": (today - timedelta(days=6)).isoformat()},
-        {"date": (today - timedelta(days=4)).isoformat()},
+        {"date": (today - timedelta(days=10)).isoformat()},
+        {"date": (today - timedelta(days=8)).isoformat()},
     ]
     assert _calculate_streak(completions_inactive) == 0
+
+    # Cooling streak (last session was 5 days ago, so halved)
+    completions_cooling = [
+        {"date": (today - timedelta(days=7)).isoformat()},
+        {"date": (today - timedelta(days=5)).isoformat()},
+    ]
+    assert _calculate_streak(completions_cooling) == 1
 
 def test_rrs_multi_tier_progression():
     from rrs_calculator import _calculate_progression
