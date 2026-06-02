@@ -4,7 +4,6 @@ import os
 import datetime
 import pandas as pd
 from pathlib import Path
-from PIL import Image, ImageDraw
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
@@ -46,80 +45,823 @@ if "admin_success_msg" in st.session_state:
 CSV_PATH = Path("data/production/drill_library.csv")
 df = pd.read_csv(CSV_PATH, dtype=str).fillna("")
 
+SCHEMATIC_HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  body {
+    margin: 0;
+    padding: 8px;
+    background-color: #0e1117;
+    color: #fafafa;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    user-select: none;
+    overflow: hidden;
+  }
+  .toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    margin-bottom: 8px;
+    background: #1a1c23;
+    padding: 6px 10px;
+    border-radius: 8px;
+    border: 1px solid #2e3344;
+  }
+  .toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .section-title {
+    font-size: 10px;
+    color: #888;
+    margin-right: 4px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .toolbar button {
+    padding: 4px 9px;
+    font-size: 11px;
+    border: 0.5px solid #ccc;
+    border-radius: 6px;
+    background: #1e1e1e;
+    color: #ccc;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.1s ease;
+  }
+  .toolbar button:hover {
+    background: #2d2d2d;
+    color: #fff;
+  }
+  .toolbar button.active {
+    background: #1e3a8a;
+    color: #93c5fd;
+    border-color: #3b82f6;
+  }
+  .color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.4);
+    cursor: pointer;
+    padding: 0 !important;
+    outline: none;
+    transition: transform 0.1s ease;
+    margin: 0 2px;
+  }
+  .color-dot:hover {
+    transform: scale(1.2);
+  }
+  .color-dot.active {
+    transform: scale(1.3);
+    border: 2px solid #93c5fd !important;
+    box-shadow: 0 0 4px #93c5fd;
+  }
+  #schematicCanvas {
+    display: block;
+    margin: 0 auto;
+    border: 1px solid #2e3344;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+  }
+</style>
+</head>
+<body>
 
-def generate_field_backdrop(layout_type: str, width: int = 600, height: int = 400) -> Image.Image:
-    # Colors
-    green = (20, 60, 32)       # premium dark green
-    white = (255, 255, 255)
-    
-    if layout_type == "None":
-        return Image.new("RGBA", (width, height), (255, 255, 255, 255))
-        
-    # Green background for field types
-    img = Image.new("RGBA", (width, height), green + (255,))
-    draw = ImageDraw.Draw(img)
-    
-    margin = 20
-    if layout_type == "Full Field":
-        # Draw outer boundary
-        draw.rectangle([margin, margin, width - margin, height - margin], outline=white, width=2)
-        
-        # Center line
-        center_x = width // 2
-        draw.line([center_x, margin, center_x, height - margin], fill=white, width=2)
-        
-        # Center circle
-        circle_r = 50
-        draw.ellipse([center_x - circle_r, height // 2 - circle_r, center_x + circle_r, height // 2 + circle_r], outline=white, width=2)
-        
-        # Penalty areas (left and right)
-        box_w = 70
-        box_h = 160
-        draw.rectangle([margin, height // 2 - box_h // 2, margin + box_w, height // 2 + box_h // 2], outline=white, width=2)
-        draw.rectangle([width - margin - box_w, height // 2 - box_h // 2, width - margin, height // 2 + box_h // 2], outline=white, width=2)
-        
-        # Goal areas (six-yard box)
-        goal_w = 25
-        goal_h = 80
-        draw.rectangle([margin, height // 2 - goal_h // 2, margin + goal_w, height // 2 + goal_h // 2], outline=white, width=2)
-        draw.rectangle([width - margin - goal_w, height // 2 - goal_h // 2, width - margin, height // 2 + goal_h // 2], outline=white, width=2)
-        
-        # Penalty spots
-        draw.ellipse([margin + 55 - 2, height // 2 - 2, margin + 55 + 2, height // 2 + 2], fill=white)
-        draw.ellipse([width - margin - 55 - 2, height // 2 - 2, width - margin - 55 + 2, height // 2 + 2], fill=white)
-        
-    elif layout_type == "Half Field":
-        center_x = width - margin
-        # Draw boundary
-        draw.rectangle([margin, margin, center_x, height - margin], outline=white, width=2)
-        
-        # Center circle line (arc on center line)
-        circle_r = 60
-        draw.arc([center_x - circle_r, height // 2 - circle_r, center_x + circle_r, height // 2 + circle_r], 90, 270, fill=white, width=2)
-        
-        # Penalty box
-        box_w = 110
-        box_h = 200
-        draw.rectangle([margin, height // 2 - box_h // 2, margin + box_w, height // 2 + box_h // 2], outline=white, width=2)
-        
-        # Goal area
-        goal_w = 40
-        goal_h = 100
-        draw.rectangle([margin, height // 2 - goal_h // 2, margin + goal_w, height // 2 + goal_h // 2], outline=white, width=2)
-        
-        # Penalty spot
-        draw.ellipse([margin + 80 - 2, height // 2 - 2, margin + 80 + 2, height // 2 + 2], fill=white)
-        
-    elif layout_type == "Grid":
-        draw.rectangle([margin, margin, width - margin, height - margin], outline=white, width=2)
-        grid_size = 40
-        for x in range(margin + grid_size, width - margin, grid_size):
-            draw.line([x, margin, x, height - margin], fill=(255, 255, 255, 80), width=1)
-        for y in range(margin + grid_size, height - margin, grid_size):
-            draw.line([margin, y, width - margin, y], fill=(255, 255, 255, 80), width=1)
-            
-    return img
+<div class="toolbar">
+  <div class="toolbar-section">
+    <span class="section-title">Place:</span>
+    <button id="btn-select" class="active" onclick="setTool('select')">Select</button>
+    <button id="btn-player" onclick="setTool('player')">Player</button>
+    <button id="btn-cone" onclick="setTool('cone')">Cone</button>
+    <button id="btn-ball" onclick="setTool('ball')">Ball</button>
+  </div>
+  
+  <div class="toolbar-section">
+    <span class="section-title">Draw:</span>
+    <button id="btn-dribble" onclick="setTool('dribble')">Dribble</button>
+    <button id="btn-pass" onclick="setTool('pass')">Pass</button>
+    <button id="btn-shoot" onclick="setTool('shoot')">Shoot</button>
+    <button id="btn-run" onclick="setTool('run')">Run</button>
+    <button id="btn-zone" onclick="setTool('zone')">Zone</button>
+  </div>
+  
+  <div class="toolbar-section">
+    <span class="section-title">Colors:</span>
+    <button class="color-dot active" data-color="#ffffff" style="background: #ffffff;" onclick="setColor('#ffffff')"></button>
+    <button class="color-dot" data-color="#4FC3F7" style="background: #4FC3F7;" onclick="setColor('#4FC3F7')"></button>
+    <button class="color-dot" data-color="#FF6B35" style="background: #FF6B35;" onclick="setColor('#FF6B35')"></button>
+    <button class="color-dot" data-color="#FFD54F" style="background: #FFD54F;" onclick="setColor('#FFD54F')"></button>
+    <button class="color-dot" data-color="#66BB6A" style="background: #66BB6A;" onclick="setColor('#66BB6A')"></button>
+    <button class="color-dot" data-color="#EF5350" style="background: #EF5350;" onclick="setColor('#EF5350')"></button>
+    <button class="color-dot" data-color="#CE93D8" style="background: #CE93D8;" onclick="setColor('#CE93D8')"></button>
+  </div>
+  
+  <div class="toolbar-section" style="margin-left: auto;">
+    <button onclick="undo()">Undo</button>
+    <button onclick="clearCanvas()">Clear</button>
+    <button style="background: #0f766e; color: #ccfbf1; border-color: #0d9488;" onclick="exportPNG()">Export PNG</button>
+  </div>
+</div>
 
+<canvas id="schematicCanvas" width="660" height="400"></canvas>
+<span id="drill_id_label" style="display:none;">__DRILL_ID__</span>
+<input type="hidden" id="schematic_png_data" name="schematic_png_data">
+
+<script>
+const canvas = document.getElementById('schematicCanvas');
+const ctx = canvas.getContext('2d');
+
+let elements = [];
+let history = [];
+let activeTool = 'select';
+let activeColor = '#ffffff';
+
+// Drag/Selection state
+let selectedElement = null;
+let isDragging = false;
+let dragOffsets = {};
+
+// Two-Click Arrow and Zone State
+let arrowStartPoint = null;
+let currentMousePos = { x: 0, y: 0 };
+let zoneStartPoint = null;
+let isDrawingZone = false;
+
+window.onload = function() {
+  draw();
+};
+
+function saveHistory() {
+  if (history.length >= 40) {
+    history.shift();
+  }
+  history.push(JSON.parse(JSON.stringify(elements)));
+}
+
+function undo() {
+  if (history.length > 0) {
+    elements = history.pop();
+    selectedElement = null;
+    draw();
+  }
+}
+
+function clearCanvas() {
+  saveHistory();
+  elements = [];
+  selectedElement = null;
+  draw();
+}
+
+function setTool(tool) {
+  activeTool = tool;
+  const buttons = document.querySelectorAll('.toolbar button');
+  buttons.forEach(btn => {
+    if (btn.id === 'btn-' + tool) {
+      btn.classList.add('active');
+    } else if (btn.id && btn.id.startsWith('btn-')) {
+      btn.classList.remove('active');
+    }
+  });
+  
+  arrowStartPoint = null;
+  zoneStartPoint = null;
+  isDrawingZone = false;
+  
+  if (tool !== 'select') {
+    selectedElement = null;
+  }
+  
+  draw();
+}
+
+function setColor(color) {
+  activeColor = color;
+  const dots = document.querySelectorAll('.color-dot');
+  dots.forEach(dot => {
+    if (dot.getAttribute('data-color').toLowerCase() === color.toLowerCase()) {
+      dot.classList.add('active');
+    } else {
+      dot.classList.remove('active');
+    }
+  });
+
+  if (selectedElement && (selectedElement.type === 'player' || selectedElement.type === 'zone' || selectedElement.type === 'arrow')) {
+    if (selectedElement.type === 'arrow' && selectedElement.arrowType === 'shoot') {
+      // Shoot is always red
+    } else {
+      saveHistory();
+      selectedElement.color = color;
+      draw();
+    }
+  }
+}
+
+function drawFieldBackdrop() {
+  // Green backdrop
+  ctx.fillStyle = '#2d5a1b';
+  ctx.fillRect(0, 0, 660, 400);
+
+  // 8 stripes
+  const stripeW = 660 / 8;
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+  for (let i = 0; i < 8; i++) {
+    if (i % 2 === 1) {
+      ctx.fillRect(i * stripeW, 0, stripeW, 400);
+    }
+  }
+
+  // White field lines
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.lineWidth = 1.5;
+
+  // Outer boundary
+  ctx.strokeRect(60, 20, 540, 360);
+
+  // Center vertical line
+  ctx.beginPath();
+  ctx.moveTo(330, 20);
+  ctx.lineTo(330, 380);
+  ctx.stroke();
+
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(330, 200, 50, 0, 2 * Math.PI);
+  ctx.stroke();
+
+  // Center spot
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.beginPath();
+  ctx.arc(330, 200, 3, 0, 2 * Math.PI);
+  ctx.fill();
+
+  // Penalty boxes
+  ctx.strokeRect(60, 155, 90, 90);
+  ctx.strokeRect(510, 155, 90, 90);
+
+  // 6-yard boxes
+  ctx.strokeRect(60, 180, 35, 40);
+  ctx.strokeRect(565, 180, 35, 40);
+
+  // Penalty spots
+  ctx.beginPath();
+  ctx.arc(120, 200, 3, 0, 2 * Math.PI);
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(540, 200, 3, 0, 2 * Math.PI);
+  ctx.fill();
+
+  // Penalty arcs
+  ctx.beginPath();
+  ctx.arc(120, 200, 50, -0.927, 0.927);
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(540, 200, 50, Math.PI - 0.927, Math.PI + 0.927);
+  ctx.stroke();
+}
+
+function drawWavyBezier(ctx, x1, y1, cx, cy, x2, y2, color, strokeWidth) {
+  ctx.strokeStyle = color;
+  ctx.lineWidth = strokeWidth;
+  ctx.beginPath();
+  
+  let prevX = x1, prevY = y1;
+  let totalDist = 0;
+  let points = [];
+  
+  for (let i = 0; i <= 100; i++) {
+    let t = i / 100;
+    let mt = 1 - t;
+    let bx = mt * mt * x1 + 2 * mt * t * cx + t * t * x2;
+    let by = mt * mt * y1 + 2 * mt * t * cy + t * t * y2;
+    
+    let dx = 2 * mt * (cx - x1) + 2 * t * (x2 - cx);
+    let dy = 2 * mt * (cy - y1) + 2 * t * (x2 - cy);
+    let len = Math.sqrt(dx * dx + dy * dy);
+    
+    let nx = 0, ny = 0;
+    if (len > 0) {
+      nx = -dy / len;
+      ny = dx / len;
+    }
+    
+    if (i > 0) {
+      let segDist = Math.sqrt((bx - prevX) * (bx - prevX) + (by - prevY) * (by - prevY));
+      totalDist += segDist;
+    }
+    prevX = bx;
+    prevY = by;
+    
+    points.push({ t, bx, by, nx, ny, dist: totalDist });
+  }
+  
+  ctx.moveTo(x1, y1);
+  for (let i = 1; i <= 100; i++) {
+    let pt = points[i];
+    let envelope = Math.sin(pt.t * Math.PI);
+    let wave = 5 * envelope * Math.sin((2 * Math.PI * pt.dist) / 12);
+    let wx = pt.bx + pt.nx * wave;
+    let wy = pt.by + pt.ny * wave;
+    ctx.lineTo(wx, wy);
+  }
+  ctx.stroke();
+}
+
+function drawArrowhead(ctx, x, y, angle, color, size) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x - size * Math.cos(angle - Math.PI / 6), y - size * Math.sin(angle - Math.PI / 6));
+  ctx.lineTo(x - size * Math.cos(angle + Math.PI / 6), y - size * Math.sin(angle + Math.PI / 6));
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawElement(el) {
+  const isSelected = (selectedElement && selectedElement.id === el.id);
+
+  if (el.type === 'arrow' && el.playerId) {
+    const player = elements.find(p => p.type === 'player' && p.id === el.playerId);
+    if (player) {
+      el.x1 = player.x;
+      el.y1 = player.y;
+    }
+  }
+
+  if (el.type === 'player') {
+    ctx.fillStyle = el.color;
+    ctx.beginPath();
+    ctx.arc(el.x, el.y, 11, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(el.number, el.x, el.y);
+
+    if (isSelected) {
+      ctx.strokeStyle = '#FFD54F';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(el.x, el.y, 15, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  } else if (el.type === 'cone') {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+    ctx.beginPath();
+    ctx.ellipse(el.x, el.y + 8, 10, 3, 0, 0, 2 * Math.PI);
+    ctx.fill();
+
+    ctx.fillStyle = '#FF6B35';
+    ctx.beginPath();
+    ctx.moveTo(el.x, el.y - 11);
+    ctx.lineTo(el.x - 9, el.y + 8);
+    ctx.lineTo(el.x + 9, el.y + 8);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.strokeStyle = 'rgba(0,0,0,0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    if (isSelected) {
+      ctx.strokeStyle = '#FFD54F';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(el.x, el.y, 15, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  } else if (el.type === 'ball') {
+    ctx.fillStyle = '#ffffff';
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(el.x, el.y, 7, 0, 2 * Math.PI);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = '#000000';
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      let angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+      let px = el.x + 2.5 * Math.cos(angle);
+      let py = el.y + 2.5 * Math.sin(angle);
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      let angle = (i * 2 * Math.PI / 5) - Math.PI / 2;
+      let px1 = el.x + 2.5 * Math.cos(angle);
+      let py1 = el.y + 2.5 * Math.sin(angle);
+      let px2 = el.x + 7 * Math.cos(angle);
+      let py2 = el.y + 7 * Math.sin(angle);
+      ctx.moveTo(px1, py1);
+      ctx.lineTo(px2, py2);
+    }
+    ctx.stroke();
+
+    if (isSelected) {
+      ctx.strokeStyle = '#FFD54F';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.arc(el.x, el.y, 11, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  } else if (el.type === 'arrow') {
+    let strokeColor = el.color;
+    
+    if (el.arrowType === 'dribble') {
+      let x1 = el.x1, y1 = el.y1, x2 = el.x2, y2 = el.y2;
+      let dx = x2 - x1;
+      let dy = y2 - y1;
+      let len = Math.sqrt(dx * dx + dy * dy);
+      let mx = (x1 + x2) / 2;
+      let my = (y1 + y2) / 2;
+      let nx = -dy / (len || 1);
+      let ny = dx / (len || 1);
+      let cx = mx + nx * (len * 0.12);
+      let cy = my + ny * (len * 0.12);
+      
+      drawWavyBezier(ctx, x1, y1, cx, cy, x2, y2, strokeColor, 2);
+      
+      let angle = Math.atan2(y2 - cy, x2 - cx);
+      drawArrowhead(ctx, x2, y2, angle, strokeColor, 10);
+    } else {
+      ctx.strokeStyle = strokeColor;
+      ctx.lineWidth = (el.arrowType === 'shoot') ? 3.5 : 2;
+      
+      if (el.arrowType === 'pass') {
+        ctx.setLineDash([8, 6]);
+      } else if (el.arrowType === 'run') {
+        ctx.setLineDash([3, 5]);
+      } else {
+        ctx.setLineDash([]);
+      }
+      
+      ctx.beginPath();
+      ctx.moveTo(el.x1, el.y1);
+      ctx.lineTo(el.x2, el.y2);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      let angle = Math.atan2(el.y2 - el.y1, el.x2 - el.x1);
+      let arrowheadSize = (el.arrowType === 'shoot') ? 12 : 10;
+      drawArrowhead(ctx, el.x2, el.y2, angle, strokeColor, arrowheadSize);
+    }
+
+    if (isSelected) {
+      ctx.strokeStyle = '#FFD54F';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.arc(el.x1, el.y1, 5, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(el.x2, el.y2, 5, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  } else if (el.type === 'zone') {
+    ctx.fillStyle = el.color;
+    ctx.strokeStyle = el.color;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+
+    ctx.globalAlpha = 0.12;
+    ctx.fillRect(el.x, el.y, el.w, el.h);
+    
+    ctx.globalAlpha = 0.5;
+    ctx.strokeRect(el.x, el.y, el.w, el.h);
+    
+    ctx.globalAlpha = 1.0;
+    ctx.setLineDash([]);
+
+    if (isSelected) {
+      ctx.strokeStyle = '#FFD54F';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.strokeRect(el.x - 2, el.y - 2, el.w + 4, el.h + 4);
+      ctx.setLineDash([]);
+    }
+  }
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawFieldBackdrop();
+  
+  for (let el of elements) {
+    drawElement(el);
+  }
+  
+  if (arrowStartPoint) {
+    ctx.fillStyle = '#FFD54F';
+    ctx.beginPath();
+    ctx.arc(arrowStartPoint.x, arrowStartPoint.y, 4, 0, 2 * Math.PI);
+    ctx.fill();
+    
+    ctx.strokeStyle = activeColor;
+    ctx.lineWidth = (activeTool === 'shoot') ? 3.5 : 2;
+    if (activeTool === 'pass') ctx.setLineDash([8, 6]);
+    else if (activeTool === 'run') ctx.setLineDash([3, 5]);
+    else ctx.setLineDash([]);
+    
+    ctx.beginPath();
+    ctx.moveTo(arrowStartPoint.x, arrowStartPoint.y);
+    ctx.lineTo(currentMousePos.x, currentMousePos.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  } else if (activeTool === 'zone' && isDrawingZone && zoneStartPoint) {
+    ctx.fillStyle = activeColor;
+    ctx.strokeStyle = activeColor;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([6, 4]);
+    
+    let x = Math.min(zoneStartPoint.x, currentMousePos.x);
+    let y = Math.min(zoneStartPoint.y, currentMousePos.y);
+    let w = Math.abs(zoneStartPoint.x - currentMousePos.x);
+    let h = Math.abs(zoneStartPoint.y - currentMousePos.y);
+    
+    ctx.globalAlpha = 0.12;
+    ctx.fillRect(x, y, w, h);
+    ctx.globalAlpha = 0.5;
+    ctx.strokeRect(x, y, w, h);
+    
+    ctx.globalAlpha = 1.0;
+    ctx.setLineDash([]);
+  }
+}
+
+function getPlayerWithinDistance(x, y, maxDist) {
+  let nearestPlayer = null;
+  let minDist = maxDist;
+  for (let el of elements) {
+    if (el.type === 'player') {
+      let dist = Math.sqrt((x - el.x) * (x - el.x) + (y - el.y) * (y - el.y));
+      if (dist < minDist) {
+        minDist = dist;
+        nearestPlayer = el;
+      }
+    }
+  }
+  return nearestPlayer;
+}
+
+function getElementAt(x, y) {
+  for (let i = elements.length - 1; i >= 0; i--) {
+    let el = elements[i];
+    if (el.type === 'player' || el.type === 'cone') {
+      let dist = Math.sqrt((x - el.x) * (x - el.x) + (y - el.y) * (y - el.y));
+      if (dist <= 15) return el;
+    } else if (el.type === 'ball') {
+      let dist = Math.sqrt((x - el.x) * (x - el.x) + (y - el.y) * (y - el.y));
+      if (dist <= 11) return el;
+    } else if (el.type === 'zone') {
+      if (x >= el.x && x <= el.x + el.w && y >= el.y && y <= el.y + el.h) {
+        return el;
+      }
+    } else if (el.type === 'arrow') {
+      let dist = getDistanceToSegment(x, y, el.x1, el.y1, el.x2, el.y2);
+      if (dist <= 12) return el;
+    }
+  }
+  return null;
+}
+
+function getDistanceToSegment(x, y, x1, y1, x2, y2) {
+  let dx = x2 - x1;
+  let dy = y2 - y1;
+  let l2 = dx * dx + dy * dy;
+  if (l2 === 0) return Math.sqrt((x - x1) * (x - x1) + (y - y1) * (y - y1));
+  let t = ((x - x1) * dx + (y - y1) * dy) / l2;
+  t = Math.max(0, Math.min(1, t));
+  let px = x1 + t * dx;
+  let py = y1 + t * dy;
+  return Math.sqrt((x - px) * (x - px) + (y - py) * (y - py));
+}
+
+canvas.addEventListener('mousedown', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const clickX = e.clientX - rect.left;
+  const clickY = e.clientY - rect.top;
+  
+  if (activeTool === 'select') {
+    let el = getElementAt(clickX, clickY);
+    if (el) {
+      saveHistory();
+      selectedElement = el;
+      isDragging = true;
+      if (el.type === 'arrow') {
+        dragOffsets = {
+          x1: clickX - el.x1,
+          y1: clickY - el.y1,
+          x2: clickX - el.x2,
+          y2: clickY - el.y2
+        };
+      } else {
+        dragOffsets = {
+          x: clickX - el.x,
+          y: clickY - el.y
+        };
+      }
+    } else {
+      selectedElement = null;
+    }
+    draw();
+  } else if (activeTool === 'player') {
+    saveHistory();
+    let maxNum = 0;
+    for (let el of elements) {
+      if (el.type === 'player' && el.number > maxNum) {
+        maxNum = el.number;
+      }
+    }
+    const playerNum = maxNum + 1;
+    elements.push({
+      type: 'player',
+      id: 'p' + playerNum + '_' + Date.now(),
+      x: clickX,
+      y: clickY,
+      number: playerNum,
+      color: activeColor
+    });
+    draw();
+  } else if (activeTool === 'cone') {
+    saveHistory();
+    elements.push({
+      type: 'cone',
+      id: 'c' + Date.now() + Math.random().toString(36).substr(2, 5),
+      x: clickX,
+      y: clickY
+    });
+    draw();
+  } else if (activeTool === 'ball') {
+    saveHistory();
+    elements.push({
+      type: 'ball',
+      id: 'b' + Date.now() + Math.random().toString(36).substr(2, 5),
+      x: clickX,
+      y: clickY
+    });
+    draw();
+  } else if (activeTool === 'dribble' || activeTool === 'pass' || activeTool === 'shoot' || activeTool === 'run') {
+    if (!arrowStartPoint) {
+      let snapped = getPlayerWithinDistance(clickX, clickY, 40);
+      if (snapped) {
+        arrowStartPoint = { x: snapped.x, y: snapped.y, playerId: snapped.id };
+      } else {
+        arrowStartPoint = { x: clickX, y: clickY, playerId: null };
+      }
+      currentMousePos = { x: clickX, y: clickY };
+      draw();
+    } else {
+      let dx = clickX - arrowStartPoint.x;
+      let dy = clickY - arrowStartPoint.y;
+      let dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist > 5) {
+        saveHistory();
+        elements.push({
+          type: 'arrow',
+          arrowType: activeTool,
+          id: 'a' + Date.now() + Math.random().toString(36).substr(2, 5),
+          x1: arrowStartPoint.x,
+          y1: arrowStartPoint.y,
+          x2: clickX,
+          y2: clickY,
+          color: activeTool === 'shoot' ? '#EF5350' : activeColor,
+          playerId: arrowStartPoint.playerId
+        });
+      }
+      arrowStartPoint = null;
+      draw();
+    }
+  } else if (activeTool === 'zone') {
+    zoneStartPoint = { x: clickX, y: clickY };
+    isDrawingZone = true;
+    currentMousePos = { x: clickX, y: clickY };
+  }
+});
+
+canvas.addEventListener('mousemove', function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const mouseX = e.clientX - rect.left;
+  const mouseY = e.clientY - rect.top;
+  currentMousePos = { x: mouseX, y: mouseY };
+
+  if (activeTool === 'select' && isDragging && selectedElement) {
+    let el = selectedElement;
+    if (el.type === 'arrow') {
+      el.x1 = mouseX - dragOffsets.x1;
+      el.y1 = mouseY - dragOffsets.y1;
+      el.x2 = mouseX - dragOffsets.x2;
+      el.y2 = mouseY - dragOffsets.y2;
+      el.playerId = null;
+    } else {
+      el.x = mouseX - dragOffsets.x;
+      el.y = mouseY - dragOffsets.y;
+    }
+    draw();
+  } else if (activeTool === 'zone' && isDrawingZone) {
+    draw();
+  } else if (arrowStartPoint) {
+    draw();
+  }
+});
+
+canvas.addEventListener('mouseup', function(e) {
+  if (activeTool === 'select' && isDragging) {
+    isDragging = false;
+  } else if (activeTool === 'zone' && isDrawingZone && zoneStartPoint) {
+    const rect = canvas.getBoundingClientRect();
+    const releaseX = e.clientX - rect.left;
+    const releaseY = e.clientY - rect.top;
+    
+    let x = Math.min(zoneStartPoint.x, releaseX);
+    let y = Math.min(zoneStartPoint.y, releaseY);
+    let w = Math.abs(zoneStartPoint.x - releaseX);
+    let h = Math.abs(zoneStartPoint.y - releaseY);
+    
+    if (w > 5 && h > 5) {
+      saveHistory();
+      elements.push({
+        type: 'zone',
+        id: 'z' + Date.now() + Math.random().toString(36).substr(2, 5),
+        x: x,
+        y: y,
+        w: w,
+        h: h,
+        color: activeColor
+      });
+    }
+    
+    isDrawingZone = false;
+    zoneStartPoint = null;
+    draw();
+  }
+});
+
+window.addEventListener('keydown', function(e) {
+  if ((e.key === 'Delete' || e.key === 'Backspace') && selectedElement) {
+    saveHistory();
+    elements = elements.filter(el => el.id !== selectedElement.id);
+    selectedElement = null;
+    draw();
+  }
+});
+
+function exportPNG() {
+  const prevSelected = selectedElement;
+  selectedElement = null;
+  draw();
+  
+  const dataURL = canvas.toDataURL('image/png');
+  document.getElementById('schematic_png_data').value = dataURL;
+  
+  const link = document.createElement('a');
+  link.download = 'drill-schematic.png';
+  link.href = dataURL;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  const drillId = document.getElementById('drill_id_label').textContent;
+  window.parent.postMessage({
+    type: 'schematic_export',
+    data: dataURL,
+    drill_id: drillId
+  }, '*');
+  
+  selectedElement = prevSelected;
+  draw();
+}
+</script>
+</body>
+</html>
+"""
 
 # Create tabs for cleaner layout
 tab1, tab2 = st.tabs(["📋 Edit Drill Metadata", "🎨 Schematic Painter"])
@@ -285,105 +1027,73 @@ with tab1:
 with tab2:
     st.header("🎨 Schematic Painter")
     st.write("Draw soccer drill setups on top of tactical field backdrops and link them to the drill.")
-    
-    # 1. Select drill
-    selected_drill_id = st.selectbox(
-        "Select Drill for Schematic",
-        df["drill_id"].tolist(),
+
+    # Drill selector
+    drill_names = [f"{row['drill_id']} — {row['drill_name']}"
+                   for _, row in df.iterrows()]
+    selected_idx = st.selectbox(
+        "Select drill to build schematic for",
+        range(len(drill_names)),
+        format_func=lambda i: drill_names[i],
         key="canvas_drill_select"
     )
-    
-    # Get selected drill row
-    drill_row = df[df["drill_id"] == selected_drill_id].iloc[0]
-    
-    # Check if there is an existing diagram file
-    existing_path = drill_row.get("diagram_path", "")
-    existing_diagram = None
-    if existing_path:
-        diag_file = Path(existing_path)
-        if not diag_file.is_absolute():
-            diag_file = Path.cwd() / diag_file
-        if diag_file.exists():
-            existing_diagram = diag_file
-            
-    use_existing = False
-    if existing_diagram:
-        use_existing = st.checkbox("Use existing diagram as backdrop", value=True, key="use_existing_checkbox")
-        
-    if use_existing and existing_diagram:
-        bg_image = Image.open(existing_diagram)
-        # Ensure it has correct size 600x400 for drawing
-        if bg_image.size != (600, 400):
-            bg_image = bg_image.resize((600, 400), Image.Resampling.LANCZOS)
-    else:
-        template_type = st.selectbox(
-            "Select field backdrop template",
-            ["Full Field", "Half Field", "Grid", "None"],
-            key="backdrop_template_select"
+    selected_drill_id = df.iloc[selected_idx]["drill_id"]
+    drill_row = df.iloc[selected_idx]
+
+    # Show existing schematic if one exists
+    existing_url = drill_row.get("diagram_url", "").strip()
+    if existing_url and "raw.githubusercontent" in existing_url:
+        st.image(existing_url,
+                 caption=f"Current schematic — {selected_drill_id}",
+                 use_container_width=False, width=400)
+
+    st.info(
+        "🎨 Use the canvas below. Place players, cones, balls. "
+        "Draw movement arrows. When done click **Export PNG** "
+        "which downloads the file — then commit it to "
+        f"`assets/diagrams/{selected_drill_id.lower()}.png` "
+        "and paste the raw GitHub URL in the Drill Editor tab "
+        "to link it to this drill."
+    )
+
+    # Inject the selected drill ID into the HTML
+    html_with_drill = SCHEMATIC_HTML.replace(
+        '__DRILL_ID__', selected_drill_id
+    )
+    st.components.v1.html(html_with_drill, height=560,
+                          scrolling=False)
+
+    st.caption(
+        "After exporting, commit the PNG to "
+        "assets/diagrams/ and paste the raw GitHub URL below."
+    )
+    with st.form("save_schematic_url"):
+        pasted_url = st.text_input(
+            "Raw GitHub URL of exported schematic",
+            value=existing_url,
+            placeholder=(
+                "https://raw.githubusercontent.com/"
+                "eganl2024-sudo/MDP_APP/main/assets/diagrams/"
+                f"{selected_drill_id.lower()}.png"
+            )
         )
-        bg_image = generate_field_backdrop(template_type)
-        
-    st.divider()
-    
-    col_c1, col_c2 = st.columns([1, 3])
-    
-    with col_c1:
-        st.subheader("🎨 Drawing Tools")
-        drawing_mode = st.selectbox(
-            "Drawing Tool",
-            ("freedraw", "line", "rect", "circle", "transform"),
-            key="drawing_mode_select"
-        )
-        stroke_width = st.slider("Stroke Width", 1, 20, 3, key="stroke_width_slider")
-        stroke_color = st.color_picker("Stroke Color", "#FF0000", key="stroke_color_picker")
-        
-    with col_c2:
-        st.subheader("📝 Canvas")
-        from streamlit_drawable_canvas import st_canvas
-        
-        canvas_result = st_canvas(
-            fill_color="rgba(255, 165, 0, 0.3)",  # semi-transparent fill for shapes
-            stroke_width=stroke_width,
-            stroke_color=stroke_color,
-            background_image=bg_image,
-            update_streamlit=True,
-            height=400,
-            width=600,
-            drawing_mode=drawing_mode,
-            key="schematic_painter_canvas"
-        )
-        
-    st.write("")
-    
-    if st.button("💾 Save Schematic", type="primary", use_container_width=True, key="save_schematic_btn"):
-        if canvas_result is not None and canvas_result.image_data is not None:
-            # Create diagrams folder if not exists
-            diagrams_dir = Path("assets/diagrams")
-            diagrams_dir.mkdir(parents=True, exist_ok=True)
-            
-            output_file_name = f"{selected_drill_id.lower().replace('_', '-')}.png"
-            output_path = diagrams_dir / output_file_name
-            
-            # Combine backdrop and drawing
-            overlay = Image.fromarray(canvas_result.image_data.astype('uint8'), 'RGBA')
-            composite = Image.alpha_composite(bg_image.convert("RGBA"), overlay)
-            composite.save(output_path, "PNG")
-            
-            # Update the CSV
-            idx = df.index[df["drill_id"] == selected_drill_id][0]
-            relative_path = f"assets/diagrams/{output_file_name}"
-            df.at[idx, "diagram_path"] = relative_path
-            df.at[idx, "diagram_url"] = f"https://raw.githubusercontent.com/eganl2024-sudo/MDP_APP/main/{relative_path}"
-            
-            # Save the main CSV
+        if st.form_submit_button("💾 Save Schematic URL",
+                                 type="primary"):
+            idx = df.index[df["drill_id"]==selected_drill_id][0]
+            df.at[idx, "diagram_url"] = pasted_url
+            df.at[idx, "diagram_path"] = (
+                f"assets/diagrams/"
+                f"{selected_drill_id.lower()}.png"
+            )
             df.to_csv(CSV_PATH, index=False)
-            
-            # Mirror to demo user sandbox if it exists
-            demo_csv = Path("data/production/users/demo/drill_library.csv")
+            demo_csv = Path(
+                "data/production/users/demo/drill_library.csv"
+            )
             if demo_csv.exists():
                 df.to_csv(demo_csv, index=False)
-                
-            st.session_state.admin_success_msg = f"✅ Schematic saved successfully for {selected_drill_id}!"
+            st.session_state.admin_success_msg = (
+                f"✅ Schematic URL saved for {selected_drill_id}"
+            )
             st.rerun()
 
 # Git push section

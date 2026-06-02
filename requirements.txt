@@ -25,6 +25,6 @@ Pillow>=10.0.0
 supabase>=2.0.0
 
 # Canvas drawing
-streamlit-drawable-canvas>=0.9.3
+
 
 
