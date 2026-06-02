@@ -289,297 +289,156 @@ function setColor(color) {
   }
 }
 
-function drawFieldBackdrop() {
-  // Green backdrop
-  ctx.fillStyle = '#2d5a1b';
-  ctx.fillRect(0, 0, 660, 400);
+// ─── SHARED FULL-FIELD DRAW FUNCTION ────────────────────────────────────────
+// Used by full, half, and attacking layouts.
+// Draws the complete 105x68m field using the same coordinate system.
+// Callers use ctx.save()/clip()/restore() to show only the desired portion.
+function drawFullFieldLines() {
+  const scX = 600 / 105;
+  const scY = 360 / 68;
+  const fx = (m) => 30 + m * scX;
+  const fy = (m) => 20 + m * scY;
+  const fw = (m) => m * scX;
+  const fh = (m) => m * scY;
 
-  // 8 stripes
-  const stripeW = 660 / 8;
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
-  for (let i = 0; i < 8; i++) {
-    if (i % 2 === 1) {
-      ctx.fillRect(i * stripeW, 0, stripeW, 400);
-    }
-  }
-
-  // Draw lines based on activeLayout
-  ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.65)';
   ctx.lineWidth = 1.5;
 
-  if (activeLayout === 'full') {
-    const scX2 = 600/105, scY2 = 360/68;
-    const fx = (m) => 30 + m * scX2;
-    const fy = (m) => 20 + m * scY2;
-    const fw = (m) => m * scX2;
-    const fh = (m) => m * scY2;
+  // Outer boundary
+  ctx.strokeRect(30, 20, 600, 360);
 
-    // 1. Outer boundary:
-    ctx.strokeRect(30, 20, 600, 360);
+  // Center line
+  ctx.beginPath();
+  ctx.moveTo(330, 20); ctx.lineTo(330, 380); ctx.stroke();
 
-    // 2. Center line:
-    ctx.beginPath();
-    ctx.moveTo(330, 20); ctx.lineTo(330, 380); ctx.stroke();
+  // Center circle
+  ctx.beginPath();
+  ctx.arc(330, 200, fh(9.15), 0, Math.PI * 2);
+  ctx.stroke();
 
-    // 3. Center circle (9.15m radius):
-    ctx.beginPath();
-    ctx.arc(330, 200, fh(9.15), 0, Math.PI*2);
-    ctx.stroke();
+  // Center spot
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.beginPath(); ctx.arc(330, 200, 3, 0, Math.PI * 2); ctx.fill();
 
-    // 4. Center spot:
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.beginPath(); ctx.arc(330, 200, 3, 0, Math.PI*2);
-    ctx.fill();
-
-    // 5. LEFT penalty box (16.5m deep × 40.32m wide, centered):
-    ctx.strokeRect(30, fy((68-40.32)/2), fw(16.5), fh(40.32));
-
-    // 6. LEFT 6-yard box (5.5m deep × 18.32m wide):
-    ctx.strokeRect(30, fy((68-18.32)/2), fw(5.5), fh(18.32));
-
-    // 7. LEFT goal (2.44m deep × 7.32m wide):
-    ctx.strokeRect(30 - fw(2.44), fy((68-7.32)/2), fw(2.44), fh(7.32));
-
-    // 8. LEFT penalty spot (11m from left goal line):
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.beginPath();
-    ctx.arc(fx(11), fy(34), 3, 0, Math.PI*2);
-    ctx.fill();
-
-    // 9. LEFT penalty arc — elliptical, connects to box edge
-    {
-      const arcCX = fx(11);
-      const arcCY = fy(34);
-      const arcRX = fw(9.15);  // horizontal radius
-      const arcRY = fh(9.15);  // vertical radius
-      const boxRightX = 30 + fw(16.5);
-      const cosA = (boxRightX - arcCX) / arcRX;
-      const arcA = Math.acos(Math.min(1, Math.max(-1, cosA)));
-      ctx.save();
-      ctx.translate(arcCX, arcCY);
-      ctx.scale(1, arcRY / arcRX);
-      ctx.beginPath();
-      ctx.arc(0, 0, arcRX, -arcA, arcA);
-      ctx.restore();
-      ctx.stroke();
-    }
-
-    // 10. RIGHT penalty box (mirrored: starts at 105-16.5 = 88.5m):
-    ctx.strokeRect(fx(88.5), fy((68-40.32)/2), fw(16.5), fh(40.32));
-
-    // 11. RIGHT 6-yard box (starts at 105-5.5 = 99.5m):
-    ctx.strokeRect(fx(99.5), fy((68-18.32)/2), fw(5.5), fh(18.32));
-
-    // 12. RIGHT goal (starts at 105m = right edge):
-    ctx.strokeRect(fx(105), fy((68-7.32)/2), fw(2.44), fh(7.32));
-
-    // 13. RIGHT penalty spot (11m from right = 94m from left):
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.beginPath();
-    ctx.arc(fx(94), fy(34), 3, 0, Math.PI*2);
-    ctx.fill();
-
-    // 14. RIGHT penalty arc — elliptical, connects to box edge
-    {
-      const arcCX = fx(94);
-      const arcCY = fy(34);
-      const arcRX = fw(9.15);
-      const arcRY = fh(9.15);
-      const boxLeftX = fx(88.5);
-      const cosA = (arcCX - boxLeftX) / arcRX;
-      const arcA = Math.acos(Math.min(1, Math.max(-1, cosA)));
-      ctx.save();
-      ctx.translate(arcCX, arcCY);
-      ctx.scale(1, arcRY / arcRX);
-      ctx.beginPath();
-      ctx.arc(0, 0, arcRX, Math.PI - arcA, Math.PI + arcA);
-      ctx.restore();
-      ctx.stroke();
-    }
-
-  } else if (activeLayout === 'half') {
-    // Half field: left attacking end
-    // Field is 52.5m deep (half of 105) × 68m wide
-    // Canvas: 600px wide × 360px tall from origin (30,20)
-    const scXh = 600 / 52.5;  // 11.43px/m horizontal
-    const scYh = 360 / 68;    // 5.29px/m vertical
-    const hx = (m) => 30 + m * scXh;
-    const hy = (m) => 20 + m * scYh;
-    const hw = (m) => m * scXh;
-    const hh = (m) => m * scYh;
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
-    ctx.lineWidth = 1.5;
-
-    // Outer boundary
-    ctx.strokeRect(30, 20, 600, 360);
-
-    // Halfway line (right edge)
-    ctx.beginPath();
-    ctx.moveTo(630, 20); ctx.lineTo(630, 380); ctx.stroke();
-
-    // Center circle hint — clip to right half of canvas
-    // Only show the left arc portion (facing the field)
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(30, 20, 600, 360);
-    ctx.clip();
-    const ccX = 630, ccY = hy(34);
-    const ccRX = hw(9.15), ccRY = hh(9.15);
-    ctx.save();
-    ctx.translate(ccX, ccY);
-    ctx.scale(1, ccRY / ccRX);
-    ctx.beginPath();
-    ctx.arc(0, 0, ccRX, Math.PI * 0.5, Math.PI * 1.5);
-    ctx.restore();
-    ctx.stroke();
-    ctx.restore();
-
-    // Penalty box: 16.5m deep × 40.32m wide, centered
-    ctx.strokeRect(30, hy((68 - 40.32) / 2),
-                   hw(16.5), hh(40.32));
-
-    // 6-yard box: 5.5m deep × 18.32m wide, centered
-    ctx.strokeRect(30, hy((68 - 18.32) / 2),
-                   hw(5.5), hh(18.32));
-
-    // Goal: 2.44m off left edge, 7.32m wide
-    ctx.strokeRect(30 - hw(2.44), hy((68 - 7.32) / 2),
-                   hw(2.44), hh(7.32));
-
-    // Penalty spot at 11m, center
-    const pX = hx(11), pY = hy(34);
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.beginPath();
-    ctx.arc(pX, pY, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Penalty arc — elliptical, connects to box edge
-    const aRX = hw(9.15), aRY = hh(9.15);
-    const bEdge = 30 + hw(16.5);
-    const cosAh = Math.min(1, Math.max(-1,
-                  (bEdge - pX) / aRX));
-    const arcAh = Math.acos(cosAh);
-    ctx.save();
-    ctx.translate(pX, pY);
-    ctx.scale(1, aRY / aRX);
-    ctx.beginPath();
-    ctx.arc(0, 0, aRX, -arcAh, arcAh);
-    ctx.restore();
-    ctx.stroke();
-
-  } else if (activeLayout === 'attacking') {
-    // Show 25m deep × 68m wide — tighter zoom on the box
-    const scXa = 600 / 25;   // 24px per metre horizontal
-    const scYa = 360 / 68;   // 5.29px per metre vertical
-    const ax = (m) => 30 + m * scXa;
-    const ay = (m) => 20 + m * scYa;
-    const aw = (m) => m * scXa;
-    const ah = (m) => m * scYa;
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
-    ctx.lineWidth = 1.5;
-
-    // Outer boundary
-    ctx.strokeRect(30, 20, 600, 360);
-
-    // Penalty box: 16.5m deep × 40.32m wide, centered
-    const boxX = 30;
-    const boxY = ay((68 - 40.32) / 2);
-    const boxW = aw(16.5);
-    const boxH = ah(40.32);
-    ctx.strokeRect(boxX, boxY, boxW, boxH);
-
-    // 6-yard box: 5.5m deep × 18.32m wide, centered
-    ctx.strokeRect(30, ay((68 - 18.32) / 2), aw(5.5), ah(18.32));
-
-    // Goal: 2.44m off left edge, 7.32m wide
-    ctx.strokeRect(30 - aw(2.44), ay((68 - 7.32) / 2),
-                   aw(2.44), ah(7.32));
-
-    // Penalty spot at 11m, center
-    const pspotX = ax(11);
-    const pspotY = ay(34);
-    ctx.fillStyle = 'rgba(255,255,255,0.65)';
-    ctx.beginPath();
-    ctx.arc(pspotX, pspotY, 3, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Penalty arc — elliptical D, connects to box edge
-    const arcRX = aw(9.15);
-    const arcRY = ah(9.15);
-    const boxEdgeX = 30 + aw(16.5);
-    const cosA = Math.min(1, Math.max(-1,
-                 (boxEdgeX - pspotX) / arcRX));
+  // LEFT penalty box
+  ctx.strokeRect(30, fy((68 - 40.32) / 2), fw(16.5), fh(40.32));
+  // LEFT 6-yard box
+  ctx.strokeRect(30, fy((68 - 18.32) / 2), fw(5.5), fh(18.32));
+  // LEFT goal
+  ctx.strokeRect(30 - fw(2.44), fy((68 - 7.32) / 2), fw(2.44), fh(7.32));
+  // LEFT penalty spot
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.beginPath(); ctx.arc(fx(11), fy(34), 3, 0, Math.PI * 2); ctx.fill();
+  // LEFT penalty arc — elliptical
+  {
+    const arcCX = fx(11), arcCY = fy(34);
+    const arcRX = fw(9.15), arcRY = fh(9.15);
+    const boxRightX = 30 + fw(16.5);
+    const cosA = Math.min(1, Math.max(-1, (boxRightX - arcCX) / arcRX));
     const arcA = Math.acos(cosA);
     ctx.save();
-    ctx.translate(pspotX, pspotY);
+    ctx.translate(arcCX, arcCY);
     ctx.scale(1, arcRY / arcRX);
+    ctx.beginPath(); ctx.arc(0, 0, arcRX, -arcA, arcA);
+    ctx.restore(); ctx.stroke();
+  }
+
+  // RIGHT penalty box
+  ctx.strokeRect(fx(88.5), fy((68 - 40.32) / 2), fw(16.5), fh(40.32));
+  // RIGHT 6-yard box
+  ctx.strokeRect(fx(99.5), fy((68 - 18.32) / 2), fw(5.5), fh(18.32));
+  // RIGHT goal
+  ctx.strokeRect(fx(105), fy((68 - 7.32) / 2), fw(2.44), fh(7.32));
+  // RIGHT penalty spot
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.beginPath(); ctx.arc(fx(94), fy(34), 3, 0, Math.PI * 2); ctx.fill();
+  // RIGHT penalty arc — elliptical
+  {
+    const arcCX = fx(94), arcCY = fy(34);
+    const arcRX = fw(9.15), arcRY = fh(9.15);
+    const boxLeftX = fx(88.5);
+    const cosA = Math.min(1, Math.max(-1, (arcCX - boxLeftX) / arcRX));
+    const arcA = Math.acos(cosA);
+    ctx.save();
+    ctx.translate(arcCX, arcCY);
+    ctx.scale(1, arcRY / arcRX);
+    ctx.beginPath(); ctx.arc(0, 0, arcRX, Math.PI - arcA, Math.PI + arcA);
+    ctx.restore(); ctx.stroke();
+  }
+}
+
+function drawFieldBackdrop() {
+  // Green backdrop with stripes
+  ctx.fillStyle = '#2d5a1b';
+  ctx.fillRect(0, 0, 660, 400);
+  const stripeW = 660 / 8;
+  ctx.fillStyle = 'rgba(0,0,0,0.06)';
+  for (let i = 0; i < 8; i++) {
+    if (i % 2 === 1) ctx.fillRect(i * stripeW, 0, stripeW, 400);
+  }
+
+  if (activeLayout === 'full') {
+    // Draw the complete field — no clipping needed
+    drawFullFieldLines();
+
+  } else if (activeLayout === 'half') {
+    // Show left half of the full field (0m to 52.5m = x: 30 to 330)
+    // Same coordinate system as full field, just clipped at the center line
+    ctx.save();
     ctx.beginPath();
-    ctx.arc(0, 0, arcRX, -arcA, arcA);
+    ctx.rect(0, 0, 332, 400); // clip to left half + tiny overlap for boundary
+    ctx.clip();
+    drawFullFieldLines();
     ctx.restore();
-    ctx.stroke();
-
-    // Channel lines at pitch-width thirds (dashed, subtle)
-    ctx.strokeStyle = 'rgba(255,255,255,0.15)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([4, 6]);
-    [68 / 3, (68 * 2) / 3].forEach(m => {
-      ctx.beginPath();
-      ctx.moveTo(30, ay(m));
-      ctx.lineTo(630, ay(m));
-      ctx.stroke();
-    });
-    ctx.setLineDash([]);
-    ctx.lineWidth = 1.5;
+    // Draw a clean right edge boundary over the clip
     ctx.strokeStyle = 'rgba(255,255,255,0.65)';
-
-  } else if (activeLayout === 'grid') {
-    // Interior grid lines — subtle
-    const cols = 10, rows = 6;
-    const cw = 600 / cols;   // 60px per column
-    const ch = 360 / rows;   // 60px per row
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-    ctx.lineWidth = 1;
-
-    for (let i = 1; i < cols; i++) {
-      ctx.beginPath();
-      ctx.moveTo(30 + i * cw, 20);
-      ctx.lineTo(30 + i * cw, 380);
-      ctx.stroke();
-    }
-    for (let j = 1; j < rows; j++) {
-      ctx.beginPath();
-      ctx.moveTo(30, 20 + j * ch);
-      ctx.lineTo(630, 20 + j * ch);
-      ctx.stroke();
-    }
-
-    // Emphasized center crosshair
-    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
     ctx.moveTo(330, 20); ctx.lineTo(330, 380); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(30, 200); ctx.lineTo(630, 200); ctx.stroke();
 
-    // Strong outer boundary — drawn LAST so it sits on top
+  } else if (activeLayout === 'attacking') {
+    // Show left third of the full field (0m to 35m = x: 30 to 230)
+    // Same coordinate system as full field, just clipped at the third line
+    const scX = 600 / 105;
+    const thirdX = 30 + 35 * scX; // x pixel at 35m mark = ~220px
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, thirdX + 2, 400); // clip to attacking third + tiny overlap
+    ctx.clip();
+    drawFullFieldLines();
+    ctx.restore();
+    // Draw a clean right edge boundary over the clip
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(thirdX, 20); ctx.lineTo(thirdX, 380); ctx.stroke();
+
+  } else if (activeLayout === 'open') {
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(30, 20, 600, 360);
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.arc(330, 200, 3, 0, Math.PI * 2); ctx.fill();
+
+  } else if (activeLayout === 'grid') {
+    const cols = 10, rows = 6;
+    const cw = 600 / cols, ch = 360 / rows;
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+    ctx.lineWidth = 1;
+    for (let i = 1; i < cols; i++) {
+      ctx.beginPath(); ctx.moveTo(30 + i * cw, 20); ctx.lineTo(30 + i * cw, 380); ctx.stroke();
+    }
+    for (let j = 1; j < rows; j++) {
+      ctx.beginPath(); ctx.moveTo(30, 20 + j * ch); ctx.lineTo(630, 20 + j * ch); ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(330, 20); ctx.lineTo(330, 380); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(30, 200); ctx.lineTo(630, 200); ctx.stroke();
     ctx.strokeStyle = 'rgba(255,255,255,0.9)';
     ctx.lineWidth = 3;
     ctx.strokeRect(30, 20, 600, 360);
-
-    // Reinforce right edge explicitly
-    ctx.beginPath();
-    ctx.moveTo(630, 20);
-    ctx.lineTo(630, 380);
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
-    ctx.lineWidth = 1.5;
-
-    // Reset
+    ctx.beginPath(); ctx.moveTo(630, 20); ctx.lineTo(630, 380); ctx.stroke();
     ctx.strokeStyle = 'rgba(255,255,255,0.65)';
     ctx.lineWidth = 1.5;
   }
@@ -1134,7 +993,6 @@ with tab1:
     not_filmed = total - filmed - published
     beta_ready_count = len(df[df["beta_ready"].str.lower() == "true"])
 
-    # Display as 4 metric columns
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
     with col_m1:
         st.metric("Total Drills", total)
@@ -1145,7 +1003,6 @@ with tab1:
     with col_m4:
         st.metric("Not Filmed", not_filmed, delta=f"-{not_filmed} to go")
 
-    # Progress bar
     if total > 0:
         pct = round((filmed + published) / total * 100)
     else:
@@ -1154,7 +1011,6 @@ with tab1:
 
     st.divider()
 
-    # Filters
     st.subheader("🔍 Filters")
     filter_col1, filter_col2 = st.columns(2)
 
@@ -1172,7 +1028,6 @@ with tab1:
             "Filter by video status", status_options, key="metadata_status_filter"
         )
 
-    # Apply filters
     filtered_df = df.copy()
     if selected_presenter != "All":
         filtered_df = filtered_df[
@@ -1184,7 +1039,6 @@ with tab1:
             selected_status.lower()
         ]
 
-    # Drill Editor Cards
     st.subheader(f"📋 Drills ({len(filtered_df)})")
 
     for _, row in filtered_df.iterrows():
@@ -1197,7 +1051,6 @@ with tab1:
         )
         with st.expander(label, expanded=not is_filmed):
             with st.form(key=f"form_{drill_id}"):
-                # Current video preview
                 current_url = row.get("video_url", "").strip()
                 if current_url:
                     st.video(current_url)
@@ -1212,15 +1065,9 @@ with tab1:
                         value=current_url,
                         key=f"url_{drill_id}"
                     )
-                    
-                    # Make sure the current status is mapped to valid option index
                     status_val = row.get("video_status", "not filmed").lower().strip()
                     status_list = ["not filmed", "filmed", "published"]
-                    if status_val in status_list:
-                        status_idx = status_list.index(status_val)
-                    else:
-                        status_idx = 0
-                        
+                    status_idx = status_list.index(status_val) if status_val in status_list else 0
                     new_status = st.selectbox(
                         "Video status",
                         ["Not Filmed", "Filmed", "Published"],
@@ -1253,7 +1100,6 @@ with tab1:
                 )
 
                 if submitted:
-                    # Update the main df in place
                     idx = df.index[df["drill_id"] == drill_id][0]
                     df.at[idx, "video_url"]     = new_url
                     df.at[idx, "video_status"]  = new_status
@@ -1265,17 +1111,10 @@ with tab1:
                         if new_status == "Filmed" else
                         row.get("filming_date", "")
                     )
-
-                    # Write CSV
                     df.to_csv(CSV_PATH, index=False)
-
-                    # Also update demo user sandbox if it exists
-                    demo_csv = Path(
-                        "data/production/users/demo/drill_library.csv"
-                    )
+                    demo_csv = Path("data/production/users/demo/drill_library.csv")
                     if demo_csv.exists():
                         df.to_csv(demo_csv, index=False)
-                    
                     st.session_state.admin_success_msg = f"✅ {drill_id} saved."
                     st.rerun()
 
@@ -1283,7 +1122,6 @@ with tab2:
     st.header("🎨 Schematic Painter")
     st.write("Draw soccer drill setups on top of tactical field backdrops and link them to the drill.")
 
-    # Drill selector
     drill_names = [f"{row['drill_id']} — {row['drill_name']}"
                    for _, row in df.iterrows()]
 
@@ -1293,7 +1131,6 @@ with tab2:
         matching_indices = df.index[df["drill_id"] == target_id].tolist()
         if matching_indices:
             default_select_idx = matching_indices[0]
-        # Remove it from session state so it doesn't stick forever
         del st.session_state.newly_created_drill_id
 
     selected_idx = st.selectbox(
@@ -1396,7 +1233,6 @@ with tab2:
                         "video_url": new_video_url,
                         "video_status": "Filmed" if new_video_url.strip() else "Not Filmed",
                     })
-                    # Map category to skill_category for RRS radar matching
                     skill_cat_map = {
                         "Ball Mastery": "Technical",
                         "First Touch": "Technical",
@@ -1414,29 +1250,20 @@ with tab2:
                         "Mental & Decision Making": "Technical",
                         "Warmup & Cool Down": "Fitness",
                     }
-                    new_row_data["skill_category"] = skill_cat_map.get(
-                        new_cat, "Technical"
-                    )
-                    # Make sure all columns in the DataFrame are strings
+                    new_row_data["skill_category"] = skill_cat_map.get(new_cat, "Technical")
                     for k, v in new_row_data.items():
                         new_row_data[k] = str(v) if v is not None else ""
-                    
                     new_df_row = pd.DataFrame([new_row_data])
                     new_df_row = new_df_row[df.columns]
-                    
                     df_updated = pd.concat([df, new_df_row], ignore_index=True)
                     df_updated.to_csv(CSV_PATH, index=False)
-                    
-                    # Mirror to demo user sandbox if it exists
                     demo_csv = Path("data/production/users/demo/drill_library.csv")
                     if demo_csv.exists():
                         df_updated.to_csv(demo_csv, index=False)
-                        
                     st.session_state.newly_created_drill_id = clean_id
                     st.session_state.admin_success_msg = f"✅ Drill '{clean_id}' successfully created!"
                     st.rerun()
 
-    # Show existing schematic if one exists
     existing_url = drill_row.get("diagram_url", "").strip()
     if existing_url and "raw.githubusercontent" in existing_url:
         st.image(existing_url,
@@ -1452,46 +1279,34 @@ with tab2:
         "to link it to this drill."
     )
 
-    # Default layout logic based on skill_category and focus
     skill_category = drill_row.get("skill_category", "").lower().strip()
-    drill_name = drill_row.get("drill_name", "").lower()
+    drill_name_lower = drill_row.get("drill_name", "").lower()
     focus_tags = drill_row.get("focus_tags", "").lower()
 
     cat = skill_category
-    if any(w in cat for w in
-           ["finish", "shoot", "1v1 attack", "crossing"]):
+    if any(w in cat for w in ["finish", "shoot", "1v1 attack", "crossing"]):
         default_layout = "attacking"
-    elif any(w in cat for w in
-             ["pass", "receiv", "tactical", "defend",
-              "1v1 def"]):
+    elif any(w in cat for w in ["pass", "receiv", "tactical", "defend", "1v1 def"]):
         default_layout = "half"
-    elif any(w in cat for w in
-             ["speed", "agility", "fitness", "strength",
-              "warmup", "cool"]):
+    elif any(w in cat for w in ["speed", "agility", "fitness", "strength", "warmup", "cool"]):
         default_layout = "open"
-    elif any(w in cat for w in
-             ["ball master", "dribbl", "move", "weak foot",
-              "touch", "mental"]):
+    elif any(w in cat for w in ["ball master", "dribbl", "move", "weak foot", "touch", "mental"]):
         default_layout = "open"
     elif "goalkeep" in cat:
         default_layout = "half"
     else:
         default_layout = "open"
 
-    # Name/tag override
-    if any(kw in drill_name or kw in focus_tags
-           for kw in ["finish", "shoot", "cross",
-                      "1v1 attack", "goal"]):
+    if any(kw in drill_name_lower or kw in focus_tags
+           for kw in ["finish", "shoot", "cross", "1v1 attack", "goal"]):
         default_layout = "attacking"
 
-    # Inject the selected drill ID and default layout into the HTML
     html_with_drill = SCHEMATIC_HTML.replace(
         '__DRILL_ID__', selected_drill_id
     ).replace(
         "setLayout('full')", f"setLayout('{default_layout}')"
     )
-    st.components.v1.html(html_with_drill, height=560,
-                          scrolling=False)
+    st.components.v1.html(html_with_drill, height=560, scrolling=False)
 
     st.caption(
         "After exporting, commit the PNG to "
@@ -1507,18 +1322,12 @@ with tab2:
                 f"{selected_drill_id.lower()}.png"
             )
         )
-        if st.form_submit_button("💾 Save Schematic URL",
-                                 type="primary"):
-            idx = df.index[df["drill_id"]==selected_drill_id][0]
+        if st.form_submit_button("💾 Save Schematic URL", type="primary"):
+            idx = df.index[df["drill_id"] == selected_drill_id][0]
             df.at[idx, "diagram_url"] = pasted_url
-            df.at[idx, "diagram_path"] = (
-                f"assets/diagrams/"
-                f"{selected_drill_id.lower()}.png"
-            )
+            df.at[idx, "diagram_path"] = f"assets/diagrams/{selected_drill_id.lower()}.png"
             df.to_csv(CSV_PATH, index=False)
-            demo_csv = Path(
-                "data/production/users/demo/drill_library.csv"
-            )
+            demo_csv = Path("data/production/users/demo/drill_library.csv")
             if demo_csv.exists():
                 df.to_csv(demo_csv, index=False)
             st.session_state.admin_success_msg = (
@@ -1534,7 +1343,6 @@ with tab3:
         "full card as it appears in the app."
     )
 
-    # Drill selector for preview
     preview_idx = st.selectbox(
         "Select drill to preview",
         range(len(df)),
@@ -1548,32 +1356,22 @@ with tab3:
 
     st.divider()
 
-    # ── Hero card ───────────────────────────────────────────
     vid_url = preview_row.get("video_url", "").strip()
     diag_url = preview_row.get("diagram_url", "").strip()
     drill_name = preview_row.get("drill_name", "")
-    category = preview_row.get("category",
-                               preview_row.get("skill_category", ""))
+    category = preview_row.get("category", preview_row.get("skill_category", ""))
     difficulty = preview_row.get("difficulty", "").title()
     duration = preview_row.get("duration_minutes", "")
     p_min = preview_row.get("players_min", "")
     p_max = preview_row.get("players_max", "")
     description = preview_row.get("description", "")
-    setup = preview_row.get(
-        "setup_data",
-        preview_row.get("setup_instructions", "")
-    )
-    coaching = preview_row.get(
-        "coaching_points",
-        preview_row.get("coaching_cues", "")
-    )
+    setup = preview_row.get("setup_data", preview_row.get("setup_instructions", ""))
+    coaching = preview_row.get("coaching_points", preview_row.get("coaching_cues", ""))
     equipment = preview_row.get("equipment", "")
     tags_raw = preview_row.get("tags", "")
     presenter_id = preview_row.get("presenter_id", "")
-    beta_ready = preview_row.get(
-        "beta_ready", "").lower() == "true"
+    beta_ready = preview_row.get("beta_ready", "").lower() == "true"
 
-    # Status badges
     badge_col1, badge_col2, badge_col3 = st.columns(3)
     with badge_col1:
         if beta_ready:
@@ -1581,8 +1379,7 @@ with tab3:
         else:
             st.warning("⚠️ Not beta ready — hidden from players")
     with badge_col2:
-        video_status = preview_row.get(
-            "video_status", "Not Filmed")
+        video_status = preview_row.get("video_status", "Not Filmed")
         if video_status.lower() in ["filmed", "published"]:
             st.success(f"🎬 Video: {video_status}")
         else:
@@ -1595,24 +1392,18 @@ with tab3:
 
     st.subheader(drill_name)
 
-    # Meta row
     meta_cols = st.columns(4)
     with meta_cols[0]:
         st.metric("Category", category or "—")
     with meta_cols[1]:
         st.metric("Difficulty", difficulty or "—")
     with meta_cols[2]:
-        dur_label = f"{duration} min" if duration else "—"
-        st.metric("Duration", dur_label)
+        st.metric("Duration", f"{duration} min" if duration else "—")
     with meta_cols[3]:
-        if p_min and p_max:
-            st.metric("Players", f"{p_min}–{p_max}")
-        else:
-            st.metric("Players", "—")
+        st.metric("Players", f"{p_min}–{p_max}" if p_min and p_max else "—")
 
     st.divider()
 
-    # ── Main content: video + schematic side by side ────────
     content_col1, content_col2 = st.columns([3, 2])
 
     with content_col1:
@@ -1620,25 +1411,17 @@ with tab3:
         if vid_url:
             st.video(vid_url)
         else:
-            st.info(
-                "No video linked yet. Add a YouTube URL "
-                "in the Drill Editor tab."
-            )
+            st.info("No video linked yet. Add a YouTube URL in the Drill Editor tab.")
 
     with content_col2:
         st.subheader("🗺️ Setup Schematic")
         if diag_url and "raw.githubusercontent" in diag_url:
-            st.image(diag_url,
-                     use_container_width=True)
+            st.image(diag_url, use_container_width=True)
         else:
-            st.info(
-                "No schematic yet. Draw one in the "
-                "Schematic Painter tab."
-            )
+            st.info("No schematic yet. Draw one in the Schematic Painter tab.")
 
     st.divider()
 
-    # ── Drill details ────────────────────────────────────────
     detail_col1, detail_col2 = st.columns(2)
 
     with detail_col1:
@@ -1657,66 +1440,39 @@ with tab3:
             st.subheader("🧰 Equipment")
             st.write(equipment)
 
-    # Tags
     if tags_raw:
         st.divider()
         st.subheader("🏷️ Tags")
-        tags = [t.strip() for t in tags_raw.split("|")
-                if t.strip()]
-        st.markdown(" ".join(
-            [f"`{t}`" for t in tags]
-        ))
+        tags = [t.strip() for t in tags_raw.split("|") if t.strip()]
+        st.markdown(" ".join([f"`{t}`" for t in tags]))
 
-    # Presenter
     if presenter_id:
         st.divider()
         st.caption(f"Presented by: {presenter_id}")
 
-    # ── Quick actions ────────────────────────────────────────
     st.divider()
     st.subheader("⚡ Quick Actions")
     qa_col1, qa_col2, qa_col3 = st.columns(3)
 
     with qa_col1:
         drill_id_preview = preview_row.get("drill_id", "")
-        current_beta = preview_row.get(
-            "beta_ready", "").lower() == "true"
-        new_beta_label = (
-            "🚫 Remove from Beta" if current_beta
-            else "✅ Mark Beta Ready"
-        )
-        if st.button(new_beta_label,
-                     use_container_width=True,
-                     key="preview_toggle_beta"):
-            idx = df.index[
-                df["drill_id"] == drill_id_preview][0]
+        current_beta = preview_row.get("beta_ready", "").lower() == "true"
+        new_beta_label = "🚫 Remove from Beta" if current_beta else "✅ Mark Beta Ready"
+        if st.button(new_beta_label, use_container_width=True, key="preview_toggle_beta"):
+            idx = df.index[df["drill_id"] == drill_id_preview][0]
             df.at[idx, "beta_ready"] = str(not current_beta)
             df.to_csv(CSV_PATH, index=False)
-            st.session_state.admin_success_msg = (
-                f"✅ {drill_id_preview} beta status updated."
-            )
+            st.session_state.admin_success_msg = f"✅ {drill_id_preview} beta status updated."
             st.rerun()
 
     with qa_col2:
-        if st.button("✏️ Edit in Drill Editor",
-                     use_container_width=True,
-                     key="preview_go_edit"):
-            st.info(
-                "Switch to the 📋 Edit Drill Metadata tab "
-                "and find this drill."
-            )
+        if st.button("✏️ Edit in Drill Editor", use_container_width=True, key="preview_go_edit"):
+            st.info("Switch to the 📋 Edit Drill Metadata tab and find this drill.")
 
     with qa_col3:
-        if st.button("🎨 Edit Schematic",
-                     use_container_width=True,
-                     key="preview_go_schematic"):
-            st.session_state.newly_created_drill_id = (
-                drill_id_preview
-            )
-            st.info(
-                "Switch to the 🎨 Schematic Painter tab — "
-                "this drill will be pre-selected."
-            )
+        if st.button("🎨 Edit Schematic", use_container_width=True, key="preview_go_schematic"):
+            st.session_state.newly_created_drill_id = drill_id_preview
+            st.info("Switch to the 🎨 Schematic Painter tab — this drill will be pre-selected.")
 
 # Git push section
 st.divider()
@@ -1728,7 +1484,6 @@ st.caption(
 
 if st.button("Push to GitHub", type="primary", key="git_push_btn"):
     import subprocess
-    # Stage CSV and any generated diagrams
     result = subprocess.run(
         ["git", "add", "data/production/drill_library.csv", "assets/diagrams/"],
         capture_output=True, text=True,
@@ -1749,13 +1504,10 @@ if st.button("Push to GitHub", type="primary", key="git_push_btn"):
         )
         if push.returncode == 0:
             st.success("✅ Pushed to GitHub!")
-            st.caption(
-                "Streamlit Cloud will redeploy in ~60s."
-            )
+            st.caption("Streamlit Cloud will redeploy in ~60s.")
         else:
             st.error(f"Push failed: {push.stderr}")
             st.caption(
-                "Push may fail on Streamlit Cloud "
-                "(read-only fs). Use locally or via "
-                "GitHub web editor for cloud deploys."
+                "Push may fail on Streamlit Cloud (read-only fs). "
+                "Use locally or via GitHub web editor for cloud deploys."
             )
