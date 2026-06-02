@@ -117,3 +117,9 @@ def get_seed_drills_path() -> Path:
     Defaults to the demo drill library bundled in the repo.
     """
     return SEED_DRILLS_FILE
+
+
+def get_diagram_file(diagram_path: str):
+    from pathlib import Path
+    return Path(diagram_path) if diagram_path else None
+
