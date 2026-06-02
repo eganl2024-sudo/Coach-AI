@@ -7,6 +7,8 @@ from pathlib import Path
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+import config
+
 
 st.set_page_config(
     page_title="Admin Content | Player AI",
@@ -44,6 +46,56 @@ if "admin_success_msg" in st.session_state:
 # Load drill library CSV
 CSV_PATH = Path("data/production/drill_library.csv")
 df = pd.read_csv(CSV_PATH, dtype=str).fillna("")
+
+# Handle schematic direct saving via data bridge
+if "schematic_data_bridge" in st.session_state and st.session_state.schematic_data_bridge:
+    payload_str = st.session_state.schematic_data_bridge
+    st.session_state.schematic_data_bridge = ""
+    try:
+        import json
+        import base64
+        
+        payload = json.loads(payload_str)
+        target_drill_id = payload.get("drill_id")
+        base64_data = payload.get("image_data")
+        
+        if target_drill_id and base64_data and base64_data.startswith("data:image/png;base64,"):
+            img_bytes = base64.b64decode(base64_data.split(",")[1])
+            
+            # Save PNG directly to assets/diagrams/DRILL_ID.png
+            diagram_dir = Path("assets/diagrams")
+            diagram_dir.mkdir(parents=True, exist_ok=True)
+            
+            file_name = f"{target_drill_id}.png"
+            target_path = diagram_dir / file_name
+            
+            with open(target_path, "wb") as f:
+                f.write(img_bytes)
+                
+            # Update CSV
+            matching_indices = df.index[df["drill_id"] == target_drill_id].tolist()
+            if matching_indices:
+                idx = matching_indices[0]
+                df.at[idx, "diagram_path"] = f"assets/diagrams/{file_name}"
+                df.at[idx, "diagram_url"] = (
+                    "https://raw.githubusercontent.com/"
+                    "eganl2024-sudo/MDP_APP/main/assets/diagrams/"
+                    f"{file_name}"
+                )
+                df.to_csv(CSV_PATH, index=False)
+                
+                # Also save to demo CSV if it exists
+                demo_csv = Path("data/production/users/demo/drill_library.csv")
+                if demo_csv.exists():
+                    df.to_csv(demo_csv, index=False)
+                    
+                st.session_state.admin_success_msg = f"✅ Schematic saved directly to {target_drill_id} on disk!"
+                st.rerun()
+            else:
+                st.error(f"Error: Drill ID '{target_drill_id}' not found in library.")
+    except Exception as e:
+        st.error(f"Failed to save schematic: {str(e)}")
+
 
 SCHEMATIC_HTML = """
 <!DOCTYPE html>
@@ -178,6 +230,7 @@ SCHEMATIC_HTML = """
     <button onclick="undo()">Undo</button>
     <button onclick="clearCanvas()">Clear</button>
     <button style="background: #0f766e; color: #ccfbf1; border-color: #0d9488;" onclick="exportPNG()">Export PNG</button>
+    <button style="background: #1d4ed8; color: #f0f9ff; border-color: #1e40af; font-weight: bold;" onclick="saveToDrill()">Save to Drill</button>
   </div>
 </div>
 
@@ -973,6 +1026,32 @@ function exportPNG() {
   selectedElement = prevSelected;
   draw();
 }
+
+function saveToDrill() {
+  const prevSelected = selectedElement;
+  selectedElement = null;
+  draw();
+  
+  const dataURL = canvas.toDataURL('image/png');
+  const drillId = document.getElementById('drill_id_label').textContent;
+  
+  const payload = JSON.stringify({
+    drill_id: drillId,
+    image_data: dataURL
+  });
+  
+  const textarea = window.parent.document.querySelector('textarea[aria-label="schematic_data_bridge_textarea"]');
+  if (textarea) {
+    const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, "value").set;
+    nativeInputValueSetter.call(textarea, payload);
+    textarea.dispatchEvent(new Event('input', { bubbles: true }));
+  } else {
+    alert("Error: Streamlit data bridge not found. Make sure the page is fully loaded.");
+  }
+  
+  selectedElement = prevSelected;
+  draw();
+}
 </script>
 </body>
 </html>
@@ -1265,18 +1344,23 @@ with tab2:
                     st.rerun()
 
     existing_url = drill_row.get("diagram_url", "").strip()
-    if existing_url and "raw.githubusercontent" in existing_url:
+    existing_path = drill_row.get("diagram_path", "").strip()
+    local_file = config.get_diagram_file(existing_path) if existing_path else None
+    
+    if local_file and local_file.exists():
+        st.image(str(local_file),
+                 caption=f"Current schematic — {selected_drill_id} (Local)",
+                 use_container_width=False, width=400)
+    elif existing_url and "raw.githubusercontent" in existing_url:
         st.image(existing_url,
-                 caption=f"Current schematic — {selected_drill_id}",
+                 caption=f"Current schematic — {selected_drill_id} (GitHub)",
                  use_container_width=False, width=400)
 
     st.info(
         "🎨 Use the canvas below. Place players, cones, balls. "
-        "Draw movement arrows. When done click **Export PNG** "
-        "which downloads the file — then commit it to "
-        f"`assets/diagrams/{selected_drill_id.lower()}.png` "
-        "and paste the raw GitHub URL in the Drill Editor tab "
-        "to link it to this drill."
+        "Draw movement arrows. When done click **Save to Drill** "
+        "to save it directly on disk and update the library, or **Export PNG** "
+        "to download the file."
     )
 
     skill_category = drill_row.get("skill_category", "").lower().strip()
@@ -1306,11 +1390,32 @@ with tab2:
     ).replace(
         "setLayout('full')", f"setLayout('{default_layout}')"
     )
+    
+    # Hide the data bridge textarea completely from UI
+    st.markdown(
+        """
+        <style>
+        div[data-testid="stTextArea"]:has(textarea[aria-label="schematic_data_bridge_textarea"]) {
+            display: none !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+    
+    # Render the bridge textarea
+    st.text_area(
+        "schematic_data_bridge_textarea",
+        value="",
+        key="schematic_data_bridge",
+        label_visibility="collapsed",
+    )
+    
     st.components.v1.html(html_with_drill, height=560, scrolling=False)
 
     st.caption(
-        "After exporting, commit the PNG to "
-        "assets/diagrams/ and paste the raw GitHub URL below."
+        "Clicking 'Save to Drill' directly updates the local library. "
+        "Alternatively, paste a custom Raw GitHub URL below."
     )
     with st.form("save_schematic_url"):
         pasted_url = st.text_input(
@@ -1384,8 +1489,10 @@ with tab3:
             st.success(f"🎬 Video: {video_status}")
         else:
             st.warning("📹 No video yet")
+    diag_path = preview_row.get("diagram_path", "").strip()
+    local_diag_file = config.get_diagram_file(diag_path) if diag_path else None
     with badge_col3:
-        if diag_url and "raw.githubusercontent" in diag_url:
+        if (local_diag_file and local_diag_file.exists()) or (diag_url and "raw.githubusercontent" in diag_url):
             st.success("🗺️ Schematic linked")
         else:
             st.warning("🗺️ No schematic yet")
@@ -1415,7 +1522,9 @@ with tab3:
 
     with content_col2:
         st.subheader("🗺️ Setup Schematic")
-        if diag_url and "raw.githubusercontent" in diag_url:
+        if local_diag_file and local_diag_file.exists():
+            st.image(str(local_diag_file), use_container_width=True)
+        elif diag_url and "raw.githubusercontent" in diag_url:
             st.image(diag_url, use_container_width=True)
         else:
             st.info("No schematic yet. Draw one in the Schematic Painter tab.")
