@@ -84,7 +84,7 @@ SCHEMATIC_HTML = """
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
-  .toolbar button {
+  .toolbar button, .lbtn {
     padding: 4px 9px;
     font-size: 11px;
     border: 0.5px solid #ccc;
@@ -95,11 +95,11 @@ SCHEMATIC_HTML = """
     outline: none;
     transition: all 0.1s ease;
   }
-  .toolbar button:hover {
+  .toolbar button:hover, .lbtn:hover {
     background: #2d2d2d;
     color: #fff;
   }
-  .toolbar button.active {
+  .toolbar button.active, .lbtn.active {
     background: #1e3a8a;
     color: #93c5fd;
     border-color: #3b82f6;
@@ -133,6 +133,17 @@ SCHEMATIC_HTML = """
 </style>
 </head>
 <body>
+
+<div class="toolbar" id="layout-bar">
+  <div class="toolbar-section">
+    <span class="section-title">Layout:</span>
+    <button id="lbtn-open" class="lbtn" onclick="setLayout('open')">Open Space</button>
+    <button id="lbtn-half" class="lbtn" onclick="setLayout('half')">Half Field</button>
+    <button id="lbtn-attacking" class="lbtn" onclick="setLayout('attacking')">Attacking Third</button>
+    <button id="lbtn-full" class="lbtn active" onclick="setLayout('full')">Full Field</button>
+    <button id="lbtn-grid" class="lbtn" onclick="setLayout('grid')">Grid</button>
+  </div>
+</div>
 
 <div class="toolbar">
   <div class="toolbar-section">
@@ -182,6 +193,20 @@ let elements = [];
 let history = [];
 let activeTool = 'select';
 let activeColor = '#ffffff';
+let activeLayout = 'full';
+
+function setLayout(layout) {
+  activeLayout = layout;
+  const buttons = document.querySelectorAll('.lbtn');
+  buttons.forEach(btn => {
+    if (btn.id === 'lbtn-' + layout) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+  draw();
+}
 
 // Drag/Selection state
 let selectedElement = null;
@@ -278,55 +303,125 @@ function drawFieldBackdrop() {
     }
   }
 
-  // White field lines
+  // Draw lines based on activeLayout
   ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
   ctx.lineWidth = 1.5;
 
-  // Outer boundary
-  ctx.strokeRect(60, 20, 540, 360);
+  if (activeLayout === 'full') {
+    // Outer boundary
+    ctx.strokeRect(60, 20, 540, 360);
 
-  // Center vertical line
-  ctx.beginPath();
-  ctx.moveTo(330, 20);
-  ctx.lineTo(330, 380);
-  ctx.stroke();
+    // Center vertical line
+    ctx.beginPath();
+    ctx.moveTo(330, 20);
+    ctx.lineTo(330, 380);
+    ctx.stroke();
 
-  // Center circle
-  ctx.beginPath();
-  ctx.arc(330, 200, 50, 0, 2 * Math.PI);
-  ctx.stroke();
+    // Center circle
+    ctx.beginPath();
+    ctx.arc(330, 200, 50, 0, 2 * Math.PI);
+    ctx.stroke();
 
-  // Center spot
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-  ctx.beginPath();
-  ctx.arc(330, 200, 3, 0, 2 * Math.PI);
-  ctx.fill();
+    // Center spot
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.beginPath();
+    ctx.arc(330, 200, 3, 0, 2 * Math.PI);
+    ctx.fill();
 
-  // Penalty boxes
-  ctx.strokeRect(60, 155, 90, 90);
-  ctx.strokeRect(510, 155, 90, 90);
+    // Penalty boxes
+    ctx.strokeRect(60, 155, 90, 90);
+    ctx.strokeRect(510, 155, 90, 90);
 
-  // 6-yard boxes
-  ctx.strokeRect(60, 180, 35, 40);
-  ctx.strokeRect(565, 180, 35, 40);
+    // 6-yard boxes
+    ctx.strokeRect(60, 180, 35, 40);
+    ctx.strokeRect(565, 180, 35, 40);
 
-  // Penalty spots
-  ctx.beginPath();
-  ctx.arc(120, 200, 3, 0, 2 * Math.PI);
-  ctx.fill();
+    // Penalty spots
+    ctx.beginPath();
+    ctx.arc(120, 200, 3, 0, 2 * Math.PI);
+    ctx.fill();
 
-  ctx.beginPath();
-  ctx.arc(540, 200, 3, 0, 2 * Math.PI);
-  ctx.fill();
+    ctx.beginPath();
+    ctx.arc(540, 200, 3, 0, 2 * Math.PI);
+    ctx.fill();
 
-  // Penalty arcs
-  ctx.beginPath();
-  ctx.arc(120, 200, 50, -0.927, 0.927);
-  ctx.stroke();
+    // Penalty arcs
+    ctx.beginPath();
+    ctx.arc(120, 200, 50, -0.927, 0.927);
+    ctx.stroke();
 
-  ctx.beginPath();
-  ctx.arc(540, 200, 50, Math.PI - 0.927, Math.PI + 0.927);
-  ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(540, 200, 50, Math.PI - 0.927, Math.PI + 0.927);
+    ctx.stroke();
+
+  } else if (activeLayout === 'half') {
+    // Outer boundary: left boundary to center line
+    ctx.strokeRect(60, 20, 270, 360);
+
+    // Center circle (left half)
+    ctx.beginPath();
+    ctx.arc(330, 200, 50, Math.PI/2, 3*Math.PI/2);
+    ctx.stroke();
+
+    // Left penalty box
+    ctx.strokeRect(60, 155, 90, 90);
+
+    // Left 6-yard box
+    ctx.strokeRect(60, 180, 35, 40);
+
+    // Left penalty spot
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.beginPath();
+    ctx.arc(120, 200, 3, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Left penalty arc
+    ctx.beginPath();
+    ctx.arc(120, 200, 50, -0.927, 0.927);
+    ctx.stroke();
+
+  } else if (activeLayout === 'attacking') {
+    // Outer boundary of attacking third: left boundary to third line (x = 240)
+    ctx.strokeRect(60, 20, 180, 360);
+
+    // Left penalty box
+    ctx.strokeRect(60, 155, 90, 90);
+
+    // Left 6-yard box
+    ctx.strokeRect(60, 180, 35, 40);
+
+    // Left penalty spot
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.beginPath();
+    ctx.arc(120, 200, 3, 0, 2 * Math.PI);
+    ctx.fill();
+
+    // Left penalty arc
+    ctx.beginPath();
+    ctx.arc(120, 200, 50, -0.927, 0.927);
+    ctx.stroke();
+
+  } else if (activeLayout === 'grid') {
+    // Outer boundary
+    ctx.strokeRect(60, 20, 540, 360);
+
+    // Draw grid lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+    ctx.lineWidth = 1;
+
+    for (let x = 100; x < 600; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 20);
+      ctx.lineTo(x, 380);
+      ctx.stroke();
+    }
+    for (let y = 60; y < 380; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(60, y);
+      ctx.lineTo(600, y);
+      ctx.stroke();
+    }
+  }
 }
 
 function drawWavyBezier(ctx, x1, y1, cx, cy, x2, y2, color, strokeWidth) {
