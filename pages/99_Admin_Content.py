@@ -5,15 +5,10 @@ import datetime
 import pandas as pd
 from pathlib import Path
 
-# Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 import config
 
-st.set_page_config(
-    page_title="Admin Content | Player AI",
-    page_icon="🔐",
-    layout="wide",
-)
+st.set_page_config(page_title="Admin Content | Player AI", page_icon="🔐", layout="wide")
 
 ADMIN_PASSWORD = os.environ.get("PLAYER_AI_ADMIN_PASSWORD", "AdminPlayerAI2026")
 
@@ -33,6 +28,29 @@ if not st.session_state.admin_authenticated:
 
 st.title("🛡️ Admin Content Editor")
 st.write("Manage drill library video links, schematic diagrams, beta status, and sync changes with GitHub.")
+
+# ── Handle pending schematic save (survives rerun via session state) ──────────
+if st.session_state.get("_pending_schematic_save"):
+    ps = st.session_state.pop("_pending_schematic_save")
+    try:
+        ddir = Path("assets/diagrams")
+        ddir.mkdir(parents=True, exist_ok=True)
+        fn = f"{ps['drill_id']}.png"
+        fp = ddir / fn
+        with open(fp, "wb") as f:
+            f.write(ps["bytes"])
+        raw_url = f"https://raw.githubusercontent.com/eganl2024-sudo/MDP_APP/main/assets/diagrams/{fn}"
+        _df_save = pd.read_csv(Path("data/production/drill_library.csv"), dtype=str).fillna("")
+        idx = _df_save.index[_df_save["drill_id"] == ps["drill_id"]][0]
+        _df_save.at[idx, "diagram_url"] = raw_url
+        _df_save.at[idx, "diagram_path"] = f"assets/diagrams/{fn}"
+        _df_save.to_csv(Path("data/production/drill_library.csv"), index=False)
+        dc = Path("data/production/users/demo/drill_library.csv")
+        if dc.exists():
+            _df_save.to_csv(dc, index=False)
+        st.session_state.admin_success_msg = f"✅ Schematic saved for {ps['drill_id']}! Push to GitHub to make it live."
+    except Exception as e:
+        st.session_state.admin_success_msg = f"❌ Save failed: {e}"
 
 if "admin_success_msg" in st.session_state:
     st.success(st.session_state.admin_success_msg)
@@ -153,7 +171,6 @@ function drawFullFieldLines(){
   ctx.beginPath();ctx.moveTo(330,20);ctx.lineTo(330,380);ctx.stroke();
   ctx.beginPath();ctx.arc(330,200,fh(9.15),0,Math.PI*2);ctx.stroke();
   ctx.fillStyle='rgba(255,255,255,0.65)';ctx.beginPath();ctx.arc(330,200,3,0,Math.PI*2);ctx.fill();
-  // LEFT box
   ctx.strokeRect(30,fy((68-40.32)/2),fw(16.5),fh(40.32));
   ctx.strokeRect(30,fy((68-18.32)/2),fw(5.5),fh(18.32));
   ctx.strokeRect(30-fw(2.44),fy((68-7.32)/2),fw(2.44),fh(7.32));
@@ -161,7 +178,6 @@ function drawFullFieldLines(){
   {const ax=fx(11),ay=fy(34),rx=fw(9.15),ry=fh(9.15),bx=30+fw(16.5);
    const ca=Math.min(1,Math.max(-1,(bx-ax)/rx)),a=Math.acos(ca);
    ctx.save();ctx.translate(ax,ay);ctx.scale(1,ry/rx);ctx.beginPath();ctx.arc(0,0,rx,-a,a);ctx.restore();ctx.stroke();}
-  // RIGHT box
   ctx.strokeRect(fx(88.5),fy((68-40.32)/2),fw(16.5),fh(40.32));
   ctx.strokeRect(fx(99.5),fy((68-18.32)/2),fw(5.5),fh(18.32));
   ctx.strokeRect(fx(105),fy((68-7.32)/2),fw(2.44),fh(7.32));
@@ -231,7 +247,7 @@ function drawElement(el){
     ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=1;
     ctx.beginPath();ctx.arc(el.x,el.y,7,0,2*Math.PI);ctx.fill();ctx.stroke();
     ctx.fillStyle='#000';
-    for(let i=0;i<5;i++){const a=(i*2*Math.PI/5)-Math.PI/2;const px=el.x+2.5*Math.cos(a),py=el.y+2.5*Math.sin(a);if(i===0)ctx.beginPath();ctx.arc(px,py,1.8,0,2*Math.PI);ctx.fill();}
+    for(let i=0;i<5;i++){const a=(i*2*Math.PI/5)-Math.PI/2;ctx.beginPath();ctx.arc(el.x+2.5*Math.cos(a),el.y+2.5*Math.sin(a),1.8,0,2*Math.PI);ctx.fill();}
     if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,11,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
   }else if(el.type==='arrow'){
     const c=el.color;
@@ -467,14 +483,12 @@ with tab2:
                     st.session_state.admin_success_msg=f"✅ Drill '{cid}' created!"
                     st.rerun()
 
-    # Show existing schematic if any
     ex_url=drow.get("diagram_url","").strip()
     ex_path=drow.get("diagram_path","").strip()
     lf=config.get_diagram_file(ex_path) if ex_path else None
     if lf and lf.exists(): st.image(str(lf),caption=f"Current schematic — {sel_did} (local)",width=400)
     elif ex_url and "raw.githubusercontent" in ex_url: st.image(ex_url,caption=f"Current schematic — {sel_did} (GitHub)",width=400)
 
-    # Determine default layout
     scat=drow.get("skill_category","").lower()
     dnl=drow.get("drill_name","").lower()
     ftag=drow.get("focus_tags","").lower()
@@ -484,35 +498,48 @@ with tab2:
     else: dlayout="open"
     if any(kw in dnl or kw in ftag for kw in ["finish","shoot","cross","1v1 attack","goal"]): dlayout="attacking"
 
-    st.info(f"🎨 Draw the schematic below. Click **Export PNG** when done — the file saves as `{sel_did}.png`. Then upload it below to link it to this drill.")
+    st.info(f"🎨 Draw the schematic below. Click **Export PNG** when done — the file saves as `{sel_did}.png`. Then upload it below to save it directly to this drill.")
 
     hwd=SCHEMATIC_HTML.replace('__DRILL_ID__',sel_did).replace("setLayout('full')",f"setLayout('{dlayout}')")
     st.components.v1.html(hwd,height=540,scrolling=False)
 
     st.divider()
     st.subheader("💾 Save Schematic to Drill")
-    st.caption(f"After clicking Export PNG above, the file downloads as `{sel_did}.png`. Upload it here to save it directly to this drill.")
+    st.caption(f"After clicking Export PNG above, upload the downloaded `{sel_did}.png` file here.")
 
-    upcol,btncol=st.columns([3,1])
-    with upcol:
-        uploaded=st.file_uploader(f"Upload schematic PNG for {sel_did}",type=["png"],key=f"upload_{sel_did}")
-    with btncol:
-        st.write("")
-        st.write("")
-        save_clicked=st.button("💾 Save to Drill",type="primary",use_container_width=True,disabled=uploaded is None,key="save_schematic_btn")
+    uploaded=st.file_uploader(
+        f"Upload schematic PNG for {sel_did}",
+        type=["png"],
+        key=f"upload_{sel_did}",
+        help="Click Export PNG above first, then upload the downloaded file here."
+    )
 
-    if save_clicked and uploaded is not None:
-        import base64
-        ddir=Path("assets/diagrams");ddir.mkdir(parents=True,exist_ok=True)
-        fn=f"{sel_did}.png";fp=ddir/fn
-        with open(fp,"wb") as f: f.write(uploaded.read())
-        raw_url=f"https://raw.githubusercontent.com/eganl2024-sudo/MDP_APP/main/assets/diagrams/{fn}"
-        idx=df.index[df["drill_id"]==sel_did][0]
-        df.at[idx,"diagram_url"]=raw_url;df.at[idx,"diagram_path"]=f"assets/diagrams/{fn}"
-        df.to_csv(CSV_PATH,index=False)
-        dc=Path("data/production/users/demo/drill_library.csv")
-        if dc.exists(): df.to_csv(dc,index=False)
-        st.session_state.admin_success_msg=f"✅ Schematic saved for {sel_did}! Push to GitHub to make it live."
+    # Store bytes in session state as soon as file is uploaded
+    # This survives the rerun triggered by the Save button
+    if uploaded is not None:
+        st.session_state["_uploaded_png_bytes"] = uploaded.read()
+        st.session_state["_uploaded_png_drill_id"] = sel_did
+
+    save_ready = (
+        st.session_state.get("_uploaded_png_bytes") is not None
+        and st.session_state.get("_uploaded_png_drill_id") == sel_did
+    )
+
+    if st.button(
+        "💾 Save to Drill",
+        type="primary",
+        use_container_width=False,
+        disabled=not save_ready,
+        key="save_schematic_btn"
+    ):
+        # Store as pending — will be processed at the TOP of the next run
+        st.session_state["_pending_schematic_save"] = {
+            "drill_id": st.session_state["_uploaded_png_drill_id"],
+            "bytes": st.session_state["_uploaded_png_bytes"],
+        }
+        # Clear the cached bytes so next drill starts fresh
+        del st.session_state["_uploaded_png_bytes"]
+        del st.session_state["_uploaded_png_drill_id"]
         st.rerun()
 
 with tab3:
