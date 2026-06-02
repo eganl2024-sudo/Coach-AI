@@ -332,3 +332,82 @@ def render_nav_enhanced(active_label: Optional[str] = None):
     Delegates directly to render_nav for clean, simplified player navigation.
     """
     render_nav(active_label)
+
+
+def render_skills_radar(skill_radar: dict, target_rrs_score: int = 88):
+    """
+    Render a Plotly radar chart displaying skill categories.
+    If has_data is False, renders an info box instead.
+    """
+    if not skill_radar or not skill_radar.get("has_data", False):
+        st.info("Complete 2+ sessions to see your Skills Radar populate with your personal training data.")
+        return
+
+    import plotly.graph_objects as go
+
+    axes = skill_radar["axes"]
+    scores = skill_radar["scores"]
+
+    # Wrap the data so the radar polygon is closed
+    axes_closed = list(axes) + [axes[0]]
+    scores_closed = list(scores) + [scores[0]]
+
+    # Target level values (drawn as a dotted reference line)
+    # Target level values match the size of axes_closed
+    target_val = target_rrs_score if target_rrs_score is not None else 88
+    r_target = [target_val] * len(axes_closed)
+
+    fig = go.Figure()
+
+    # Trace 1: Current Score
+    fig.add_trace(go.Scatterpolar(
+        r=scores_closed,
+        theta=axes_closed,
+        fill="toself",
+        fillcolor="rgba(59, 130, 246, 0.2)",
+        line=dict(color="#3b82f6"),
+        name="Your Score"
+    ))
+
+    # Trace 2: Target Level
+    fig.add_trace(go.Scatterpolar(
+        r=r_target,
+        theta=axes_closed,
+        fill=None,
+        mode="lines",
+        line=dict(color="#cbd5e1", dash="dot", width=2),
+        name="Target Level"
+    ))
+
+    fig.update_layout(
+        polar=dict(
+            radialaxis=dict(
+                visible=True,
+                range=[0, 100],
+                gridcolor="#e2e8f0"
+            ),
+            angularaxis=dict(
+                gridcolor="#e2e8f0"
+            ),
+            bgcolor="rgba(0,0,0,0)"
+        ),
+        showlegend=True,
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=-0.2,
+            xanchor="center",
+            x=0.5
+        ),
+        margin=dict(l=40, r=40, t=20, b=40),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        height=320,
+    )
+    
+    st.plotly_chart(
+        fig,
+        use_container_width=True,
+        config={"responsive": True}
+    )
+

@@ -60,6 +60,9 @@ drills_df = st.session_state.get("drills_df")
 rrs = rrs_calculator.calculate_rrs(
     athlete_profile, completion_log, drills_df, plan
 )
+skill_radar = rrs_calculator.calculate_skill_radar(
+    athlete_profile, completion_log, plan, drills_df
+)
 rrs_history = data_loader.load_rrs_history(st.session_state.data_path)
 
 if not athlete_profile or not athlete_profile.get("name"):
@@ -250,77 +253,9 @@ else:
             
     with chart_col2:
         st.subheader("🕸️ Skills Radar")
-        import plotly.graph_objects as go
-        
-        # Extract scores
-        pillars_dict = rrs["pillars"]
-        consistency = pillars_dict["consistency"]["score"]
-        volume = pillars_dict["volume"]["score"]
-        coverage = pillars_dict["coverage"]["score"]
-        progression = pillars_dict["progression"]["score"]
-
-        categories = ["Consistency", "Volume", "Coverage", "Progression"]
-        categories_closed = categories + [categories[0]]
-        r_current = [consistency, volume, coverage, progression, consistency]
-
-        # Target level threshold
         next_threshold = rrs["benchmark"]["next_threshold"]
         target_val = next_threshold if next_threshold is not None else 88
-        r_target = [target_val] * 5
-
-        fig = go.Figure()
-
-        # Trace 1: Current Score
-        fig.add_trace(go.Scatterpolar(
-            r=r_current,
-            theta=categories_closed,
-            fill="toself",
-            fillcolor="rgba(59, 130, 246, 0.2)",
-            line=dict(color="#3b82f6"),
-            name="Your Score"
-        ))
-
-        # Trace 2: Target Level
-        fig.add_trace(go.Scatterpolar(
-            r=r_target,
-            theta=categories_closed,
-            fill=None,
-            mode="lines",
-            line=dict(color="#cbd5e1", dash="dot", width=2),
-            name="Target Level"
-        ))
-
-        fig.update_layout(
-            polar=dict(
-                radialaxis=dict(
-                    visible=True,
-                    range=[0, 100],
-                    gridcolor="#e2e8f0"
-                ),
-                angularaxis=dict(
-                    gridcolor="#e2e8f0"
-                ),
-                bgcolor="rgba(0,0,0,0)"
-            ),
-            showlegend=True,
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=-0.2,
-                xanchor="center",
-                x=0.5
-            ),
-            margin=dict(l=40, r=40, t=20, b=40),
-            paper_bgcolor="rgba(0,0,0,0)",
-            plot_bgcolor="rgba(0,0,0,0)",
-            height=320,
-        )
-        
-        st.plotly_chart(
-            fig,
-            use_container_width=True,
-            config={"responsive": True}
-        )
+        ui_components.render_skills_radar(skill_radar, target_rrs_score=target_val)
 
     st.divider()
 

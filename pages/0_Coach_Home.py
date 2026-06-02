@@ -68,6 +68,12 @@ rrs = rrs_calculator.calculate_rrs(
     drills_df,
     plan
 )
+skill_radar = rrs_calculator.calculate_skill_radar(
+    athlete_profile,
+    completion_log,
+    plan,
+    drills_df
+)
 
 # Render standard navigation
 ui_components.render_nav(active_label="My Dashboard")

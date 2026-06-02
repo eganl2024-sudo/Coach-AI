@@ -206,7 +206,7 @@ def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: d
                                     drill_names.append(name)
                                     
     if not drill_names:
-        return 50.0
+        return 30.0
         
     # Calculate focus area ratio
     if focus_ratio is None:
@@ -222,6 +222,14 @@ def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: d
                     if fa_lower in cat or fa_lower in tags:
                         trained = True
                         break
+                    else:
+                        fa_words = fa_lower.split()
+                        for word in fa_words:
+                            if len(word) > 3 and (word in cat or word in tags):
+                                trained = True
+                                break
+                        if trained:
+                            break
             if trained:
                 focus_areas_trained += 1
         focus_ratio = focus_areas_trained / len(focus_areas)
@@ -279,7 +287,7 @@ def _calculate_coverage(completions: list, focus_areas: list, drills_df, plan: d
     if has_weak_foot_bonus:
         score += 10
         
-    return min(100.0, float(score))
+    return min(100.0, float(max(30.0, score)))
 
 REWARD_MATRIX = {
     "Recreational": {
@@ -335,6 +343,242 @@ def _calculate_progression(completions: list, current_level: str, plan: dict, dr
         
     prog_score = (total_points / total_drills_checked) * 100.0
     return min(100.0, float(round(prog_score)))
+
+def _get_drill_info_by_id_or_name(d_id: Optional[str], d_name: Optional[str], drills_df) -> Optional[dict]:
+    if drills_df is None:
+        return None
+    
+    # Try ID first if provided
+    if d_id:
+        d_id_lower = str(d_id).lower().strip()
+        if isinstance(drills_df, pd.DataFrame):
+            if "drill_id" in drills_df.columns:
+                rows = drills_df[drills_df["drill_id"].astype(str).str.lower() == d_id_lower]
+                if not rows.empty:
+                    return rows.iloc[0].to_dict()
+        elif isinstance(drills_df, list):
+            for d in drills_df:
+                if str(d.get("drill_id", "")).lower().strip() == d_id_lower:
+                    return d
+                    
+    # Try name if provided
+    if d_name:
+        d_name_lower = str(d_name).lower().strip()
+        if isinstance(drills_df, pd.DataFrame):
+            if "drill_name" in drills_df.columns:
+                rows = drills_df[drills_df["drill_name"].astype(str).str.lower() == d_name_lower]
+                if not rows.empty:
+                    return rows.iloc[0].to_dict()
+        elif isinstance(drills_df, list):
+            for d in drills_df:
+                if str(d.get("drill_name", "")).lower().strip() == d_name_lower:
+                    return d
+                    
+    # Fallback to drill_id check inside list elements in case name was passed as id
+    if d_id:
+        if isinstance(drills_df, list):
+            for d in drills_df:
+                if str(d.get("drill_name", "")).lower().strip() == d_id_lower:
+                    return d
+                    
+    return None
+
+def _drill_matches_skill(d_info: dict, skill: str) -> bool:
+    skill_lower = skill.lower().strip()
+    
+    # Check skill_category
+    cat = str(d_info.get("skill_category", "")).lower().strip()
+    if skill_lower in cat or cat in skill_lower:
+        return True
+        
+    # Check series_name
+    series = str(d_info.get("series_name", "")).lower().strip()
+    if skill_lower in series or series in skill_lower:
+        return True
+        
+    # Check tags
+    tags = str(d_info.get("tags", "")).lower().strip()
+    if skill_lower in tags:
+        return True
+        
+    # Check drill_name
+    name = str(d_info.get("drill_name", "")).lower().strip()
+    if skill_lower in name:
+        return True
+        
+    # Check fuzzy matching words (similar to Coverage logic)
+    skill_words = skill_lower.split()
+    for word in skill_words:
+        if len(word) > 3 and (word in cat or word in series or word in tags or word in name):
+            return True
+            
+    return False
+
+def calculate_skill_radar(
+    athlete_profile: dict,
+    completion_log: dict,
+    plan: dict,
+    drills_df
+) -> dict:
+    """
+    Calculate skill category scores for the Skills Radar.
+    Returns: {
+        "axes": ["Finishing", "First Touch", ...],
+        "scores": [65, 50, ...],
+        "has_data": True/False
+    }
+    """
+    if not athlete_profile:
+        athlete_profile = {}
+        
+    completions = []
+    if completion_log and isinstance(completion_log, dict):
+        completions = completion_log.get("completions", [])
+        
+    if not completions or len(completions) < 2:
+        return {
+            "axes": [],
+            "scores": [],
+            "has_data": False
+        }
+        
+    # 1. Pull focus_areas
+    focus_areas = athlete_profile.get("focus_areas", [])
+    axes = list(focus_areas)
+    
+    # 2. Extract from last 4 weeks (28 days) of completed sessions
+    today = date.today()
+    twenty_eight_days_ago = today - timedelta(days=28)
+    
+    recent_completions = []
+    for c in completions:
+        d_str = c.get("date")
+        if d_str:
+            try:
+                c_date = date.fromisoformat(d_str)
+                if c_date >= twenty_eight_days_ago:
+                    recent_completions.append(c)
+            except ValueError:
+                continue
+                
+    recent_categories = []
+    for c in recent_completions:
+        c_week = c.get("week")
+        c_day = c.get("day")
+        
+        # 1. Check drills_completed from completion log (IDs)
+        drills_completed = c.get("drills_completed", [])
+        for d_id in drills_completed:
+            d_info = _get_drill_info_by_id_or_name(d_id, None, drills_df)
+            if d_info:
+                cat = d_info.get("skill_category")
+                if cat and isinstance(cat, str) and cat.strip():
+                    cat_clean = cat.strip()
+                    if cat_clean not in recent_categories:
+                        recent_categories.append(cat_clean)
+                        
+        # 2. Check plan matching session (drill_names/IDs)
+        if plan and plan.get("weeks"):
+            for w in plan.get("weeks", []):
+                if w.get("week_number") == c_week:
+                    for s in w.get("sessions", []):
+                        if s.get("day_number") == c_day:
+                            for d in s.get("drills", []):
+                                name = d.get("drill_name")
+                                d_id = d.get("drill_id")
+                                d_info = _get_drill_info_by_id_or_name(d_id, name, drills_df)
+                                if d_info:
+                                    cat = d_info.get("skill_category")
+                                    if cat and isinstance(cat, str) and cat.strip():
+                                        cat_clean = cat.strip()
+                                        if cat_clean not in recent_categories:
+                                            recent_categories.append(cat_clean)
+                                            
+    for cat in recent_categories:
+        if len(axes) >= 6:
+            break
+        if not any(a.lower() == cat.lower() for a in axes):
+            axes.append(cat)
+            
+    # 3. Positional defaults if fewer than 4 axes
+    if len(axes) < 4:
+        pos = str(athlete_profile.get("position", "")).lower().strip()
+        if "striker" in pos or "forward" in pos:
+            defaults = ["Finishing", "Movement", "First Touch"]
+        elif "winger" in pos:
+            defaults = ["Dribbling", "Crossing", "Speed"]
+        elif "midfielder" in pos or "midfield" in pos:
+            defaults = ["Passing", "Pressing", "Ball Control"]
+        elif "center back" in pos or "cb" in pos or "defender" in pos:
+            defaults = ["Defending", "Aerial", "Distribution"]
+        elif "full back" in pos or "fb" in pos or "fullback" in pos:
+            defaults = ["Defending", "Overlapping", "Crossing"]
+        elif "goalkeeper" in pos or "gk" in pos or "keeper" in pos:
+            defaults = ["Shot Stopping", "Distribution", "Positioning"]
+        else:
+            defaults = ["Finishing", "Movement", "First Touch"]
+            
+        for d in defaults:
+            if len(axes) >= 4:
+                break
+            if not any(a.lower() == d.lower() for a in axes):
+                axes.append(d)
+                
+    # Calculate scores
+    scores = []
+    for axis in axes:
+        matching_drills_count = 0
+        for c in recent_completions:
+            session_drills = []
+            session_drill_ids_or_names = set()
+            
+            # IDs
+            for d_id in c.get("drills_completed", []):
+                if d_id not in session_drill_ids_or_names:
+                    d_info = _get_drill_info_by_id_or_name(d_id, None, drills_df)
+                    if d_info:
+                        session_drills.append(d_info)
+                        session_drill_ids_or_names.add(d_id)
+                        
+            # Plan details
+            c_week = c.get("week")
+            c_day = c.get("day")
+            if plan and plan.get("weeks"):
+                for w in plan.get("weeks", []):
+                    if w.get("week_number") == c_week:
+                        for s in w.get("sessions", []):
+                            if s.get("day_number") == c_day:
+                                for d in s.get("drills", []):
+                                    name = d.get("drill_name")
+                                    d_id = d.get("drill_id")
+                                    identifier = d_id or name
+                                    if identifier and identifier not in session_drill_ids_or_names:
+                                        d_info = _get_drill_info_by_id_or_name(d_id, name, drills_df)
+                                        if d_info:
+                                            session_drills.append(d_info)
+                                            session_drill_ids_or_names.add(identifier)
+                                            
+            for d_info in session_drills:
+                if _drill_matches_skill(d_info, axis):
+                    matching_drills_count += 1
+                    
+        if matching_drills_count == 0:
+            score = 20
+        else:
+            score = matching_drills_count * 15
+            
+        is_focus = any(fa.lower() == axis.lower() for fa in focus_areas)
+        if is_focus:
+            score += 10
+            
+        score = min(100, score)
+        scores.append(score)
+        
+    return {
+        "axes": axes,
+        "scores": scores,
+        "has_data": True
+    }
 
 def calculate_rrs(athlete_profile: dict, completion_log: dict,
                   drills_df, plan: dict) -> dict:
