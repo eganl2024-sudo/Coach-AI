@@ -346,10 +346,23 @@ function drawFieldBackdrop() {
     ctx.arc(fx(11), fy(34), 3, 0, Math.PI*2);
     ctx.fill();
 
-    // 9. LEFT penalty arc:
-    ctx.beginPath();
-    ctx.arc(fx(11), fy(34), fh(9.15), -0.75, 0.75);
-    ctx.stroke();
+    // 9. LEFT penalty arc — elliptical, connects to box edge
+    {
+      const arcCX = fx(11);
+      const arcCY = fy(34);
+      const arcRX = fw(9.15);  // horizontal radius
+      const arcRY = fh(9.15);  // vertical radius
+      const boxRightX = 30 + fw(16.5);
+      const cosA = (boxRightX - arcCX) / arcRX;
+      const arcA = Math.acos(Math.min(1, Math.max(-1, cosA)));
+      ctx.save();
+      ctx.translate(arcCX, arcCY);
+      ctx.scale(1, arcRY / arcRX);
+      ctx.beginPath();
+      ctx.arc(0, 0, arcRX, -arcA, arcA);
+      ctx.restore();
+      ctx.stroke();
+    }
 
     // 10. RIGHT penalty box (mirrored: starts at 105-16.5 = 88.5m):
     ctx.strokeRect(fx(88.5), fy((68-40.32)/2), fw(16.5), fh(40.32));
@@ -366,10 +379,23 @@ function drawFieldBackdrop() {
     ctx.arc(fx(94), fy(34), 3, 0, Math.PI*2);
     ctx.fill();
 
-    // 14. RIGHT penalty arc:
-    ctx.beginPath();
-    ctx.arc(fx(94), fy(34), fh(9.15), Math.PI-0.75, Math.PI+0.75);
-    ctx.stroke();
+    // 14. RIGHT penalty arc — elliptical, connects to box edge
+    {
+      const arcCX = fx(94);
+      const arcCY = fy(34);
+      const arcRX = fw(9.15);
+      const arcRY = fh(9.15);
+      const boxLeftX = fx(88.5);
+      const cosA = (arcCX - boxLeftX) / arcRX;
+      const arcA = Math.acos(Math.min(1, Math.max(-1, cosA)));
+      ctx.save();
+      ctx.translate(arcCX, arcCY);
+      ctx.scale(1, arcRY / arcRX);
+      ctx.beginPath();
+      ctx.arc(0, 0, arcRX, Math.PI - arcA, Math.PI + arcA);
+      ctx.restore();
+      ctx.stroke();
+    }
 
   } else if (activeLayout === 'half') {
     // Outer boundary
@@ -446,10 +472,26 @@ function drawFieldBackdrop() {
     ctx.arc(pspotX, pspotY, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    // 6. Penalty arc — 9.15m radius, portion outside the box
-    // Arc opens to the right (away from goal line)
+    // 6. Penalty arc — the D shape outside the penalty box
+    // Use ctx.save/restore + scale to draw an elliptical arc
+    // that respects the different horizontal/vertical scales
+    const arcCenterX = pspotX;  // ax(11)
+    const arcCenterY = pspotY;  // ay(34)
+    const arcRadiusX = aw(9.15);  // horizontal radius in px
+    const arcRadiusY = ah(9.15);  // vertical radius in px
+    const boxEdgeX = 30 + aw(16.5);  // right edge of penalty box
+
+    // Calculate angle where ellipse meets the box edge
+    // (boxEdgeX - arcCenterX) / arcRadiusX = cos(angle)
+    const cosAngle = (boxEdgeX - arcCenterX) / arcRadiusX;
+    const arcAngle = Math.acos(Math.min(1, Math.max(-1, cosAngle)));
+
+    ctx.save();
+    ctx.translate(arcCenterX, arcCenterY);
+    ctx.scale(1, arcRadiusY / arcRadiusX);
     ctx.beginPath();
-    ctx.arc(pspotX, pspotY, ah(9.15), -0.72, 0.72);
+    ctx.arc(0, 0, arcRadiusX, -arcAngle, arcAngle);
+    ctx.restore();
     ctx.stroke();
 
     // 7. Attacking third line at 35m (dashed)
@@ -511,6 +553,16 @@ function drawFieldBackdrop() {
     ctx.strokeStyle = 'rgba(255,255,255,0.9)';
     ctx.lineWidth = 3;
     ctx.strokeRect(30, 20, 600, 360);
+
+    // Reinforce right edge explicitly
+    ctx.beginPath();
+    ctx.moveTo(630, 20);
+    ctx.lineTo(630, 380);
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+    ctx.lineWidth = 1.5;
 
     // Reset
     ctx.strokeStyle = 'rgba(255,255,255,0.65)';
@@ -1258,28 +1310,40 @@ with tab2:
                     "Mental & Decision Making",
                     "Warmup & Cool Down",
                 ])
-                new_skill_cat = st.selectbox("Skill Category", [
-                    "Technical",
-                    "Finishing",
-                    "Dribbling",
-                    "Passing",
-                    "Defending",
-                    "Goalkeeping",
-                    "Fitness",
-                    "Speed",
-                ])
                 new_difficulty = st.selectbox("Difficulty", ["beginner", "intermediate", "advanced"])
                 new_intensity = st.selectbox("Intensity", ["low", "medium", "high"])
                 new_duration = st.number_input("Duration (minutes)", min_value=1, max_value=120, value=10)
                 new_p_min = st.number_input("Min Players", min_value=1, max_value=50, value=2)
                 new_p_max = st.number_input("Max Players", min_value=1, max_value=50, value=4)
             with col2:
+                new_video_url = st.text_input(
+                    "YouTube URL (optional)",
+                    placeholder="https://www.youtube.com/watch?v=..."
+                )
                 new_desc = st.text_area("Description")
                 new_setup = st.text_area("Setup Instructions")
-                new_equip = st.text_input("Equipment Required", value="Ball, Cones")
+                new_equip_list = st.multiselect(
+                    "Equipment Required",
+                    ["Ball", "Cones", "Goal", "Rebounder",
+                     "Agility Ladder", "Poles/Sticks", "Bibs",
+                     "Mannequin", "Speed Rings", "Mini Goals",
+                     "Resistance Band", "None"],
+                    default=["Ball", "Cones"]
+                )
+                new_equip = ", ".join(new_equip_list)
                 new_coaching = st.text_area("Coaching Points")
                 new_mistakes = st.text_area("Common Mistakes")
-                new_tags = st.text_input("Tags (separated by |)", placeholder="1v1|dribbling|attacking")
+                new_tags_list = st.multiselect(
+                    "Tags",
+                    ["1v1", "dribbling", "passing", "finishing",
+                     "first touch", "weak foot", "shooting",
+                     "defending", "heading", "crossing", "speed",
+                     "agility", "strength", "goalkeeping",
+                     "ball mastery", "transition", "pressing",
+                     "movement", "warmup", "solo"],
+                    default=[]
+                )
+                new_tags = "|".join(new_tags_list)
             
             submitted_new = st.form_submit_button("➕ Create Drill", type="primary", use_container_width=True)
             
@@ -1299,7 +1363,6 @@ with tab2:
                         "drill_id": clean_id,
                         "drill_name": clean_name,
                         "category": new_cat,
-                        "skill_category": new_skill_cat,
                         "difficulty": new_difficulty,
                         "intensity": new_intensity,
                         "duration_minutes": str(new_duration),
@@ -1311,7 +1374,30 @@ with tab2:
                         "coaching_points": new_coaching,
                         "common_mistakes": new_mistakes,
                         "tags": new_tags,
+                        "video_url": new_video_url,
+                        "video_status": "Filmed" if new_video_url.strip() else "Not Filmed",
                     })
+                    # Map category to skill_category for RRS radar matching
+                    skill_cat_map = {
+                        "Ball Mastery": "Technical",
+                        "First Touch": "Technical",
+                        "Dribbling & Moves": "Dribbling",
+                        "Passing & Receiving": "Passing",
+                        "Finishing": "Finishing",
+                        "Shooting Technique": "Finishing",
+                        "1v1 Attacking": "Dribbling",
+                        "1v1 Defending": "Defending",
+                        "Weak Foot": "Technical",
+                        "Aerial & Headers": "Technical",
+                        "Speed & Agility": "Speed",
+                        "Strength & Fitness": "Fitness",
+                        "Goalkeeping": "Goalkeeping",
+                        "Mental & Decision Making": "Technical",
+                        "Warmup & Cool Down": "Fitness",
+                    }
+                    new_row_data["skill_category"] = skill_cat_map.get(
+                        new_cat, "Technical"
+                    )
                     # Make sure all columns in the DataFrame are strings
                     for k, v in new_row_data.items():
                         new_row_data[k] = str(v) if v is not None else ""
