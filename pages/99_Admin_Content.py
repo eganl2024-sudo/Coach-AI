@@ -985,12 +985,7 @@ with tab1:
                         value=row.get("diagram_url", ""),
                         key=f"diag_{drill_id}"
                     )
-                    st.markdown(
-                        "[🎨 Open Excalidraw →]"
-                        "(https://excalidraw.com) "
-                        "Draw schematic, export PNG, host on "
-                        "Imgur or GitHub raw, paste URL above."
-                    )
+                    st.caption("Use the Schematic Painter tab to draw and export a diagram for this drill.")
 
                 submitted = st.form_submit_button(
                     "💾 Save Changes", type="primary",
