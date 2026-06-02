@@ -401,66 +401,91 @@ function drawFieldBackdrop() {
     ctx.stroke();
 
   } else if (activeLayout === 'attacking') {
-    const scXa = 600/42, scYa = 360/68;
-    const ax = (m) => 30 + m * scXa;
-    const ay = (m) => 20 + m * scYa;
-    const aw = (m) => m * scXa;
-    const ah = (m) => m * scYa;
+    // Scale: 42m deep (left→right) × 68m wide (top→bottom)
+    // mapped to 600px × 360px drawable area
+    const scXa = 600 / 42;  // px per metre, horizontal
+    const scYa = 360 / 68;  // px per metre, vertical
+    const ax = (m) => 30 + m * scXa;   // metres from left edge
+    const ay = (m) => 20 + m * scYa;   // metres from top edge
+    const aw = (m) => m * scXa;         // horizontal distance
+    const ah = (m) => m * scYa;         // vertical distance
 
-    // 1. Outer boundary:
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+    ctx.lineWidth = 1.5;
+
+    // 1. Outer boundary
     ctx.strokeRect(30, 20, 600, 360);
 
-    // 2. Penalty box (16.5m deep × 40.32m wide, centered):
-    ctx.strokeRect(30, ay((68-40.32)/2), aw(16.5), ah(40.32));
+    // 2. Penalty box
+    // 16.5m deep from goal line (horizontal), 40.32m wide (vertical)
+    // Centered on pitch (pitch is 68m, box is 40.32m wide)
+    const boxLeft   = 30;
+    const boxTop    = ay((68 - 40.32) / 2);
+    const boxWidth  = aw(16.5);          // 94px horizontal depth
+    const boxHeight = ah(40.32);         // 213px vertical width
+    ctx.strokeRect(boxLeft, boxTop, boxWidth, boxHeight);
 
-    // 3. 6-yard box (5.5m deep × 18.32m wide, centered):
-    ctx.strokeRect(30, ay((68-18.32)/2), aw(5.5), ah(18.32));
+    // 3. 6-yard box
+    const s6Left   = 30;
+    const s6Top    = ay((68 - 18.32) / 2);
+    const s6Width  = aw(5.5);            // 31px horizontal
+    const s6Height = ah(18.32);          // 97px vertical
+    ctx.strokeRect(s6Left, s6Top, s6Width, s6Height);
 
-    // 4. Goal (2.44m deep × 7.32m wide, off left edge):
-    ctx.strokeRect(30 - aw(2.44), ay((68-7.32)/2), aw(2.44), ah(7.32));
+    // 4. Goal (extends left off canvas edge, 7.32m wide vertically)
+    const goalTop    = ay((68 - 7.32) / 2);
+    const goalHeight = ah(7.32);         // 39px
+    const goalDepth  = aw(2.44);         // 14px off left edge
+    ctx.strokeRect(30 - goalDepth, goalTop, goalDepth, goalHeight);
 
-    // 5. Penalty spot (11m from goal line, center of pitch):
+    // 5. Penalty spot at 11m from goal line, center of pitch
+    const pspotX = ax(11);
+    const pspotY = ay(34);
     ctx.fillStyle = 'rgba(255,255,255,0.65)';
     ctx.beginPath();
-    ctx.arc(ax(11), ay(34), 3, 0, Math.PI*2);
+    ctx.arc(pspotX, pspotY, 3, 0, Math.PI * 2);
     ctx.fill();
 
-    // 6. Penalty arc (9.15m radius, only portion outside the box):
+    // 6. Penalty arc — 9.15m radius, portion outside the box
+    // Arc opens to the right (away from goal line)
     ctx.beginPath();
-    ctx.arc(ax(11), ay(34), ah(9.15), -0.72, 0.72);
+    ctx.arc(pspotX, pspotY, ah(9.15), -0.72, 0.72);
     ctx.stroke();
 
-    // 7. Attacking third line (dashed, at 35m from left = 1/3 mark):
+    // 7. Attacking third line at 35m (dashed)
     const thirdX = ax(35);
     ctx.strokeStyle = 'rgba(255,255,255,0.28)';
     ctx.setLineDash([6, 5]);
     ctx.beginPath();
-    ctx.moveTo(thirdX, 20); ctx.lineTo(thirdX, 380);
-    ctx.stroke(); ctx.setLineDash([]);
+    ctx.moveTo(thirdX, 20);
+    ctx.lineTo(thirdX, 380);
+    ctx.stroke();
+    ctx.setLineDash([]);
     ctx.strokeStyle = 'rgba(255,255,255,0.65)';
 
-    // 8. Horizontal channel lines (divide pitch width into thirds):
+    // 8. Horizontal channel lines (left channel, half-space, centre)
     ctx.strokeStyle = 'rgba(255,255,255,0.18)';
-    ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
-    [68/3, 68*2/3].forEach(m => {
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 5]);
+    [68 / 3, (68 * 2) / 3].forEach(m => {
       ctx.beginPath();
-      ctx.moveTo(30, ay(m)); ctx.lineTo(630, ay(m));
+      ctx.moveTo(30, ay(m));
+      ctx.lineTo(630, ay(m));
       ctx.stroke();
     });
-    ctx.setLineDash([]); ctx.lineWidth = 1.5;
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1.5;
     ctx.strokeStyle = 'rgba(255,255,255,0.65)';
 
   } else if (activeLayout === 'grid') {
-    // 1. Strong outer boundary (2px):
-    ctx.lineWidth = 2;
-    ctx.strokeRect(30, 20, 600, 360);
-    ctx.lineWidth = 1.5;
-
-    // 2. Grid cells — 10 columns × 6 rows (60px × 60px each):
+    // Interior grid lines — subtle
     const cols = 10, rows = 6;
-    const cw = 600/cols, ch = 360/rows;
-    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    const cw = 600 / cols;   // 60px per column
+    const ch = 360 / rows;   // 60px per row
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.2)';
     ctx.lineWidth = 1;
+
     for (let i = 1; i < cols; i++) {
       ctx.beginPath();
       ctx.moveTo(30 + i * cw, 20);
@@ -473,8 +498,23 @@ function drawFieldBackdrop() {
       ctx.lineTo(630, 20 + j * ch);
       ctx.stroke();
     }
+
+    // Emphasized center crosshair
+    ctx.strokeStyle = 'rgba(255,255,255,0.4)';
     ctx.lineWidth = 1.5;
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.55)';
+    ctx.beginPath();
+    ctx.moveTo(330, 20); ctx.lineTo(330, 380); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(30, 200); ctx.lineTo(630, 200); ctx.stroke();
+
+    // Strong outer boundary — drawn LAST so it sits on top
+    ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+    ctx.lineWidth = 3;
+    ctx.strokeRect(30, 20, 600, 360);
+
+    // Reset
+    ctx.strokeStyle = 'rgba(255,255,255,0.65)';
+    ctx.lineWidth = 1.5;
   }
 }
 
@@ -1201,8 +1241,33 @@ with tab2:
             with col1:
                 new_id = st.text_input("Drill ID (unique identifier)", placeholder="e.g. TECH_010")
                 new_name = st.text_input("Drill Name", placeholder="e.g. 1v1 Goal Attack")
-                new_cat = st.selectbox("Category", ["Warmup", "Technical", "Tactical", "Physical", "Game Application", "Cool Down"])
-                new_skill_cat = st.selectbox("Skill Category", ["Technical", "Tactical", "Physical", "Mental"])
+                new_cat = st.selectbox("Category", [
+                    "Ball Mastery",
+                    "First Touch",
+                    "Dribbling & Moves",
+                    "Passing & Receiving",
+                    "Finishing",
+                    "Shooting Technique",
+                    "1v1 Attacking",
+                    "1v1 Defending",
+                    "Weak Foot",
+                    "Aerial & Headers",
+                    "Speed & Agility",
+                    "Strength & Fitness",
+                    "Goalkeeping",
+                    "Mental & Decision Making",
+                    "Warmup & Cool Down",
+                ])
+                new_skill_cat = st.selectbox("Skill Category", [
+                    "Technical",
+                    "Finishing",
+                    "Dribbling",
+                    "Passing",
+                    "Defending",
+                    "Goalkeeping",
+                    "Fitness",
+                    "Speed",
+                ])
                 new_difficulty = st.selectbox("Difficulty", ["beginner", "intermediate", "advanced"])
                 new_intensity = st.selectbox("Intensity", ["low", "medium", "high"])
                 new_duration = st.number_input("Duration (minutes)", min_value=1, max_value=120, value=10)
@@ -1287,16 +1352,31 @@ with tab2:
     drill_name = drill_row.get("drill_name", "").lower()
     focus_tags = drill_row.get("focus_tags", "").lower()
 
-    if "tactical" in skill_category:
+    cat = skill_category
+    if any(w in cat for w in
+           ["finish", "shoot", "1v1 attack", "crossing"]):
+        default_layout = "attacking"
+    elif any(w in cat for w in
+             ["pass", "receiv", "tactical", "defend",
+              "1v1 def"]):
         default_layout = "half"
-    elif "physical" in skill_category:
-        default_layout = "grid"
-    elif "mental" in skill_category:
+    elif any(w in cat for w in
+             ["speed", "agility", "fitness", "strength",
+              "warmup", "cool"]):
         default_layout = "open"
+    elif any(w in cat for w in
+             ["ball master", "dribbl", "move", "weak foot",
+              "touch", "mental"]):
+        default_layout = "open"
+    elif "goalkeep" in cat:
+        default_layout = "half"
     else:
-        default_layout = "full"
+        default_layout = "open"
 
-    if any(kw in drill_name or kw in focus_tags for kw in ["shoot", "finish", "attacking", "goal"]):
+    # Name/tag override
+    if any(kw in drill_name or kw in focus_tags
+           for kw in ["finish", "shoot", "cross",
+                      "1v1 attack", "goal"]):
         default_layout = "attacking"
 
     # Inject the selected drill ID and default layout into the HTML
