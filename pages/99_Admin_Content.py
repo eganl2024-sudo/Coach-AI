@@ -1175,14 +1175,96 @@ with tab2:
     # Drill selector
     drill_names = [f"{row['drill_id']} — {row['drill_name']}"
                    for _, row in df.iterrows()]
+
+    default_select_idx = 0
+    if "newly_created_drill_id" in st.session_state:
+        target_id = st.session_state.newly_created_drill_id
+        matching_indices = df.index[df["drill_id"] == target_id].tolist()
+        if matching_indices:
+            default_select_idx = matching_indices[0]
+        # Remove it from session state so it doesn't stick forever
+        del st.session_state.newly_created_drill_id
+
     selected_idx = st.selectbox(
         "Select drill to build schematic for",
         range(len(drill_names)),
+        index=default_select_idx,
         format_func=lambda i: drill_names[i],
         key="canvas_drill_select"
     )
     selected_drill_id = df.iloc[selected_idx]["drill_id"]
     drill_row = df.iloc[selected_idx]
+
+    with st.expander("➕ Create a new drill instead", expanded=False):
+        with st.form("create_new_drill_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                new_id = st.text_input("Drill ID (unique identifier)", placeholder="e.g. TECH_010")
+                new_name = st.text_input("Drill Name", placeholder="e.g. 1v1 Goal Attack")
+                new_cat = st.selectbox("Category", ["Warmup", "Technical", "Tactical", "Physical", "Game Application", "Cool Down"])
+                new_skill_cat = st.selectbox("Skill Category", ["Technical", "Tactical", "Physical", "Mental"])
+                new_difficulty = st.selectbox("Difficulty", ["beginner", "intermediate", "advanced"])
+                new_intensity = st.selectbox("Intensity", ["low", "medium", "high"])
+                new_duration = st.number_input("Duration (minutes)", min_value=1, max_value=120, value=10)
+                new_p_min = st.number_input("Min Players", min_value=1, max_value=50, value=2)
+                new_p_max = st.number_input("Max Players", min_value=1, max_value=50, value=4)
+            with col2:
+                new_desc = st.text_area("Description")
+                new_setup = st.text_area("Setup Instructions")
+                new_equip = st.text_input("Equipment Required", value="Ball, Cones")
+                new_coaching = st.text_area("Coaching Points")
+                new_mistakes = st.text_area("Common Mistakes")
+                new_tags = st.text_input("Tags (separated by |)", placeholder="1v1|dribbling|attacking")
+            
+            submitted_new = st.form_submit_button("➕ Create Drill", type="primary", use_container_width=True)
+            
+            if submitted_new:
+                clean_id = new_id.strip().upper()
+                clean_name = new_name.strip()
+                if not clean_id:
+                    st.error("❌ Drill ID cannot be empty.")
+                elif not clean_name:
+                    st.error("❌ Drill Name cannot be empty.")
+                elif clean_id in df["drill_id"].values:
+                    st.error(f"❌ Drill ID '{clean_id}' already exists.")
+                else:
+                    from data_loader import DRILL_DEFAULTS
+                    new_row_data = DRILL_DEFAULTS.copy()
+                    new_row_data.update({
+                        "drill_id": clean_id,
+                        "drill_name": clean_name,
+                        "category": new_cat,
+                        "skill_category": new_skill_cat,
+                        "difficulty": new_difficulty,
+                        "intensity": new_intensity,
+                        "duration_minutes": str(new_duration),
+                        "players_min": str(new_p_min),
+                        "players_max": str(new_p_max),
+                        "description": new_desc,
+                        "setup_data": new_setup,
+                        "equipment": new_equip,
+                        "coaching_points": new_coaching,
+                        "common_mistakes": new_mistakes,
+                        "tags": new_tags,
+                    })
+                    # Make sure all columns in the DataFrame are strings
+                    for k, v in new_row_data.items():
+                        new_row_data[k] = str(v) if v is not None else ""
+                    
+                    new_df_row = pd.DataFrame([new_row_data])
+                    new_df_row = new_df_row[df.columns]
+                    
+                    df_updated = pd.concat([df, new_df_row], ignore_index=True)
+                    df_updated.to_csv(CSV_PATH, index=False)
+                    
+                    # Mirror to demo user sandbox if it exists
+                    demo_csv = Path("data/production/users/demo/drill_library.csv")
+                    if demo_csv.exists():
+                        df_updated.to_csv(demo_csv, index=False)
+                        
+                    st.session_state.newly_created_drill_id = clean_id
+                    st.session_state.admin_success_msg = f"✅ Drill '{clean_id}' successfully created!"
+                    st.rerun()
 
     # Show existing schematic if one exists
     existing_url = drill_row.get("diagram_url", "").strip()
