@@ -140,7 +140,7 @@ SCHEMATIC_HTML = """
     <button id="lbtn-open" class="lbtn" onclick="setLayout('open')">Open Space</button>
     <button id="lbtn-half" class="lbtn" onclick="setLayout('half')">Half Field</button>
     <button id="lbtn-attacking" class="lbtn" onclick="setLayout('attacking')">Attacking Third</button>
-    <button id="lbtn-full" class="lbtn active" onclick="setLayout('full')">Full Field</button>
+    <button id="lbtn-full" class="lbtn" onclick='setLayout("full")'>Full Field</button>
     <button id="lbtn-grid" class="lbtn" onclick="setLayout('grid')">Grid</button>
   </div>
 </div>
@@ -220,7 +220,7 @@ let zoneStartPoint = null;
 let isDrawingZone = false;
 
 window.onload = function() {
-  draw();
+  setLayout('full');
 };
 
 function saveHistory() {
@@ -355,51 +355,68 @@ function drawFieldBackdrop() {
     ctx.stroke();
 
   } else if (activeLayout === 'half') {
-    // Outer boundary: left boundary to center line
-    ctx.strokeRect(60, 20, 270, 360);
+    // Outer boundary
+    ctx.strokeRect(30, 20, 590, 360);
 
-    // Center circle (left half)
-    ctx.beginPath();
-    ctx.arc(330, 200, 50, Math.PI/2, 3*Math.PI/2);
-    ctx.stroke();
+    // Goal (extends left of x=30)
+    ctx.strokeRect(12, 175, 18, 50);
 
-    // Left penalty box
-    ctx.strokeRect(60, 155, 90, 90);
+    // Penalty box
+    ctx.strokeRect(30, 115, 130, 170);
 
-    // Left 6-yard box
-    ctx.strokeRect(60, 180, 35, 40);
+    // 6-yard box
+    ctx.strokeRect(30, 160, 48, 80);
 
-    // Left penalty spot
+    // Penalty spot
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.beginPath();
-    ctx.arc(120, 200, 3, 0, 2 * Math.PI);
+    ctx.arc(118, 200, 3, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Left penalty arc
+    // Penalty arc
     ctx.beginPath();
-    ctx.arc(120, 200, 50, -0.927, 0.927);
+    ctx.arc(118, 200, 55, -0.75, 0.75);
+    ctx.stroke();
+
+    // Center arc hint at right edge
+    ctx.beginPath();
+    ctx.arc(620, 200, 55, Math.PI * 0.45, Math.PI * 1.55);
     ctx.stroke();
 
   } else if (activeLayout === 'attacking') {
-    // Outer boundary of attacking third: left boundary to third line (x = 240)
-    ctx.strokeRect(60, 20, 180, 360);
+    // Outer boundary
+    ctx.strokeRect(20, 15, 620, 370);
 
-    // Left penalty box
-    ctx.strokeRect(60, 155, 90, 90);
+    // Goal (on left)
+    ctx.strokeRect(2, 155, 18, 90);
 
-    // Left 6-yard box
-    ctx.strokeRect(60, 180, 35, 40);
+    // Penalty box
+    ctx.strokeRect(20, 65, 440, 270);
 
-    // Left penalty spot
+    // 6-yard box
+    ctx.strokeRect(20, 120, 120, 160);
+
+    // Penalty spot
     ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
     ctx.beginPath();
-    ctx.arc(120, 200, 3, 0, 2 * Math.PI);
+    ctx.arc(196, 200, 3, 0, 2 * Math.PI);
     ctx.fill();
 
-    // Left penalty arc
+    // Penalty arc
     ctx.beginPath();
-    ctx.arc(120, 200, 50, -0.927, 0.927);
+    ctx.arc(196, 200, 65, -0.7, 0.7);
     ctx.stroke();
+
+    // Subtle channel lines at x=167 and x=313 (dashed, 0.2 opacity)
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.moveTo(167, 15);
+    ctx.lineTo(167, 385);
+    ctx.moveTo(313, 15);
+    ctx.lineTo(313, 385);
+    ctx.stroke();
+    ctx.setLineDash([]);
 
   } else if (activeLayout === 'grid') {
     // Outer boundary
@@ -1146,9 +1163,28 @@ with tab2:
         "to link it to this drill."
     )
 
-    # Inject the selected drill ID into the HTML
+    # Default layout logic based on skill_category and focus
+    skill_category = drill_row.get("skill_category", "").lower().strip()
+    drill_name = drill_row.get("drill_name", "").lower()
+    focus_tags = drill_row.get("focus_tags", "").lower()
+
+    if "tactical" in skill_category:
+        default_layout = "half"
+    elif "physical" in skill_category:
+        default_layout = "grid"
+    elif "mental" in skill_category:
+        default_layout = "open"
+    else:
+        default_layout = "full"
+
+    if any(kw in drill_name or kw in focus_tags for kw in ["shoot", "finish", "attacking", "goal"]):
+        default_layout = "attacking"
+
+    # Inject the selected drill ID and default layout into the HTML
     html_with_drill = SCHEMATIC_HTML.replace(
         '__DRILL_ID__', selected_drill_id
+    ).replace(
+        "setLayout('full')", f"setLayout('{default_layout}')"
     )
     st.components.v1.html(html_with_drill, height=560,
                           scrolling=False)
