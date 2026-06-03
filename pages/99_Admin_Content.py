@@ -58,6 +58,37 @@ if "admin_success_msg" in st.session_state:
 CSV_PATH = Path("data/production/drill_library.csv")
 df = pd.read_csv(CSV_PATH, dtype=str).fillna("")
 
+
+def normalize_yt_url(url: str) -> str:
+    """
+    Convert any YouTube URL format to a standard
+    watch?v= URL that st.video() can embed.
+
+    Handles:
+      https://youtube.com/shorts/VIDEO_ID
+      https://www.youtube.com/shorts/VIDEO_ID
+      https://youtu.be/VIDEO_ID
+      https://www.youtube.com/watch?v=VIDEO_ID  (already correct)
+      https://youtube.com/watch?v=VIDEO_ID      (already correct)
+    """
+    if not url:
+        return url
+    url = url.strip()
+
+    # Shorts: youtube.com/shorts/VIDEO_ID
+    if "youtube.com/shorts/" in url:
+        video_id = url.split("/shorts/")[1].split("?")[0]
+        return f"https://www.youtube.com/watch?v={video_id}"
+
+    # Short link: youtu.be/VIDEO_ID
+    if "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[1].split("?")[0]
+        return f"https://www.youtube.com/watch?v={video_id}"
+
+    # Already a watch URL — return as-is
+    return url
+
+
 SCHEMATIC_HTML = """
 <!DOCTYPE html>
 <html>
@@ -457,7 +488,7 @@ with tab1:
                     st.caption("Use the Schematic Painter tab to draw and export a diagram for this drill.")
                 if st.form_submit_button("💾 Save Changes",type="primary",use_container_width=True):
                     idx=df.index[df["drill_id"]==did][0]
-                    df.at[idx,"video_url"]=nu;df.at[idx,"video_status"]=ns
+                    df.at[idx,"video_url"]=normalize_yt_url(nu);df.at[idx,"video_status"]=ns
                     df.at[idx,"beta_ready"]=str(nb);df.at[idx,"filming_notes"]=nn
                     df.at[idx,"diagram_url"]=nd
                     df.at[idx,"filming_date"]=datetime.date.today().isoformat() if ns=="Filmed" else row.get("filming_date","")
@@ -510,7 +541,7 @@ with tab2:
                     from data_loader import DRILL_DEFAULTS
                     nr=DRILL_DEFAULTS.copy()
                     scm={"Ball Mastery":"Technical","First Touch":"Technical","Dribbling & Moves":"Dribbling","Passing & Receiving":"Passing","Finishing":"Finishing","Shooting Technique":"Finishing","1v1 Attacking":"Dribbling","1v1 Defending":"Defending","Weak Foot":"Technical","Aerial & Headers":"Technical","Speed & Agility":"Speed","Strength & Fitness":"Fitness","Goalkeeping":"Goalkeeping","Mental & Decision Making":"Technical","Warmup & Cool Down":"Fitness"}
-                    nr.update({"drill_id":cid,"drill_name":cnm,"category":nc,"difficulty":nd,"intensity":nit,"duration_minutes":str(ndu),"players_min":str(npm),"players_max":str(npx),"description":ndesc,"setup_data":nset,"equipment":", ".join(nel),"coaching_points":ncp,"common_mistakes":nmis,"tags":"|".join(ntl),"video_url":nvu,"video_status":"Filmed" if nvu.strip() else "Not Filmed","skill_category":scm.get(nc,"Technical")})
+                    nr.update({"drill_id":cid,"drill_name":cnm,"category":nc,"difficulty":nd,"intensity":nit,"duration_minutes":str(ndu),"players_min":str(npm),"players_max":str(npx),"description":ndesc,"setup_data":nset,"equipment":", ".join(nel),"coaching_points":ncp,"common_mistakes":nmis,"tags":"|".join(ntl),"video_url":normalize_yt_url(nvu),"video_status":"Filmed" if nvu.strip() else "Not Filmed","skill_category":scm.get(nc,"Technical")})
                     nr={k:str(v) if v is not None else "" for k,v in nr.items()}
                     ndfr=pd.DataFrame([nr])[df.columns]
                     dfu=pd.concat([df,ndfr],ignore_index=True)
@@ -785,7 +816,7 @@ with tab4:
                             did = sel_drill.split(" — ")[0]
                             idx = df.index[df["drill_id"] == did][0]
                             if yt_url.strip():
-                                df.at[idx,"video_url"]=yt_url.strip()
+                                df.at[idx,"video_url"]=normalize_yt_url(yt_url)
                                 df.at[idx,"video_status"]="Filmed"
                             elif drive_as_fallback:
                                 df.at[idx,"video_url"]=preview_url
