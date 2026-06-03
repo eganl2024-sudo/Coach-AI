@@ -1,5 +1,6 @@
 # ===== SECRETS (NEVER COMMIT) =====
 .streamlit/secrets.toml
+.streamlit/google_creds.json
 .env
 *.env
 
