@@ -29,7 +29,6 @@ if not st.session_state.admin_authenticated:
 st.title("🛡️ Admin Content Editor")
 st.write("Manage drill library video links, schematic diagrams, beta status, and sync changes with GitHub.")
 
-# ── Handle pending schematic save (survives rerun via session state) ──────────
 if st.session_state.get("_pending_schematic_save"):
     ps = st.session_state.pop("_pending_schematic_save")
     try:
@@ -401,12 +400,7 @@ function exportPNG(){
 </html>
 """
 
-tab1, tab2, tab3, tab4 = st.tabs([
-    "📋 Edit Drill Metadata",
-    "🎨 Schematic Painter",
-    "👁️ Drill Preview",
-    "📹 Video Queue",
-])
+tab1, tab2, tab3, tab4 = st.tabs(["📋 Edit Drill Metadata", "🎨 Schematic Painter", "👁️ Drill Preview", "📹 Video Queue"])
 
 with tab1:
     total=len(df)
@@ -432,13 +426,21 @@ with tab1:
     fdf=df.copy()
     if sel_pres!="All": fdf=fdf[fdf["presenter_id"]==sel_pres]
     if sel_stat!="All": fdf=fdf[fdf["video_status"].str.lower()==sel_stat.lower()]
-    st.subheader(f"📋 Drills ({len(fdf)})")
-    for _,row in fdf.iterrows():
-        did=row["drill_id"]
-        is_f=row.get("video_status","").lower() in ["filmed","published"]
-        lbl=f"{'✅' if is_f else '📹'} {did} — {row['drill_name']} [{row.get('video_status','Not Filmed')}]"
-        with st.expander(lbl,expanded=not is_f):
-            with st.form(key=f"form_{did}"):
+    # Drill selector dropdown — shows one drill at a time
+    st.subheader(f"📋 Drill Editor ({len(fdf)} drills)")
+    drill_labels = [f"{r['drill_id']} — {r['drill_name']}" for _,r in fdf.iterrows()]
+    sel_edit_idx = st.selectbox(
+        "Select a drill to edit",
+        range(len(drill_labels)),
+        format_func=lambda i: drill_labels[i],
+        key="edit_drill_select"
+    )
+    row = fdf.iloc[sel_edit_idx]
+    did=row["drill_id"]
+    is_f=row.get("video_status","").lower() in ["filmed","published"]
+    st.caption(f"{'✅ Filmed' if is_f else '📹 Not Filmed'} — beta_ready: {row.get('beta_ready','False')}")
+    if True:
+        with st.form(key=f"form_{did}"):
                 cur=row.get("video_url","").strip()
                 if cur: st.video(cur)
                 else: st.info("No video linked yet.")
@@ -464,6 +466,7 @@ with tab1:
                     if dc.exists(): df.to_csv(dc,index=False)
                     st.session_state.admin_success_msg=f"✅ {did} saved."
                     st.rerun()
+
 
 with tab2:
     st.header("🎨 Schematic Painter")
@@ -558,13 +561,7 @@ with tab2:
         and st.session_state.get("_uploaded_png_drill_id") == sel_did
     )
 
-    if st.button(
-        "💾 Save to Drill",
-        type="primary",
-        use_container_width=False,
-        disabled=not save_ready,
-        key="save_schematic_btn"
-    ):
+    if st.button("💾 Save to Drill",type="primary",use_container_width=False,disabled=not save_ready,key="save_schematic_btn"):
         st.session_state["_pending_schematic_save"] = {
             "drill_id": st.session_state["_uploaded_png_drill_id"],
             "bytes": st.session_state["_uploaded_png_bytes"],
@@ -649,44 +646,25 @@ with tab4:
         queue_cfg = {"drive_folder_id": "", "reviewed": []}
 
     st.subheader("📁 Google Drive Folder")
-    st.caption(
-        "Set the Google Drive folder where your filmed videos "
-        "are stored. To find a folder ID: open the folder in "
-        "Drive, the ID is the last part of the URL: "
-        "drive.google.com/drive/folders/**THIS_PART**"
-    )
+    st.caption("Set the Google Drive folder where your filmed videos are stored. To find a folder ID: open the folder in Drive, the ID is the last part of the URL: drive.google.com/drive/folders/**THIS_PART**")
 
     with st.form("drive_folder_form"):
-        folder_id_input = st.text_input(
-            "Drive Folder ID",
-            value=queue_cfg.get("drive_folder_id", ""),
-            placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74"
-        )
+        folder_id_input = st.text_input("Drive Folder ID",value=queue_cfg.get("drive_folder_id",""),placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74")
         if st.form_submit_button("💾 Save Folder ID"):
             queue_cfg["drive_folder_id"] = folder_id_input.strip()
             queue_path.write_text(json.dumps(queue_cfg, indent=2))
-            st.session_state.admin_success_msg = (
-                "✅ Drive folder saved."
-            )
+            st.session_state.admin_success_msg = "✅ Drive folder saved."
             st.rerun()
 
     folder_id = queue_cfg.get("drive_folder_id", "").strip()
 
     if not folder_id:
-        st.info(
-            "👆 Paste your Google Drive folder ID above to "
-            "start scanning for new videos."
-        )
+        st.info("👆 Paste your Google Drive folder ID above to start scanning for new videos.")
     else:
         scan_col, clear_col = st.columns([2, 1])
         with scan_col:
-            if st.button(
-                "🔍 Scan for New Videos",
-                type="primary",
-                key="scan_drive_btn"
-            ):
+            if st.button("🔍 Scan for New Videos",type="primary",key="scan_drive_btn"):
                 try:
-                    import requests
                     try:
                         from google.oauth2 import service_account
                         from googleapiclient.discovery import build
@@ -697,97 +675,51 @@ with tab4:
                                 scopes=["https://www.googleapis.com/auth/drive.readonly"]
                             )
                             service = build("drive", "v3", credentials=creds)
-                            
-                            # First, list all subfolders of the root folder_id
-                            subfolders_query = (
-                                f"'{folder_id}' in parents "
-                                f"and mimeType = 'application/vnd.google-apps.folder' "
-                                f"and trashed = false"
-                            )
-                            sf_results = (
-                                service.files()
-                                .list(
-                                    q=subfolders_query,
-                                    fields="files(id,name)",
-                                    pageSize=1000
-                                )
-                                .execute()
-                            )
+                            sf_results = service.files().list(
+                                q=(f"'{folder_id}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"),
+                                fields="files(id,name)",pageSize=1000
+                            ).execute()
                             subfolders = sf_results.get("files", [])
-                            
                             all_vids = []
                             import difflib
-                            
                             for sf in subfolders:
-                                sf_id = sf["id"]
-                                sf_name = sf["name"]
-                                
-                                # List only video files inside this subfolder (ignoring all sub-subfolders)
-                                query = (
-                                    f"'{sf_id}' in parents "
-                                    f"and mimeType contains 'video/' "
-                                    f"and trashed = false"
-                                )
-                                vids_res = (
-                                    service.files()
-                                    .list(
-                                        q=query,
-                                        fields="files(id,name,mimeType,createdTime,size,thumbnailLink,webViewLink)",
-                                        orderBy="createdTime desc",
-                                        pageSize=1000
-                                    )
-                                    .execute()
-                                )
-                                vids = vids_res.get("files", [])
-                                
-                                for vid in vids:
+                                sf_id = sf["id"]; sf_name = sf["name"]
+                                vids_res = service.files().list(
+                                    q=(f"'{sf_id}' in parents and mimeType contains 'video/' and trashed = false"),
+                                    fields="files(id,name,mimeType,createdTime,size,thumbnailLink,webViewLink)",
+                                    orderBy="createdTime desc",pageSize=1000
+                                ).execute()
+                                for vid in vids_res.get("files", []):
                                     vid["folder_name"] = sf_name
-                                    
-                                    # Extract drill ID hint from folder name
-                                    if " — " in sf_name:
-                                        drill_id_hint = sf_name.split(" — ")[0].strip()
-                                    elif " - " in sf_name:
-                                        drill_id_hint = sf_name.split(" - ")[0].strip()
-                                    else:
-                                        drill_id_hint = None
-                                        
+                                    if " — " in sf_name: drill_id_hint = sf_name.split(" — ")[0].strip()
+                                    elif " - " in sf_name: drill_id_hint = sf_name.split(" - ")[0].strip()
+                                    else: drill_id_hint = None
                                     exact_match = None
                                     if drill_id_hint:
-                                        matches = df[df["drill_id"].str.upper() == drill_id_hint.upper()]
-                                        if not matches.empty:
-                                            exact_match = matches.iloc[0]
-                                            
+                                        m = df[df["drill_id"].str.upper() == drill_id_hint.upper()]
+                                        if not m.empty: exact_match = m.iloc[0]
                                     if exact_match is not None:
                                         vid["suggested_drill_id"] = exact_match["drill_id"]
                                         vid["suggested_drill_name"] = exact_match["drill_name"]
                                     else:
-                                        # Fall back to fuzzy match on folder_name
-                                        choices = df["drill_name"].tolist()
-                                        best_matches = difflib.get_close_matches(sf_name, choices, n=1, cutoff=0.3)
-                                        if best_matches:
-                                            match_name = best_matches[0]
-                                            match_row = df[df["drill_name"] == match_name].iloc[0]
-                                            vid["suggested_drill_id"] = match_row["drill_id"]
-                                            vid["suggested_drill_name"] = match_row["drill_name"]
+                                        bm = difflib.get_close_matches(sf_name, df["drill_name"].tolist(), n=1, cutoff=0.3)
+                                        if bm:
+                                            mr = df[df["drill_name"] == bm[0]].iloc[0]
+                                            vid["suggested_drill_id"] = mr["drill_id"]
+                                            vid["suggested_drill_name"] = mr["drill_name"]
                                         else:
                                             vid["suggested_drill_id"] = None
                                             vid["suggested_drill_name"] = None
-                                            
                                     all_vids.append(vid)
-                            
                             files = all_vids
                         else:
                             files = []
                             st.warning("No Google credentials found. See setup instructions below.")
                     except ImportError:
                         files = []
-                        st.warning("google-api-python-client not installed. Run: pip install google-api-python-client google-auth")
-
+                        st.warning("google-api-python-client not installed.")
                     st.session_state["drive_scan_results"] = files
-                    st.session_state["drive_scan_time"] = (
-                        datetime.datetime.now()
-                        .strftime("%H:%M:%S")
-                    )
+                    st.session_state["drive_scan_time"] = datetime.datetime.now().strftime("%H:%M:%S")
                 except Exception as ex:
                     st.error(f"Scan failed: {ex}")
 
@@ -801,7 +733,6 @@ with tab4:
         files = st.session_state.get("drive_scan_results", [])
         reviewed_ids = queue_cfg.get("reviewed", [])
         scan_time = st.session_state.get("drive_scan_time","")
-
         pending = [f for f in files if f["id"] not in reviewed_ids]
         done = [f for f in files if f["id"] in reviewed_ids]
 
@@ -811,46 +742,33 @@ with tab4:
         if not files:
             st.info("Click 'Scan for New Videos' to check your Drive folder for new footage.")
         elif not pending:
-            st.success("✅ All videos in this folder have been reviewed. Scan again to check for new ones.")
+            st.success("✅ All videos reviewed. Scan again to check for new footage.")
         else:
             st.subheader(f"📋 Pending Review ({len(pending)} videos)")
-
             for vid_file in pending:
                 fid = vid_file["id"]
                 fname = vid_file.get("name", "Unnamed")
                 created = vid_file.get("createdTime", "")[:10]
-                size_bytes = int(vid_file.get("size", 0))
-                size_mb = round(size_bytes / 1024 / 1024, 1)
+                size_mb = round(int(vid_file.get("size", 0)) / 1024 / 1024, 1)
                 preview_url = f"https://drive.google.com/file/d/{fid}/preview"
                 view_url = vid_file.get("webViewLink", "")
 
                 with st.expander(f"📹 {fname} — {created} ({size_mb} MB)", expanded=True):
-                    vcol1, vcol2 = st.columns([3, 2])
-
+                    vcol1, vcol2 = st.columns([2, 3])
                     with vcol1:
                         thumbnail_url = vid_file.get("thumbnailLink", "")
                         if thumbnail_url:
-                            thumbnail_url = thumbnail_url.replace("=s220", "=s640")
-                            st.image(thumbnail_url, use_container_width=True)
+                            thumbnail_url = thumbnail_url.replace("=s220", "=s400")
+                            st.image(thumbnail_url, width=200)
                         else:
                             st.info("No thumbnail available.")
                         if view_url:
-                            st.link_button(
-                                "▶️ Watch in Google Drive",
-                                view_url,
-                                use_container_width=True
-                            )
-                        st.caption(
-                            f"📁 {vid_file.get('folder_name','')}  •  "
-                            f"{size_mb} MB  •  {created}"
-                        )
+                            st.link_button("▶️ Watch in Google Drive", view_url, use_container_width=True)
+                        st.caption(f"📁 {vid_file.get('folder_name','')}  •  {size_mb} MB  •  {created}")
 
                     with vcol2:
                         st.markdown("**Link to drill:**")
-                        drill_options = (
-                            ["— Select a drill —"] +
-                            [f"{r['drill_id']} — {r['drill_name']}" for _, r in df.iterrows()]
-                        )
+                        drill_options = ["— Select a drill —"] + [f"{r['drill_id']} — {r['drill_name']}" for _, r in df.iterrows()]
                         default_idx = 0
                         s_id = vid_file.get("suggested_drill_id")
                         s_name = vid_file.get("suggested_drill_name")
@@ -859,50 +777,30 @@ with tab4:
                             if target_str in drill_options:
                                 default_idx = drill_options.index(target_str)
                         sel_drill = st.selectbox("Drill", drill_options, index=default_idx, key=f"queue_drill_{fid}")
-                        yt_url = st.text_input(
-                            "YouTube URL (if already uploaded)",
-                            placeholder="https://youtube.com/watch?v=...",
-                            key=f"queue_yt_{fid}"
-                        )
-                        drive_as_fallback = st.checkbox(
-                            "Use Drive preview as temp video",
-                            value=False,
-                            key=f"queue_drive_{fid}",
-                            help="Links the Drive preview URL to the drill temporarily. Replace with YouTube URL when ready."
-                        )
-
-                        link_btn = st.button(
-                            "🔗 Link to Drill",
-                            key=f"queue_link_{fid}",
-                            type="primary",
-                            use_container_width=True,
-                            disabled=sel_drill == "— Select a drill —"
-                        )
-
-                        if link_btn:
+                        yt_url = st.text_input("YouTube URL (if already uploaded)", placeholder="https://youtube.com/watch?v=...", key=f"queue_yt_{fid}")
+                        drive_as_fallback = st.checkbox("Use Drive preview as temp video", value=False, key=f"queue_drive_{fid}", help="Links the Drive preview URL temporarily. Replace with YouTube URL when ready.")
+                        if not yt_url.strip() and not drive_as_fallback:
+                            st.caption("⚠️ Paste a YouTube URL or check 'Use Drive preview' before linking.")
+                        if st.button("🔗 Link to Drill", key=f"queue_link_{fid}", type="primary", use_container_width=True, disabled=sel_drill=="— Select a drill —"):
                             did = sel_drill.split(" — ")[0]
                             idx = df.index[df["drill_id"] == did][0]
-
                             if yt_url.strip():
-                                df.at[idx, "video_url"] = yt_url.strip()
-                                df.at[idx, "video_status"] = "Filmed"
+                                df.at[idx,"video_url"]=yt_url.strip()
+                                df.at[idx,"video_status"]="Filmed"
                             elif drive_as_fallback:
-                                df.at[idx, "video_url"] = preview_url
-                                df.at[idx, "video_status"] = "Filmed"
-
-                            df.at[idx, "filming_date"] = datetime.date.today().isoformat()
-                            df.to_csv(CSV_PATH, index=False)
-
-                            # Update demo copy if it exists
-                            demo_csv = Path("data/production/users/demo/drill_library.csv")
-                            if demo_csv.exists():
-                                df.to_csv(demo_csv, index=False)
-
+                                df.at[idx,"video_url"]=preview_url
+                                df.at[idx,"video_status"]="Filmed"
+                            else:
+                                # Mark as reviewed/noted without setting a URL
+                                df.at[idx,"filming_notes"]=(df.at[idx,"filming_notes"]+f" | Drive file: {fname}").strip(" | ")
+                            df.at[idx,"filming_date"]=datetime.date.today().isoformat()
+                            df.to_csv(CSV_PATH,index=False)
+                            dc=Path("data/production/users/demo/drill_library.csv")
+                            if dc.exists(): df.to_csv(dc,index=False)
                             if fid not in reviewed_ids:
                                 queue_cfg["reviewed"].append(fid)
-                                queue_path.write_text(json.dumps(queue_cfg, indent=2))
-
-                            st.session_state.admin_success_msg = f"✅ {fname} linked to {did}!"
+                                queue_path.write_text(json.dumps(queue_cfg,indent=2))
+                            st.session_state.admin_success_msg=f"✅ {fname} linked to {did}!"
                             st.rerun()
 
         if done:
@@ -914,25 +812,11 @@ with tab4:
         st.markdown("""
 **To connect your Google Drive folder:**
 
-**Option 1 — Service Account (recommended for Streamlit Cloud):**
-1. Go to console.cloud.google.com
-2. Create a project → Enable the Google Drive API
-3. Create a Service Account → Download JSON key
-4. Save the JSON file as `.streamlit/google_creds.json`
-5. Share your Drive filming folder with the
-   service account email address (found in the JSON)
-6. Paste the folder ID above and scan
-
-**Option 2 — Use Google Drive MCP (already connected):**
-If the Google Drive MCP connector is active in Claude,
-you can browse and search your Drive files from the
-Claude chat interface directly. Ask Claude to search
-for recently added video files in your filming folder.
-
-**Finding your folder ID:**
-Open the folder in Google Drive. The URL will look like:
-`drive.google.com/drive/folders/1BxiMVs0XRA5nFMdKvBdBZjg`
-The folder ID is the last segment after `/folders/`.
+1. Go to console.cloud.google.com → Enable the Google Drive API
+2. Create a Service Account → Download JSON key
+3. Save as `.streamlit/google_creds.json`
+4. Share your Drive filming folder with the service account email
+5. Paste the folder ID above and scan
         """)
 
 st.divider()
