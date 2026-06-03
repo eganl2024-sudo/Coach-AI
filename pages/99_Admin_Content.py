@@ -828,10 +828,22 @@ with tab4:
                     vcol1, vcol2 = st.columns([3, 2])
 
                     with vcol1:
-                        st.markdown("**Preview:**")
-                        st.components.v1.iframe(preview_url, height=240)
+                        thumbnail_url = vid_file.get("thumbnailLink", "")
+                        if thumbnail_url:
+                            thumbnail_url = thumbnail_url.replace("=s220", "=s640")
+                            st.image(thumbnail_url, use_container_width=True)
+                        else:
+                            st.info("No thumbnail available.")
                         if view_url:
-                            st.caption(f"[Open in Drive]({view_url})")
+                            st.link_button(
+                                "▶️ Watch in Google Drive",
+                                view_url,
+                                use_container_width=True
+                            )
+                        st.caption(
+                            f"📁 {vid_file.get('folder_name','')}  •  "
+                            f"{size_mb} MB  •  {created}"
+                        )
 
                     with vcol2:
                         st.markdown("**Link to drill:**")
