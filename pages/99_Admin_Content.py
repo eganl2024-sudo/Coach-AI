@@ -78,12 +78,16 @@ SCHEMATIC_HTML = """
     transition:all 0.1s ease; }
   .toolbar button:hover,.lbtn:hover { background:#2d2d2d;color:#fff; }
   .toolbar button.active,.lbtn.active { background:#1e3a8a;color:#93c5fd;border-color:#3b82f6; }
+  #btn-delete { background:#2d1515;color:#f87171;border-color:#7f1d1d; }
+  #btn-delete:hover { background:#3d1515;color:#fca5a5; }
+  #btn-delete.has-selection { background:#7f1d1d;color:#fca5a5;border-color:#ef4444; }
   .color-dot { width:14px;height:14px;border-radius:50%;border:1px solid rgba(255,255,255,0.4);
     cursor:pointer;padding:0!important;outline:none;transition:transform 0.1s ease;margin:0 2px; }
   .color-dot:hover { transform:scale(1.2); }
   .color-dot.active { transform:scale(1.3);border:2px solid #93c5fd!important;box-shadow:0 0 4px #93c5fd; }
   #schematicCanvas { display:block;margin:0 auto;border:1px solid #2e3344;
     border-radius:8px;box-shadow:0 4px 10px rgba(0,0,0,0.4); }
+  #sel-hint { font-size:10px;color:#888;margin-top:4px;text-align:center;min-height:14px; }
 </style>
 </head>
 <body>
@@ -124,19 +128,43 @@ SCHEMATIC_HTML = """
     <button class="color-dot" data-color="#CE93D8" style="background:#CE93D8" onclick="setColor('#CE93D8')"></button>
   </div>
   <div class="toolbar-section" style="margin-left:auto">
+    <button id="btn-delete" onclick="deleteSelected()" title="Delete selected element (or press Delete key)">🗑 Delete</button>
     <button onclick="undo()">Undo</button>
     <button onclick="clearCanvas()">Clear</button>
     <button style="background:#0f766e;color:#ccfbf1;border-color:#0d9488" onclick="exportPNG()">Export PNG</button>
   </div>
 </div>
 <canvas id="schematicCanvas" width="660" height="400"></canvas>
+<div id="sel-hint"></div>
 <span id="drill_id_label" style="display:none">__DRILL_ID__</span>
 <script>
 const canvas=document.getElementById('schematicCanvas');
 const ctx=canvas.getContext('2d');
+const selHint=document.getElementById('sel-hint');
+const delBtn=document.getElementById('btn-delete');
 let elements=[],history=[],activeTool='select',activeColor='#ffffff',activeLayout='full';
 let selectedElement=null,isDragging=false,dragOffsets={};
 let arrowStartPoint=null,currentMousePos={x:0,y:0},zoneStartPoint=null,isDrawingZone=false;
+
+function updateSelHint(){
+  if(selectedElement){
+    const type=selectedElement.type==='arrow'?selectedElement.arrowType+' arrow':selectedElement.type;
+    selHint.textContent='Selected: '+type+' — click Delete button or press Delete key to remove';
+    delBtn.classList.add('has-selection');
+  } else {
+    selHint.textContent='';
+    delBtn.classList.remove('has-selection');
+  }
+}
+
+function deleteSelected(){
+  if(!selectedElement) return;
+  saveHistory();
+  elements=elements.filter(el=>el.id!==selectedElement.id);
+  selectedElement=null;
+  updateSelHint();
+  draw();
+}
 
 function setLayout(layout){
   activeLayout=layout;
@@ -146,21 +174,23 @@ function setLayout(layout){
 window.onload=()=>setLayout('full');
 
 function saveHistory(){if(history.length>=40)history.shift();history.push(JSON.parse(JSON.stringify(elements)));}
-function undo(){if(history.length>0){elements=history.pop();selectedElement=null;draw();}}
-function clearCanvas(){saveHistory();elements=[];selectedElement=null;draw();}
+function undo(){if(history.length>0){elements=history.pop();selectedElement=null;updateSelHint();draw();}}
+function clearCanvas(){saveHistory();elements=[];selectedElement=null;updateSelHint();draw();}
 
 function setTool(t){
   activeTool=t;
-  document.querySelectorAll('.toolbar button').forEach(b=>{if(b.id&&b.id.startsWith('btn-'))b.classList.toggle('active',b.id==='btn-'+t);});
+  document.querySelectorAll('.toolbar button').forEach(b=>{if(b.id&&b.id.startsWith('btn-')&&b.id!=='btn-delete')b.classList.toggle('active',b.id==='btn-'+t);});
   arrowStartPoint=null;zoneStartPoint=null;isDrawingZone=false;
-  if(t!=='select')selectedElement=null;
+  if(t!=='select'){selectedElement=null;updateSelHint();}
   draw();
 }
 
 function setColor(c){
   activeColor=c;
   document.querySelectorAll('.color-dot').forEach(d=>d.classList.toggle('active',d.getAttribute('data-color').toLowerCase()===c.toLowerCase()));
-  if(selectedElement&&selectedElement.type!=='arrow'||selectedElement&&selectedElement.arrowType!=='shoot'){saveHistory();if(selectedElement)selectedElement.color=c;draw();}
+  if(selectedElement&&(selectedElement.type==='player'||selectedElement.type==='zone'||(selectedElement.type==='arrow'&&selectedElement.arrowType!=='shoot'))){
+    saveHistory();selectedElement.color=c;draw();
+  }
 }
 
 function drawFullFieldLines(){
@@ -237,18 +267,18 @@ function drawElement(el){
     ctx.strokeStyle='rgba(0,0,0,0.2)';ctx.lineWidth=1;ctx.stroke();
     ctx.fillStyle='#fff';ctx.font='bold 11px Arial';ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillText(el.number,el.x,el.y);
-    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,15,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
+    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,16,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
   }else if(el.type==='cone'){
     ctx.fillStyle='rgba(0,0,0,0.2)';ctx.beginPath();ctx.ellipse(el.x,el.y+8,10,3,0,0,2*Math.PI);ctx.fill();
     ctx.fillStyle='#FF6B35';ctx.beginPath();ctx.moveTo(el.x,el.y-11);ctx.lineTo(el.x-9,el.y+8);ctx.lineTo(el.x+9,el.y+8);ctx.closePath();ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,0.3)';ctx.lineWidth=1;ctx.stroke();
-    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,15,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
+    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,16,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
   }else if(el.type==='ball'){
     ctx.fillStyle='#fff';ctx.strokeStyle='#000';ctx.lineWidth=1;
     ctx.beginPath();ctx.arc(el.x,el.y,7,0,2*Math.PI);ctx.fill();ctx.stroke();
     ctx.fillStyle='#000';
     for(let i=0;i<5;i++){const a=(i*2*Math.PI/5)-Math.PI/2;ctx.beginPath();ctx.arc(el.x+2.5*Math.cos(a),el.y+2.5*Math.sin(a),1.8,0,2*Math.PI);ctx.fill();}
-    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,11,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
+    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(el.x,el.y,12,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
   }else if(el.type==='arrow'){
     const c=el.color;
     if(el.arrowType==='dribble'){
@@ -275,13 +305,13 @@ function drawElement(el){
       ctx.beginPath();ctx.moveTo(el.x1,el.y1);ctx.lineTo(el.x2,el.y2);ctx.stroke();ctx.setLineDash([]);
       drawArrowhead(el.x2,el.y2,Math.atan2(el.y2-el.y1,el.x2-el.x1),el.arrowType==='shoot'?'#EF5350':c,el.arrowType==='shoot'?12:10);
     }
-    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.beginPath();ctx.arc(el.x1,el.y1,5,0,2*Math.PI);ctx.stroke();ctx.beginPath();ctx.arc(el.x2,el.y2,5,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
+    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.beginPath();ctx.arc(el.x1,el.y1,6,0,2*Math.PI);ctx.stroke();ctx.beginPath();ctx.arc(el.x2,el.y2,6,0,2*Math.PI);ctx.stroke();ctx.setLineDash([]);}
   }else if(el.type==='zone'){
     const r=parseInt(el.color.slice(1,3),16),g=parseInt(el.color.slice(3,5),16),b=parseInt(el.color.slice(5,7),16);
     ctx.fillStyle=`rgba(${r},${g},${b},0.12)`;ctx.strokeStyle=`rgba(${r},${g},${b},0.5)`;
     ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
     ctx.fillRect(el.x,el.y,el.w,el.h);ctx.strokeRect(el.x,el.y,el.w,el.h);ctx.setLineDash([]);
-    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=1.5;ctx.setLineDash([3,3]);ctx.strokeRect(el.x-2,el.y-2,el.w+4,el.h+4);ctx.setLineDash([]);}
+    if(isSel){ctx.strokeStyle='#FFD54F';ctx.lineWidth=2;ctx.setLineDash([3,3]);ctx.strokeRect(el.x-2,el.y-2,el.w+4,el.h+4);ctx.setLineDash([]);}
   }
 }
 
@@ -315,7 +345,7 @@ canvas.addEventListener('mousedown',e=>{
   const r=canvas.getBoundingClientRect(),cx=e.clientX-r.left,cy=e.clientY-r.top;
   if(activeTool==='select'){const el=getAt(cx,cy);if(el){saveHistory();selectedElement=el;isDragging=true;
     if(el.type==='arrow')dragOffsets={x1:cx-el.x1,y1:cy-el.y1,x2:cx-el.x2,y2:cy-el.y2};
-    else dragOffsets={x:cx-el.x,y:cy-el.y};}else selectedElement=null;draw();
+    else dragOffsets={x:cx-el.x,y:cy-el.y};}else selectedElement=null;updateSelHint();draw();
   }else if(activeTool==='player'){saveHistory();let mx=0;elements.forEach(el=>{if(el.type==='player'&&el.number>mx)mx=el.number;});
     elements.push({type:'player',id:'p'+(mx+1)+'_'+Date.now(),x:cx,y:cy,number:mx+1,color:activeColor});draw();
   }else if(activeTool==='cone'){saveHistory();elements.push({type:'cone',id:'c'+Date.now(),x:cx,y:cy});draw();
@@ -355,7 +385,7 @@ canvas.addEventListener('mouseup',e=>{
 
 window.addEventListener('keydown',e=>{
   if((e.key==='Delete'||e.key==='Backspace')&&selectedElement){
-    saveHistory();elements=elements.filter(el=>el.id!==selectedElement.id);selectedElement=null;draw();}
+    deleteSelected();}
 });
 
 function exportPNG(){
@@ -364,14 +394,19 @@ function exportPNG(){
   const a=document.createElement('a');
   a.download=document.getElementById('drill_id_label').textContent.trim()+'.png';
   a.href=url;document.body.appendChild(a);a.click();document.body.removeChild(a);
-  selectedElement=prev;draw();
+  selectedElement=prev;updateSelHint();draw();
 }
 </script>
 </body>
 </html>
 """
 
-tab1, tab2, tab3 = st.tabs(["📋 Edit Drill Metadata", "🎨 Schematic Painter", "👁️ Drill Preview"])
+tab1, tab2, tab3, tab4 = st.tabs([
+    "📋 Edit Drill Metadata",
+    "🎨 Schematic Painter",
+    "👁️ Drill Preview",
+    "📹 Video Queue",
+])
 
 with tab1:
     total=len(df)
@@ -501,7 +536,7 @@ with tab2:
     st.info(f"🎨 Draw the schematic below. Click **Export PNG** when done — the file saves as `{sel_did}.png`. Then upload it below to save it directly to this drill.")
 
     hwd=SCHEMATIC_HTML.replace('__DRILL_ID__',sel_did).replace("setLayout('full')",f"setLayout('{dlayout}')")
-    st.components.v1.html(hwd,height=540,scrolling=False)
+    st.components.v1.html(hwd,height=560,scrolling=False)
 
     st.divider()
     st.subheader("💾 Save Schematic to Drill")
@@ -514,8 +549,6 @@ with tab2:
         help="Click Export PNG above first, then upload the downloaded file here."
     )
 
-    # Store bytes in session state as soon as file is uploaded
-    # This survives the rerun triggered by the Save button
     if uploaded is not None:
         st.session_state["_uploaded_png_bytes"] = uploaded.read()
         st.session_state["_uploaded_png_drill_id"] = sel_did
@@ -532,12 +565,10 @@ with tab2:
         disabled=not save_ready,
         key="save_schematic_btn"
     ):
-        # Store as pending — will be processed at the TOP of the next run
         st.session_state["_pending_schematic_save"] = {
             "drill_id": st.session_state["_uploaded_png_drill_id"],
             "bytes": st.session_state["_uploaded_png_bytes"],
         }
-        # Clear the cached bytes so next drill starts fresh
         del st.session_state["_uploaded_png_bytes"]
         del st.session_state["_uploaded_png_drill_id"]
         st.rerun()
@@ -608,6 +639,218 @@ with tab3:
     with qa3:
         if st.button("🎨 Edit Schematic",use_container_width=True,key="preview_go_schematic"):
             st.session_state.newly_created_drill_id=dpid;st.info("Switch to the 🎨 Schematic Painter tab — drill pre-selected.")
+
+with tab4:
+    import json
+    queue_path = Path("data/production/video_queue.json")
+    if queue_path.exists():
+        queue_cfg = json.loads(queue_path.read_text())
+    else:
+        queue_cfg = {"drive_folder_id": "", "reviewed": []}
+
+    st.subheader("📁 Google Drive Folder")
+    st.caption(
+        "Set the Google Drive folder where your filmed videos "
+        "are stored. To find a folder ID: open the folder in "
+        "Drive, the ID is the last part of the URL: "
+        "drive.google.com/drive/folders/**THIS_PART**"
+    )
+
+    with st.form("drive_folder_form"):
+        folder_id_input = st.text_input(
+            "Drive Folder ID",
+            value=queue_cfg.get("drive_folder_id", ""),
+            placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74"
+        )
+        if st.form_submit_button("💾 Save Folder ID"):
+            queue_cfg["drive_folder_id"] = folder_id_input.strip()
+            queue_path.write_text(json.dumps(queue_cfg, indent=2))
+            st.session_state.admin_success_msg = (
+                "✅ Drive folder saved."
+            )
+            st.rerun()
+
+    folder_id = queue_cfg.get("drive_folder_id", "").strip()
+
+    if not folder_id:
+        st.info(
+            "👆 Paste your Google Drive folder ID above to "
+            "start scanning for new videos."
+        )
+    else:
+        scan_col, clear_col = st.columns([2, 1])
+        with scan_col:
+            if st.button(
+                "🔍 Scan for New Videos",
+                type="primary",
+                key="scan_drive_btn"
+            ):
+                try:
+                    import requests
+                    query = (
+                        f"'{folder_id}' in parents "
+                        f"and mimeType contains 'video/' "
+                        f"and trashed = false"
+                    )
+                    try:
+                        from google.oauth2 import service_account
+                        from googleapiclient.discovery import build
+                        creds_path = Path(".streamlit/google_creds.json")
+                        if creds_path.exists():
+                            creds = service_account.Credentials.from_service_account_file(
+                                str(creds_path),
+                                scopes=["https://www.googleapis.com/auth/drive.readonly"]
+                            )
+                            service = build("drive", "v3", credentials=creds)
+                            results = (
+                                service.files()
+                                .list(
+                                    q=query,
+                                    fields="files(id,name,mimeType,createdTime,size,thumbnailLink,webViewLink)",
+                                    orderBy="createdTime desc"
+                                )
+                                .execute()
+                            )
+                            files = results.get("files", [])
+                        else:
+                            files = []
+                            st.warning("No Google credentials found. See setup instructions below.")
+                    except ImportError:
+                        files = []
+                        st.warning("google-api-python-client not installed. Run: pip install google-api-python-client google-auth")
+
+                    st.session_state["drive_scan_results"] = files
+                    st.session_state["drive_scan_time"] = (
+                        datetime.datetime.now()
+                        .strftime("%H:%M:%S")
+                    )
+                except Exception as ex:
+                    st.error(f"Scan failed: {ex}")
+
+        with clear_col:
+            if st.button("🗑 Clear Queue", key="clear_reviewed"):
+                queue_cfg["reviewed"] = []
+                queue_path.write_text(json.dumps(queue_cfg, indent=2))
+                st.session_state.pop("drive_scan_results", None)
+                st.success("Queue cleared.")
+
+        files = st.session_state.get("drive_scan_results", [])
+        reviewed_ids = queue_cfg.get("reviewed", [])
+        scan_time = st.session_state.get("drive_scan_time","")
+
+        pending = [f for f in files if f["id"] not in reviewed_ids]
+        done = [f for f in files if f["id"] in reviewed_ids]
+
+        if scan_time:
+            st.caption(f"Last scan: {scan_time} — {len(pending)} pending, {len(done)} reviewed")
+
+        if not files:
+            st.info("Click 'Scan for New Videos' to check your Drive folder for new footage.")
+        elif not pending:
+            st.success("✅ All videos in this folder have been reviewed. Scan again to check for new ones.")
+        else:
+            st.subheader(f"📋 Pending Review ({len(pending)} videos)")
+
+            for vid_file in pending:
+                fid = vid_file["id"]
+                fname = vid_file.get("name", "Unnamed")
+                created = vid_file.get("createdTime", "")[:10]
+                size_bytes = int(vid_file.get("size", 0))
+                size_mb = round(size_bytes / 1024 / 1024, 1)
+                preview_url = f"https://drive.google.com/file/d/{fid}/preview"
+                view_url = vid_file.get("webViewLink", "")
+
+                with st.expander(f"📹 {fname} — {created} ({size_mb} MB)", expanded=True):
+                    vcol1, vcol2 = st.columns([3, 2])
+
+                    with vcol1:
+                        st.markdown("**Preview:**")
+                        st.components.v1.iframe(preview_url, height=240)
+                        if view_url:
+                            st.caption(f"[Open in Drive]({view_url})")
+
+                    with vcol2:
+                        st.markdown("**Link to drill:**")
+                        drill_options = (
+                            ["— Select a drill —"] +
+                            [f"{r['drill_id']} — {r['drill_name']}" for _, r in df.iterrows()]
+                        )
+                        sel_drill = st.selectbox("Drill", drill_options, key=f"queue_drill_{fid}")
+                        yt_url = st.text_input(
+                            "YouTube URL (if already uploaded)",
+                            placeholder="https://youtube.com/watch?v=...",
+                            key=f"queue_yt_{fid}"
+                        )
+                        drive_as_fallback = st.checkbox(
+                            "Use Drive preview as temp video",
+                            value=False,
+                            key=f"queue_drive_{fid}",
+                            help="Links the Drive preview URL to the drill temporarily. Replace with YouTube URL when ready."
+                        )
+
+                        link_btn = st.button(
+                            "🔗 Link to Drill",
+                            key=f"queue_link_{fid}",
+                            type="primary",
+                            use_container_width=True,
+                            disabled=sel_drill == "— Select a drill —"
+                        )
+
+                        if link_btn:
+                            did = sel_drill.split(" — ")[0]
+                            idx = df.index[df["drill_id"] == did][0]
+
+                            if yt_url.strip():
+                                df.at[idx, "video_url"] = yt_url.strip()
+                                df.at[idx, "video_status"] = "Filmed"
+                            elif drive_as_fallback:
+                                df.at[idx, "video_url"] = preview_url
+                                df.at[idx, "video_status"] = "Filmed"
+
+                            df.at[idx, "filming_date"] = datetime.date.today().isoformat()
+                            df.to_csv(CSV_PATH, index=False)
+
+                            # Update demo copy if it exists
+                            demo_csv = Path("data/production/users/demo/drill_library.csv")
+                            if demo_csv.exists():
+                                df.to_csv(demo_csv, index=False)
+
+                            if fid not in reviewed_ids:
+                                queue_cfg["reviewed"].append(fid)
+                                queue_path.write_text(json.dumps(queue_cfg, indent=2))
+
+                            st.session_state.admin_success_msg = f"✅ {fname} linked to {did}!"
+                            st.rerun()
+
+        if done:
+            with st.expander(f"✅ Already reviewed ({len(done)})", expanded=False):
+                for vf in done:
+                    st.caption(f"✓ {vf.get('name','?')} — {vf.get('createdTime','')[:10]}")
+
+    with st.expander("⚙️ Google Drive API Setup (first time only)", expanded=False):
+        st.markdown("""
+**To connect your Google Drive folder:**
+
+**Option 1 — Service Account (recommended for Streamlit Cloud):**
+1. Go to console.cloud.google.com
+2. Create a project → Enable the Google Drive API
+3. Create a Service Account → Download JSON key
+4. Save the JSON file as `.streamlit/google_creds.json`
+5. Share your Drive filming folder with the
+   service account email address (found in the JSON)
+6. Paste the folder ID above and scan
+
+**Option 2 — Use Google Drive MCP (already connected):**
+If the Google Drive MCP connector is active in Claude,
+you can browse and search your Drive files from the
+Claude chat interface directly. Ask Claude to search
+for recently added video files in your filming folder.
+
+**Finding your folder ID:**
+Open the folder in Google Drive. The URL will look like:
+`drive.google.com/drive/folders/1BxiMVs0XRA5nFMdKvBdBZjg`
+The folder ID is the last segment after `/folders/`.
+        """)
 
 st.divider()
 st.subheader("🚀 Publish to GitHub")
