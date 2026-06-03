@@ -687,11 +687,6 @@ with tab4:
             ):
                 try:
                     import requests
-                    query = (
-                        f"'{folder_id}' in parents "
-                        f"and mimeType contains 'video/' "
-                        f"and trashed = false"
-                    )
                     try:
                         from google.oauth2 import service_account
                         from googleapiclient.discovery import build
@@ -702,16 +697,85 @@ with tab4:
                                 scopes=["https://www.googleapis.com/auth/drive.readonly"]
                             )
                             service = build("drive", "v3", credentials=creds)
-                            results = (
+                            
+                            # First, list all subfolders of the root folder_id
+                            subfolders_query = (
+                                f"'{folder_id}' in parents "
+                                f"and mimeType = 'application/vnd.google-apps.folder' "
+                                f"and trashed = false"
+                            )
+                            sf_results = (
                                 service.files()
                                 .list(
-                                    q=query,
-                                    fields="files(id,name,mimeType,createdTime,size,thumbnailLink,webViewLink)",
-                                    orderBy="createdTime desc"
+                                    q=subfolders_query,
+                                    fields="files(id,name)",
+                                    pageSize=1000
                                 )
                                 .execute()
                             )
-                            files = results.get("files", [])
+                            subfolders = sf_results.get("files", [])
+                            
+                            all_vids = []
+                            import difflib
+                            
+                            for sf in subfolders:
+                                sf_id = sf["id"]
+                                sf_name = sf["name"]
+                                
+                                # List only video files inside this subfolder (ignoring all sub-subfolders)
+                                query = (
+                                    f"'{sf_id}' in parents "
+                                    f"and mimeType contains 'video/' "
+                                    f"and trashed = false"
+                                )
+                                vids_res = (
+                                    service.files()
+                                    .list(
+                                        q=query,
+                                        fields="files(id,name,mimeType,createdTime,size,thumbnailLink,webViewLink)",
+                                        orderBy="createdTime desc",
+                                        pageSize=1000
+                                    )
+                                    .execute()
+                                )
+                                vids = vids_res.get("files", [])
+                                
+                                for vid in vids:
+                                    vid["folder_name"] = sf_name
+                                    
+                                    # Extract drill ID hint from folder name
+                                    if " — " in sf_name:
+                                        drill_id_hint = sf_name.split(" — ")[0].strip()
+                                    elif " - " in sf_name:
+                                        drill_id_hint = sf_name.split(" - ")[0].strip()
+                                    else:
+                                        drill_id_hint = None
+                                        
+                                    exact_match = None
+                                    if drill_id_hint:
+                                        matches = df[df["drill_id"].str.upper() == drill_id_hint.upper()]
+                                        if not matches.empty:
+                                            exact_match = matches.iloc[0]
+                                            
+                                    if exact_match is not None:
+                                        vid["suggested_drill_id"] = exact_match["drill_id"]
+                                        vid["suggested_drill_name"] = exact_match["drill_name"]
+                                    else:
+                                        # Fall back to fuzzy match on folder_name
+                                        choices = df["drill_name"].tolist()
+                                        best_matches = difflib.get_close_matches(sf_name, choices, n=1, cutoff=0.3)
+                                        if best_matches:
+                                            match_name = best_matches[0]
+                                            match_row = df[df["drill_name"] == match_name].iloc[0]
+                                            vid["suggested_drill_id"] = match_row["drill_id"]
+                                            vid["suggested_drill_name"] = match_row["drill_name"]
+                                        else:
+                                            vid["suggested_drill_id"] = None
+                                            vid["suggested_drill_name"] = None
+                                            
+                                    all_vids.append(vid)
+                            
+                            files = all_vids
                         else:
                             files = []
                             st.warning("No Google credentials found. See setup instructions below.")
@@ -775,7 +839,14 @@ with tab4:
                             ["— Select a drill —"] +
                             [f"{r['drill_id']} — {r['drill_name']}" for _, r in df.iterrows()]
                         )
-                        sel_drill = st.selectbox("Drill", drill_options, key=f"queue_drill_{fid}")
+                        default_idx = 0
+                        s_id = vid_file.get("suggested_drill_id")
+                        s_name = vid_file.get("suggested_drill_name")
+                        if s_id and s_name:
+                            target_str = f"{s_id} — {s_name}"
+                            if target_str in drill_options:
+                                default_idx = drill_options.index(target_str)
+                        sel_drill = st.selectbox("Drill", drill_options, index=default_idx, key=f"queue_drill_{fid}")
                         yt_url = st.text_input(
                             "YouTube URL (if already uploaded)",
                             placeholder="https://youtube.com/watch?v=...",
