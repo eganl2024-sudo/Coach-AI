@@ -221,6 +221,6 @@ To deploy your own instance:
 
 ---
 
-**Developed by:** Liam Jegatheeswaran  
+**Developed by:** Liam Egan  
 **Notre Dame MSBA '26 / D1 NCAA Goalkeeper**  
 *Project Version: 3.0 — Multi-Week Persistence + Live Demo Account*
