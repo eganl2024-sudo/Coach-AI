@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { updateProfileAction } from '@/lib/actions/training';
 import type { AthleteProfile } from '@/lib/types/player';
+import { LEAGUES_BY_LEVEL } from '@/lib/constants/leagues';
 
 interface ProfileEditFormProps {
   profile: AthleteProfile;
@@ -265,14 +266,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
     'Training Partner',
   ];
 
-  const leaguesByLevel: Record<string, string[]> = {
-    'Recreational':        ['Recreation League', 'Intramural', 'Other'],
-    'Competitive Club':    ['ECNL', 'ECNL Regional', 'MLS Next', 'Girls Academy', 'State Cup', 'Regional League', 'Other'],
-    'Academy/Select':      ['ECNL', 'ECNL Regional', 'MLS Next', 'Girls Academy', 'State Cup', 'Other'],
-    'Varsity High School': ['State Ranked', 'Varsity', 'Other'],
-    'College':             ['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'NJCAA', 'Other'],
-    'Professional':        ['MLS', 'MLS Next Pro', 'USL Championship', 'USL1', 'USL League Two', 'UPSL', 'Other'],
-  };
+  const leaguesByLevel = LEAGUES_BY_LEVEL;
 
   const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 

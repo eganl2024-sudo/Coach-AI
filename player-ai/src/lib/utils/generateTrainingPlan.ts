@@ -36,8 +36,18 @@ export function generateTrainingPlan(
   const focusAreas = (profile.focus_areas || []).map(f => f.toLowerCase());
 
   // Step 4 — Difficulty mapping (league refines level)
-  const eliteLeagues = new Set(['ECNL', 'MLS Next', 'Girls Academy', 'USL Championship', 'MLS Next Pro', 'MLS', 'USL Super League']);
-  const advancedLeagues = new Set(['UPSL', 'USL League Two', 'USL1', 'State Cup', 'ECNL Regional']);
+  // Tier 1 youth (MLS Next, ECNL Boys/Girls, Girls Academy) + pro leagues → elite difficulty
+  const eliteLeagues = new Set([
+    'MLS Next', 'ECNL Boys', 'ECNL Girls', 'Girls Academy',
+    'USYS National League',
+    'MLS', 'MLS Next Pro', 'USL Championship', 'USL Super League',
+  ]);
+  // Tier 3-4 youth (ECNL Regional, NPL, EDP, USYS Youth) + lower pro → advanced difficulty
+  const advancedLeagues = new Set([
+    'ECNL Regional', 'NPL', 'EDP', 'USYS Youth League',
+    'US Club Soccer', 'State League', 'State Cup',
+    'USL1', 'USL League Two', 'UPSL',
+  ]);
 
   let allowedDifficulties: string[];
   if (level === 'Recreational') {

@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { saveOnboardingAction, type OnboardingFormData } from '@/lib/actions/onboarding';
+import { LEAGUES_BY_LEVEL } from '@/lib/constants/leagues';
 
 function FormLabel({ children, className, htmlFor }: { children: React.ReactNode; className?: string; htmlFor?: string }) {
   return (
@@ -118,19 +119,23 @@ export function OnboardingForm() {
         newErrors.position = 'Primary position is required.';
       }
     } else if (currentStep === 2) {
+      // Step 2: level + target level required; league/club/grad_year optional
       if (!formData.level) {
         newErrors.level = 'Current level is required.';
       }
       if (!formData.target_level) {
         newErrors.target_level = 'Target level is required.';
       }
+    } else if (currentStep === 3) {
+      // Step 3: focus areas required; game_days optional
       if (formData.focus_areas.length < 1) {
         newErrors.focus_areas = 'Select at least 1 focus area.';
       }
       if (formData.focus_areas.length > 3) {
         newErrors.focus_areas = 'You can select up to 3 focus areas.';
       }
-    } else if (currentStep === 3) {
+    } else if (currentStep === 4) {
+      // Step 4: equipment + schedule
       if (formData.equipment_available.length < 1) {
         newErrors.equipment_available = 'At least one equipment resource is required.';
       }
@@ -212,14 +217,7 @@ export function OnboardingForm() {
     'Professional',
   ];
 
-  const leaguesByLevel: Record<string, string[]> = {
-    'Recreational':       ['Recreation League', 'Intramural', 'Other'],
-    'Competitive Club':   ['ECNL', 'ECNL Regional', 'MLS Next', 'Girls Academy', 'State Cup', 'Regional League', 'Other'],
-    'Academy/Select':     ['ECNL', 'ECNL Regional', 'MLS Next', 'Girls Academy', 'State Cup', 'Other'],
-    'Varsity High School':['State Ranked', 'Varsity', 'Other'],
-    'College':            ['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'NJCAA', 'Other'],
-    'Professional':       ['MLS', 'MLS Next Pro', 'USL Championship', 'USL1', 'USL League Two', 'UPSL', 'Other'],
-  };
+  const leaguesByLevel = LEAGUES_BY_LEVEL;
 
   const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -461,8 +459,8 @@ export function OnboardingForm() {
         {step === 3 && (
           <div className="space-y-5">
             <div>
-              <h3 className="text-xl font-bold mb-1 text-white">What's your current level?</h3>
-              <p className="text-sm text-muted-foreground mb-6">Select up to 3 focus areas and your game days.</p>
+              <h3 className="text-xl font-bold mb-1 text-white">Focus & schedule</h3>
+              <p className="text-sm text-muted-foreground mb-6">Select up to 3 focus areas and mark your game days.</p>
             </div>
 
             <div className="space-y-5">
