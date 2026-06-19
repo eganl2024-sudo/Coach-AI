@@ -11,8 +11,7 @@
 SELECT
   schemaname,
   tablename,
-  rowsecurity AS rls_enabled,
-  forcerowsecurity AS rls_forced
+  rowsecurity AS rls_enabled
 FROM pg_tables
 WHERE schemaname = 'public'
 ORDER BY tablename;
@@ -27,39 +26,51 @@ ORDER BY tablename, policyname;
 ALTER TABLE users     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_data ENABLE ROW LEVEL SECURITY;
 ALTER TABLE drills    ENABLE ROW LEVEL SECURITY;
--- programs and coaches already have RLS from supabase_schema.sql
 
--- ── 4. users table — anon and authenticated cannot read ───────
--- Only service_role (server actions) can access this table.
--- Drop any existing permissive policies first.
-DROP POLICY IF EXISTS "users_read"   ON users;
-DROP POLICY IF EXISTS "users_insert" ON users;
-DROP POLICY IF EXISTS "users_update" ON users;
-DROP POLICY IF EXISTS "users_delete" ON users;
--- No policies = only service_role can access (RLS blocks all other roles)
+-- ── 4. users table — drop signup policy, lock to service_role ─
+-- All user operations (login, signup, delete) go through server actions
+-- using the service_role key. No anon/authenticated access needed.
+DROP POLICY IF EXISTS "Allow public signup" ON users;
+-- Result: no policies = service_role only
 
--- ── 5. user_data table — anon cannot read any row ─────────────
--- All user_data access goes through server actions with service_role key.
--- Lock out anon key entirely.
-DROP POLICY IF EXISTS "user_data_read"   ON user_data;
-DROP POLICY IF EXISTS "user_data_insert" ON user_data;
-DROP POLICY IF EXISTS "user_data_update" ON user_data;
-DROP POLICY IF EXISTS "user_data_delete" ON user_data;
--- No policies = only service_role can access
+-- ── 5. user_data table — drop all policies, lock to service_role
+-- Our app uses custom auth (not Supabase Auth), so auth.uid()-based
+-- policies don't isolate rows. All access uses service_role server-side.
+DROP POLICY IF EXISTS "Users can read own data"   ON user_data;
+DROP POLICY IF EXISTS "Users can insert own data" ON user_data;
+DROP POLICY IF EXISTS "Users can update own data" ON user_data;
+-- Result: no policies = service_role only
 
--- ── 6. drills table — read-only for authenticated ─────────────
-DROP POLICY IF EXISTS "drills_read"   ON drills;
-DROP POLICY IF EXISTS "drills_insert" ON drills;
-DROP POLICY IF EXISTS "drills_update" ON drills;
-DROP POLICY IF EXISTS "drills_delete" ON drills;
-
--- Admin content editor uses service_role, so no write policy needed.
--- Anon key should be able to read drills (future: client-side drill browser).
--- For now, lock to authenticated only since we have no anon users.
+-- ── 6. drills table — remove all write policies ───────────────
+-- Admin content editor uses service_role (bypasses RLS).
+-- Anon key should only ever read drills, never write.
+DROP POLICY IF EXISTS "Allow admin drill inserts"           ON drills;
+DROP POLICY IF EXISTS "Allow admin drill updates"           ON drills;
+DROP POLICY IF EXISTS "Allow drill inserts"                 ON drills;
+DROP POLICY IF EXISTS "Allow drill updates"                 ON drills;
+DROP POLICY IF EXISTS "Allow public read access to drills"  ON drills;
+DROP POLICY IF EXISTS "Drills are publicly readable"        ON drills;
+DROP POLICY IF EXISTS "drills_read"                         ON drills;
+-- Keep one clean read policy
 CREATE POLICY "drills_read" ON drills
-  FOR SELECT TO authenticated USING (true);
+  FOR SELECT TO anon, authenticated USING (true);
 
--- ── 7. Verify final state ─────────────────────────────────────
+-- ── 7. d1_coaches / d1_programs — legacy tables ───────────────
+-- These appear to be old recruiting tables superseded by coaches/programs.
+-- Lock writes; keep public read since the data is non-sensitive.
+DROP POLICY IF EXISTS "Service role write d1_coaches"  ON d1_coaches;
+DROP POLICY IF EXISTS "Service role write d1_programs" ON d1_programs;
+-- Public read stays as-is (non-sensitive public data)
+
+-- ── 8. reel_submissions — verify policy is row-isolating ──────
+-- "Users can manage own submissions" — check what column it uses.
+-- If it relies on auth.uid() it won't work with our custom auth.
+-- All reel actions go through server actions with service_role, so
+-- drop the policy and lock to service_role only.
+DROP POLICY IF EXISTS "Users can manage own submissions" ON reel_submissions;
+-- Result: no policies = service_role only
+
+-- ── 9. Verify final state ─────────────────────────────────────
 SELECT
   t.tablename,
   t.rowsecurity AS rls_on,
