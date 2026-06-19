@@ -160,6 +160,10 @@ def get_root_domain(url):
     return f"{parsed.scheme}://{netloc}"
 
 def load_domain_map(csv_path):
+    """Load school_name → athletics_domain.
+    For women's domains_w.csv the key column is 'short_name'; for the men's
+    domains.csv it is 'school_name'. Both are supported here.
+    """
     domain_map = {}
     if not os.path.exists(csv_path):
         return domain_map
@@ -167,7 +171,10 @@ def load_domain_map(csv_path):
         reader = csv.DictReader(f)
         for row in reader:
             if row.get('athletics_domain') and row['athletics_domain'].strip():
-                domain_map[row['school_name'].strip()] = row['athletics_domain'].strip()
+                # prefer short_name (women's mapping file) then school_name
+                key = (row.get('short_name') or row.get('school_name') or '').strip()
+                if key:
+                    domain_map[key] = row['athletics_domain'].strip()
     return domain_map
 
 def parse_coaches_page(url, dry_run=False):
@@ -455,8 +462,9 @@ def main():
 
     print(f"Parsed {len(programs_to_scrape)} schools from Wikipedia.")
 
-    # Load domains.csv mapping
-    csv_path = os.path.join(script_dir, "data", "domains.csv")
+    # Load domain mapping (women's uses domains_w.csv keyed by short Wikipedia name)
+    domains_file = "domains_w.csv" if gender == "W" else "domains.csv"
+    csv_path = os.path.join(script_dir, "data", domains_file)
     domain_map = load_domain_map(csv_path)
 
     # Apply Dry Run filter if requested
