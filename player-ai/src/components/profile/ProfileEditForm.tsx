@@ -91,6 +91,8 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
     'position',
     'secondary_position',
     'level',
+    'league',
+    'game_days',
     'focus_areas',
     'equipment_available',
     'sessions_per_week',
@@ -263,6 +265,20 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
     'Training Partner',
   ];
 
+  const leaguesByLevel: Record<string, string[]> = {
+    'Recreational':        ['Recreation League', 'Intramural', 'Other'],
+    'Competitive Club':    ['ECNL', 'ECNL Regional', 'MLS Next', 'Girls Academy', 'State Cup', 'Regional League', 'Other'],
+    'Academy/Select':      ['ECNL', 'ECNL Regional', 'MLS Next', 'Girls Academy', 'State Cup', 'Other'],
+    'Varsity High School': ['State Ranked', 'Varsity', 'Other'],
+    'College':             ['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'NJCAA', 'Other'],
+    'Professional':        ['MLS', 'MLS Next Pro', 'USL Championship', 'USL1', 'USL League Two', 'UPSL', 'Other'],
+  };
+
+  const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  const currentYear = new Date().getFullYear();
+  const gradYears = Array.from({ length: 8 }, (_, i) => currentYear + i);
+
   return (
     <form onSubmit={handleSaveClick} className="space-y-6">
       {/* Section 1 — Player Identity */}
@@ -376,38 +392,129 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
         </CardContent>
       </Card>
 
-      {/* Section 2 — Development Goals */}
+      {/* Section 2 — Team & Competition */}
       <Card className="border-border/50 bg-card/40 backdrop-blur-sm">
         <CardHeader className="pb-3">
-          <CardTitle className="text-base font-bold text-white">Development Goals</CardTitle>
+          <CardTitle className="text-base font-bold text-white">Team & Competition</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <FormLabel htmlFor="level">Current Playing Level</FormLabel>
+              <FormLabel htmlFor="club_name">
+                Club / Team Name{' '}
+                <span className="text-muted-foreground normal-case font-normal">(optional)</span>
+              </FormLabel>
+              <Input
+                id="club_name"
+                type="text"
+                placeholder="e.g. FC Dallas, Jefferson High School"
+                value={(formData.club_name as string) ?? ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, club_name: e.target.value }))}
+                className="bg-secondary/20 border-border/50 text-sm h-8"
+              />
+            </div>
+            <div>
+              <FormLabel htmlFor="grad_year">Graduation Year</FormLabel>
               <FormSelect
-                id="level"
+                id="grad_year"
+                value={formData.grad_year ?? currentYear + 3}
+                onChange={(e) => setFormData((prev) => ({ ...prev, grad_year: parseInt(e.target.value) }))}
+              >
+                {gradYears.map((y) => (
+                  <option key={y} value={y}>Class of {y}</option>
+                ))}
+              </FormSelect>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <FormLabel htmlFor="edit_level">Current Playing Level</FormLabel>
+              <FormSelect
+                id="edit_level"
                 value={formData.level}
-                onChange={(e) => setFormData((prev) => ({ ...prev, level: e.target.value }))}
+                onChange={(e) => setFormData((prev) => ({ ...prev, level: e.target.value, league: '' }))}
               >
                 {levels.map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
               </FormSelect>
             </div>
-
             <div>
-              <FormLabel htmlFor="target_level">Target Level</FormLabel>
+              <FormLabel htmlFor="league">
+                League / Competition{' '}
+                <span className="text-muted-foreground normal-case font-normal">(optional)</span>
+              </FormLabel>
               <FormSelect
-                id="target_level"
-                value={formData.target_level}
-                onChange={(e) => setFormData((prev) => ({ ...prev, target_level: e.target.value }))}
+                id="league"
+                value={(formData.league as string) ?? ''}
+                onChange={(e) => setFormData((prev) => ({ ...prev, league: e.target.value }))}
               >
-                {targetLevels.map((l) => (
+                <option value="">Select league…</option>
+                {(leaguesByLevel[formData.level as string] ?? []).map((l) => (
                   <option key={l} value={l}>{l}</option>
                 ))}
               </FormSelect>
             </div>
+          </div>
+
+          <div>
+            <FormLabel>
+              Game Days{' '}
+              <span className="text-muted-foreground normal-case font-normal">(optional — training plan avoids these days)</span>
+            </FormLabel>
+            <div className="flex gap-2 mt-1">
+              {DAY_LABELS.map((label, idx) => {
+                const isSelected = (formData.game_days as number[] ?? []).includes(idx);
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => setFormData((prev) => {
+                      const days = (prev.game_days as number[]) ?? [];
+                      return {
+                        ...prev,
+                        game_days: isSelected ? days.filter((d) => d !== idx) : [...days, idx],
+                      };
+                    })}
+                    className={cn(
+                      'flex-1 h-9 text-xs font-bold rounded-lg border transition-all duration-150',
+                      isSelected
+                        ? 'bg-primary text-primary-foreground border-primary'
+                        : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
+                    )}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+            {(formData.game_days as number[] ?? []).length > 0 && (
+              <p className="text-[10px] text-muted-foreground mt-1.5">
+                Sessions scheduled away from game days and the following recovery day.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Section 3 — Development Goals */}
+      <Card className="border-border/50 bg-card/40 backdrop-blur-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-bold text-white">Development Goals</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <FormLabel htmlFor="target_level">Target Level</FormLabel>
+            <FormSelect
+              id="target_level"
+              value={formData.target_level}
+              onChange={(e) => setFormData((prev) => ({ ...prev, target_level: e.target.value }))}
+            >
+              {targetLevels.map((l) => (
+                <option key={l} value={l}>{l}</option>
+              ))}
+            </FormSelect>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
