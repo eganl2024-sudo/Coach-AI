@@ -36,16 +36,24 @@ PATHS_TO_TRY = [
     "/sports/wsoc/coaches",
     "/sports/women-soccer/coaches",
     "/sports/w-soccer/coaches",
-    "/sports/soccer/coaches",          # some schools share path
+    "/sports/soccer/coaches",
     "/sports/womens-soccer/roster",
     "/sports/wsoc/roster",
     "/sports/women-soccer/roster",
     "/sports/w-soccer/roster",
     "/sports/soccer/roster",
+    # Base sport paths — many Sidearm sites serve coaches at the sport root
+    "/sports/womens-soccer",
+    "/sports/wsoc",
+    "/sports/women-soccer",
+    "/sports/w-soccer",
+    "/sports/soccer",
     "/womens-soccer/coaches",
     "/womens-soccer/roster",
+    "/womens-soccer",
     "/wsoc/coaches",
     "/wsoc/roster",
+    "/wsoc",
 ]
 
 
@@ -178,9 +186,10 @@ def load_existing_coaches():
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--dry-run', action='store_true')
+    parser.add_argument('--schools', nargs='+', help='Override: target specific school names')
     args = parser.parse_args()
 
-    failed = load_failed_schools()
+    failed = args.schools if args.schools else load_failed_schools()
     if not failed:
         print("No failed schools found in error log.")
         return

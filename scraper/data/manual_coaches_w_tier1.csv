@@ -1,0 +1,56 @@
+school_name,first_name,last_name,title,email,phone,source
+Stanford,Paul,Ratcliffe,Head Coach,pratclif@stanford.edu,(650) 725-9884,manual
+Stanford,Paul,Hart,Assistant Coach,paulhart@stanford.edu,(650) 725-2425,manual
+Stanford,Daisy,Sanchez,Assistant Coach,daisysan@stanford.edu,,manual
+Clemson,Eddie,Radwanski,Head Coach,eradwan@clemson.edu,(864) 656-1944,manual
+Clemson,Jeff,Robbins,Assistant Coach,jeferyr@clemson.edu,,manual
+Clemson,Maryanne,Kilgore,Assistant Coach,kilgor4@clemson.edu,,manual
+Clemson,Siri,Mullinix,Assistant Coach,sirim@clemson.edu,,manual
+Virginia,Steve,Swanson,Head Coach,ss4ub@virginia.edu,434-982-5711,manual
+Virginia,Ron,Raab,Assistant Coach,rhr2n@virginia.edu,434-982-5710,manual
+Virginia,Jaelyn,Cunningham,Assistant Coach,zvp2de@virginia.edu,,manual
+Virginia,Lizzy,Sieracki,Assistant Coach,ejs6bt@virginia.edu,770-827-3827,manual
+Virginia Tech,Charles,Adair,Head Coach,,,manual
+Virginia Tech,Drew,Kopp,Assistant Coach,drewk@vt.edu,,manual
+Virginia Tech,Matt,Gwilliam,Assistant Coach,mattg08@vt.edu,,manual
+Miami (FL),Ken,Masuhr,Head Coach,soccer@miami.edu,,manual
+Miami (FL),Kelly,Keelan,Assistant Coach,soccer@miami.edu,,manual
+Miami (FL),Peter-John,Falloon,Assistant Coach,soccer@miami.edu,,manual
+Miami (FL),Juan,Cediel,Assistant Coach,soccer@miami.edu,,manual
+Pittsburgh,Ben,Waldrum,Head Coach,bwaldrum@athletics.pitt.edu,,manual
+Pittsburgh,Brianna,Alleyne,Assistant Coach,balleyne@athletics.pitt.edu,,manual
+Pittsburgh,Randy,Waldrum,Assistant Coach,rwaldrum@athletics.pitt.edu,,manual
+Iowa,Dean,Ward,Head Coach,dean-ward@uiowa.edu,,manual
+Iowa,Kenny,Altman,Assistant Coach,kelly-altman@uiowa.edu,,manual
+Iowa,Meghan,Gill,Assistant Coach,meghan-gill@uiowa.edu,,manual
+Iowa,Noah,Smith,Assistant Coach,noah-smith-2@uiowa.edu,,manual
+Penn State,Erica,Dambach,Head Coach,emw13@psu.edu,,manual
+Penn State,Ann,Cook,Assistant Coach,arc14@psu.edu,,manual
+Penn State,Tim,Wassell,Assistant Coach,tjw217@psu.edu,,manual
+Penn State,Declan,Doherty,Assistant Coach,dmd6824@psu.edu,,manual
+Auburn,James,Armstrong,Head Coach,asoccer@auburn.edu,,manual
+Auburn,Drago,Ćeranić,Assistant Coach,asoccer@auburn.edu,,manual
+Auburn,Rob,McGann,Assistant Coach,asoccer@auburn.edu,,manual
+Auburn,Tara,McQueen,Assistant Coach,asoccer@auburn.edu,,manual
+South Carolina,Shelley,Smith,Head Coach,smithsa7@mailbox.sc.edu,,manual
+South Carolina,Jamie,Smith,Assistant Coach,smithjr5@mailbox.sc.edu,,manual
+South Carolina,Marnie,Merritt,Assistant Coach,marniem@mailbox.sc.edu,,manual
+Vanderbilt,Darren,Ambrose,Head Coach,vusoccer@vanderbilt.edu,615-343-8095,manual
+Vanderbilt,Casey,Derkacz,Assistant Coach,vusoccer@vanderbilt.edu,,manual
+Vanderbilt,Jennie,Clark,Assistant Coach,vusoccer@vanderbilt.edu,,manual
+Vanderbilt,Calum,Langdale,Assistant Coach,vusoccer@vanderbilt.edu,,manual
+Arizona State,Graham,Winkworth,Head Coach,Graham.Winkworth@asu.edu,480-965-1715,manual
+Arizona State,Ross,Alexander,Assistant Coach,r.alexander@asu.edu,,manual
+Arizona State,Hollie,Loud,Assistant Coach,hollie.loud@asu.edu,,manual
+Arizona State,Rodrigo,Selingardi,Assistant Coach,rselinga@asu.edu,,manual
+BYU,Jennifer,Rockwood,Head Coach,jrockwood@byu.edu,(801) 422-8732,manual
+BYU,Brent,Anderson,Assistant Coach,brent.anderson@byu.edu,,manual
+BYU,Steve,Magleby,Assistant Coach,steve_magleby@byu.edu,,manual
+BYU,Tasha,Bell,Assistant Coach,tasha_bell@byu.edu,(801) 422-7623,manual
+Cincinnati,Erica,Demers,Head Coach,demersea@ucmail.uc.edu,513-556-0567,manual
+Cincinnati,Paul,Babba,Assistant Coach,babbapp@ucmail.uc.edu,513-556-0567,manual
+Cincinnati,Olivia,Silverman,Assistant Coach,silverom@ucmail.uc.edu,513-556-0567,manual
+Cincinnati,Ella,Rogers,Assistant Coach,rogere4@ucmail.uc.edu,,manual
+UCF,Tiffany,Roberts Sahaydak,Head Coach,trsahaydak@athletics.ucf.edu,,manual
+UCF,Tim,Sahaydak,Assistant Coach,tsahaydak@athletics.ucf.edu,,manual
+UCF,Chris,Cummings,Assistant Coach,ccummings@athletics.ucf.edu,,manual
