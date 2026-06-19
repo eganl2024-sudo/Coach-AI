@@ -32,13 +32,12 @@ export async function POST(req: NextRequest) {
       schoolName,
       conference,
       region,
-      gradYear,
       programInterest,
       tone,
     } = body;
 
     // Validate required string fields from client
-    if (!coachLastName || !schoolName || !gradYear) {
+    if (!coachLastName || !schoolName) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 });
     }
 
@@ -47,6 +46,9 @@ export async function POST(req: NextRequest) {
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found.' }, { status: 404 });
     }
+
+    // Use grad_year from profile (DB); fall back to client-supplied only as last resort
+    const gradYear = String(profile.grad_year ?? body.gradYear ?? new Date().getFullYear() + 3);
 
     // Build academic context string
     const academicLines: string[] = [];

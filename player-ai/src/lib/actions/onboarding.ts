@@ -22,6 +22,10 @@ export interface OnboardingFormData {
   preferred_foot: string;
   age_group: string;
   level: string;
+  league: string;
+  club_name: string;
+  grad_year: number;
+  game_days: number[];
   target_level: string;
   focus_areas: string[];
   equipment_available: string[];
@@ -65,6 +69,10 @@ export async function saveOnboardingAction(
       position: formData.position,
       secondary_position: formData.secondary_position,
       level: formData.level,
+      league: formData.league || undefined,
+      club_name: formData.club_name.trim() || undefined,
+      grad_year: formData.grad_year || undefined,
+      game_days: formData.game_days.length > 0 ? formData.game_days : undefined,
       target_level: formData.target_level,
       sessions_per_week: formData.sessions_per_week,
       session_duration: formData.session_duration,
