@@ -68,6 +68,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
     secondary_position: profile.secondary_position,
     preferred_foot: profile.preferred_foot,
     level: profile.level,
+    gender: profile.gender ?? 'M',
     league: profile.league ?? '',
     club_name: profile.club_name ?? '',
     grad_year: profile.grad_year ?? new Date().getFullYear() + 3,
@@ -488,6 +489,27 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
                 Sessions scheduled away from game days and the following recovery day.
               </p>
             )}
+          </div>
+
+          <div>
+            <FormLabel>I play in <span className="normal-case font-normal text-muted-foreground">(controls which college programs appear in recruiting)</span></FormLabel>
+            <div className="flex gap-3 mt-1">
+              {([['M', "Men's soccer"], ['W', "Women's soccer"]] as const).map(([val, label]) => (
+                <button
+                  key={val}
+                  type="button"
+                  onClick={() => setFormData((prev) => ({ ...prev, gender: val }))}
+                  className={cn(
+                    'flex-1 h-9 text-sm font-semibold rounded-lg border transition-all duration-150',
+                    formData.gender === val
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

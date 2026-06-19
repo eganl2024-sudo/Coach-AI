@@ -2,11 +2,12 @@ export interface AthleteProfile {
   name: string;
   age: number;
   email?: string;
+  gender?: 'M' | 'W';      // 'M' = Men's programs, 'W' = Women's programs (recruiting filter)
   preferred_foot: string;
   position: string;
   secondary_position: string;
   level: string;
-  league?: string;          // e.g. 'ECNL', 'MLS Next', 'UPSL'
+  league?: string;          // e.g. 'ECNL Girls', 'MLS Next', 'UPSL'
   club_name?: string;       // e.g. 'FC Dallas'
   grad_year?: number;       // e.g. 2027 — used in recruiting emails
   game_days?: number[];     // 0=Sun … 6=Sat — days with games, skipped in training plan

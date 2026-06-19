@@ -62,6 +62,7 @@ export function OnboardingForm() {
     name: '',
     age: 15,
     email: '',
+    gender: 'M',
     position: 'Central Midfielder',
     secondary_position: 'None',
     preferred_foot: 'Right',
@@ -375,6 +376,27 @@ export function OnboardingForm() {
                   <option value="Left">Left</option>
                   <option value="Both">Both</option>
                 </FormSelect>
+              </div>
+
+              <div>
+                <FormLabel>I play in <span className="normal-case font-normal text-muted-foreground">(used to show the right college programs)</span></FormLabel>
+                <div className="flex gap-3 mt-1">
+                  {([['M', "Men's soccer"], ['W', "Women's soccer"]] as const).map(([val, label]) => (
+                    <button
+                      key={val}
+                      type="button"
+                      onClick={() => setFormData(prev => ({ ...prev, gender: val }))}
+                      className={cn(
+                        'flex-1 h-9 text-sm font-semibold rounded-lg border transition-all duration-150',
+                        formData.gender === val
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
+                      )}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>

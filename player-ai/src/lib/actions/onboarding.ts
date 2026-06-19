@@ -17,6 +17,7 @@ export interface OnboardingFormData {
   name: string;
   age: number;
   email: string;
+  gender: 'M' | 'W';
   position: string;
   secondary_position: string;
   preferred_foot: string;
@@ -65,6 +66,7 @@ export async function saveOnboardingAction(
       name: formData.name,
       age: formData.age,
       email: formData.email || undefined,
+      gender: formData.gender,
       preferred_foot: formData.preferred_foot,
       position: formData.position,
       secondary_position: formData.secondary_position,

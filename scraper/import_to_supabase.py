@@ -45,9 +45,6 @@ except ImportError:
 SUPABASE_URL = os.environ.get('NEXT_PUBLIC_SUPABASE_URL') or os.environ.get('SUPABASE_URL')
 SUPABASE_KEY = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
 
-PROGRAMS_CSV = os.path.join(os.path.dirname(__file__), 'output', 'programs.csv')
-COACHES_CSV  = os.path.join(os.path.dirname(__file__), 'output', 'coaches_enriched.csv')
-
 BATCH_SIZE = 100  # Supabase upsert batch size
 
 
@@ -55,40 +52,52 @@ def slugify(text: str) -> str:
     return re.sub(r'[^a-z0-9]+', '-', text.lower()).strip('-')
 
 
-def make_program_id(school_name: str) -> str:
-    return slugify(school_name)
+def make_program_id(school_name: str, gender: str) -> str:
+    # Men's keeps plain slug for backwards-compat; women's gets -w suffix
+    base = slugify(school_name)
+    return f"{base}-w" if gender == 'W' else base
 
 
-def make_coach_id(school_name: str, first: str, last: str) -> str:
-    return slugify(f"{school_name}-{first}-{last}")
+def make_coach_id(school_name: str, gender: str, first: str, last: str) -> str:
+    # Gender included so same coach name at M+W programs doesn't collide
+    suffix = '-w' if gender == 'W' else '-m'
+    return slugify(f"{school_name}{suffix}-{first}-{last}")
 
 
-def load_programs() -> list[dict]:
+def load_programs(programs_csv: str) -> list[dict]:
     rows = []
-    with open(PROGRAMS_CSV, newline='', encoding='utf-8') as f:
+    with open(programs_csv, newline='', encoding='utf-8') as f:
         for r in csv.DictReader(f):
+            g = r.get('gender', 'M').strip() or 'M'
             rows.append({
-                'program_id':  make_program_id(r['school_name']),
+                'program_id':  make_program_id(r['school_name'], g),
                 'school_name': r['school_name'].strip(),
                 'conference':  r.get('conference', '').strip(),
                 'region':      r.get('region', '').strip(),
                 'state':       r.get('state', '').strip(),
                 'division':    r.get('division', 'D1').strip() or 'D1',
+                'gender':      g,
                 'program_url': r.get('program_url', '').strip() or None,
                 'ncaa_id':     r.get('ncaa_id', '').strip() or None,
             })
     return rows
 
 
-def load_coaches(program_ids: set[str]) -> list[dict]:
+def load_coaches(coaches_csv: str, program_map: dict[str, str]) -> list[dict]:
+    """program_map: school_name → program_id (pre-built from load_programs)"""
     VALID_TITLES = {'Head Coach', 'Assistant Coach', 'Director of Operations'}
+    # Determine gender from the first row's program_id suffix
+    # (Both files share the same gender, so we infer from path)
+    is_women = '_w' in os.path.basename(coaches_csv)
+    gender = 'W' if is_women else 'M'
+
     rows = []
     skipped = 0
-    with open(COACHES_CSV, newline='', encoding='utf-8') as f:
+    with open(coaches_csv, newline='', encoding='utf-8') as f:
         for r in csv.DictReader(f):
             school = r['school_name'].strip()
-            pid = make_program_id(school)
-            if pid not in program_ids:
+            pid = program_map.get(school)
+            if not pid:
                 print(f"  WARN: No program found for '{school}' — skipping coach {r['first_name']} {r['last_name']}")
                 skipped += 1
                 continue
@@ -97,7 +106,7 @@ def load_coaches(program_ids: set[str]) -> list[dict]:
                 skipped += 1
                 continue
             rows.append({
-                'coach_id':       make_coach_id(school, r['first_name'], r['last_name']),
+                'coach_id':       make_coach_id(school, gender, r['first_name'], r['last_name']),
                 'program_id':     pid,
                 'school_name':    school,
                 'first_name':     r.get('first_name', '').strip(),
@@ -127,13 +136,29 @@ def upsert_batched(supabase, table: str, rows: list[dict], id_col: str):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--write', action='store_true', help='Actually upsert into Supabase')
+    parser.add_argument('--gender', choices=['M', 'W'], default='M',
+                        help='M = Men\'s programs.csv + coaches_enriched.csv (default); '
+                             'W = programs_w.csv + coaches_w_enriched.csv')
     args = parser.parse_args()
 
-    programs = load_programs()
-    program_ids = {p['program_id'] for p in programs}
-    coaches = load_coaches(program_ids)
+    out = os.path.join(os.path.dirname(__file__), 'output')
+    suffix = '_w' if args.gender == 'W' else ''
+    programs_csv = os.path.join(out, f'programs{suffix}.csv')
+    coaches_csv  = os.path.join(out, f'coaches{suffix}_enriched.csv')
 
-    print(f"\nReady to import:")
+    if not os.path.exists(programs_csv):
+        print(f"ERROR: {programs_csv} not found. Run scrape_coaches.py --gender {args.gender} first.")
+        return
+    if not os.path.exists(coaches_csv):
+        print(f"ERROR: {coaches_csv} not found. Run scrape_enrich.py --gender {args.gender} first.")
+        return
+
+    programs = load_programs(programs_csv)
+    program_map = {p['school_name']: p['program_id'] for p in programs}
+    coaches = load_coaches(coaches_csv, program_map)
+
+    label = "Women's" if args.gender == 'W' else "Men's"
+    print(f"\nReady to import ({label}):")
     print(f"  {len(programs)} programs")
     print(f"  {len(coaches)} coaches")
     print(f"  Head coaches: {sum(1 for c in coaches if c['title'] == 'Head Coach')}")
@@ -143,7 +168,7 @@ def main():
         print("\nDry run — pass --write to import into Supabase")
         print("\nSample programs:")
         for p in programs[:3]:
-            print(f"  {p['program_id']} | {p['school_name']} | {p['conference']} | {p['state']}")
+            print(f"  {p['program_id']} | {p['school_name']} | {p['conference']} | {p['gender']} | {p['state']}")
         print("\nSample coaches:")
         for c in coaches[:5]:
             print(f"  {c['coach_id']} | {c['title']} | {c['email'] or '(no email)'}")
