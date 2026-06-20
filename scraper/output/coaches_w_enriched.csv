@@ -5,10 +5,6 @@ Air Force,Kaylyn,Farrell,Assistant Coach,kaylyn.farrell@afacademy.af.edu,719-333
 Akron,Maggie,Kuhn,Head Coach,womenssoccer@uakron.edu,(330) 972-7651,,,scrape
 Akron,Josh,Kay,Assistant Coach,womenssoccer@uakron.edu,(330) 972-7651,,,scrape
 Akron,Nate,Rausch,Assistant Coach,womenssoccer@uakron.edu,(330) 972-7651,,,scrape
-Alabama A&M,Mark,Hiller,Assistant Coach,mjhiller@uab.edu,,,,scrape
-Alabama A&M,Lucas,Costa,Assistant Coach,costalm@uab.edu,,,,scrape
-Alabama State,Mark,Hiller,Assistant Coach,mjhiller@uab.edu,,,,scrape
-Alabama State,Lucas,Costa,Assistant Coach,costalm@uab.edu,,,,scrape
 Albany,Sade,Ayinde,Head Coach,sthomas-ayinde@albany.edu,(518) 442-3043,,,scrape
 Albany,Meg,Richardson,Assistant Coach,mtrichardson@albany.edu,(518) 442-3043,,,scrape
 Albany,Chance,Hendricks,Assistant Coach,chendricks2@albany.edu,(518) 442-3043,,,scrape
@@ -26,8 +22,6 @@ Arizona,Nat,Gonzalez,Assistant Coach,natgonzo@arizona.edu,,,,scrape
 Arizona,Nils,Roth,Assistant Coach,nilsroth@arizona.edu,,GK Coach,,scrape
 Arizona,Michaela,Trejo Flores,Director of Operations,mtrejoflores@arizona.edu,,,,scrape
 Arizona,Nicholas,McIntee,Assistant Coach,nmcintee@arizona.edu,520-626-8772,,,scrape
-Arkansas,Peter,Smith,Assistant Coach,psmith5@uca.edu,,,,scrape
-Arkansas State,Peter,Smith,Assistant Coach,psmith5@uca.edu,,,,scrape
 Arkansas–Pine Bluff,Emanuel,Stephens,Head Coach,StephensE@uapb.edu,,,,scrape
 Army,Tracy,Chao,Head Coach,tracy.chao@westpoint.edu,,,,scrape
 Army,Tori,Ball,Assistant Coach,tori.ball@westpoint.edu,,,,scrape
@@ -114,8 +108,6 @@ Central Michigan,Jenna,Smith,Assistant Coach,smith650@cmich.edu,,,,scrape
 Charleston,Christian,Michner,Head Coach,michnercm@cofc.edu,(843) 953 5583,,,scrape
 Charleston,Shanna,Caldwell,Assistant Coach,caldwells@cofc.edu,(843) 953-4365,,,scrape
 Charleston,Marykate,Loper,Assistant Coach,loperm@cofc.edu,,,,scrape
-Charleston Southern,Shanna,Caldwell,Assistant Coach,caldwells@cofc.edu,(843) 953-4365,,,scrape
-Charleston Southern,Marykate,Loper,Assistant Coach,loperm@cofc.edu,,,,scrape
 Charlotte,Sinead,Byrne,Head Coach,ninerwsoc@charlotte.edu,,,,scrape
 Charlotte,Erika,Yohn,Assistant Coach,ninerwsoc@charlotte.edu,,,,scrape
 Charlotte,Allison,Mack,Assistant Coach,,,,,scrape
@@ -162,9 +154,6 @@ Delaware,Kelly,Lawrence,Head Coach,BlueHensWoSocRecruiting@udel.edu,,,,scrape
 Delaware,Becky,Edwards,Assistant Coach,BlueHensWoSocRecruiting@udel.edu,,,,scrape
 Delaware,Shannon,Coley,Assistant Coach,BlueHensWoSocRecruiting@udel.edu,,,,scrape
 Delaware,Adam,Richardson,Director of Operations,,,,,scrape
-Delaware State,Becky,Edwards,Assistant Coach,BlueHensWoSocRecruiting@udel.edu,,,,scrape
-Delaware State,Shannon,Coley,Assistant Coach,BlueHensWoSocRecruiting@udel.edu,,,,scrape
-Delaware State,Adam,Richardson,Director of Operations,,,,,scrape
 Denver,Julianne,Sitch,Head Coach,julianne.sitch@du.edu,,,,scrape
 Denver,Cassie,Ulrich,Assistant Coach,cassandra.ulrich@du.edu,303-871-3154,,,scrape
 Denver,Marlon,McKenzie,Assistant Coach,Marlon.McKenzie@du.edu,,,,scrape
@@ -193,16 +182,8 @@ East Carolina,Emily,Buccilla,Head Coach,Buccillae18@ecu.edu,(252) 737-1429,,,scr
 East Carolina,Jake,Dowiak,Assistant Coach,dowiakj25@ecu.edu,,,,scrape
 East Carolina,Sydney,Hall,Assistant Coach,hallsy23@ecu.edu,,,,scrape
 East Carolina,Carter,Sadin,Assistant Coach,sadinc25@ecu.edu,,,,scrape
-East Tennessee State,Jay,Yelton,Head Coach,,,,,scrape
-East Tennessee State,Matt,Yelton,Assistant Coach,zmby1@etsu.edu,,,,scrape
 Eastern Illinois,Dirk,Bennett,Head Coach,debennett@eiu.edu,,,,scrape
 Eastern Illinois,Deanna,Hecht,Assistant Coach,dhecht@eiu.edu,,,,scrape
-Eastern Kentucky,Brenton,Saylor,Assistant Coach,,,,,scrape
-Eastern Kentucky,Jelena,Sever,Assistant Coach,jelena.sever@uky.edu,,,,scrape
-Eastern Kentucky,Marco,Fabiano,Assistant Coach,,,,,scrape
-Eastern Kentucky,Nick,Stevens,Director of Operations,nstevens@uky.edu,,,,scrape
-Eastern Michigan,Taylor,Clarke,Head Coach,tclarke5@emich.edu,734.487.1050,,,scrape
-Eastern Michigan,Matt,Hinds,Assistant Coach,mhinds@emich.edu,,,,scrape
 Eastern Washington,Raphael,Cox,Assistant Coach,raphcox@uw.edu,,,,scrape
 Eastern Washington,Whitney,Pitalo,Assistant Coach,wpitalo@uw.edu,,,,scrape
 Eastern Washington,Paige,Brandt,Assistant Coach,pbrandtt@uw.edu,,,,scrape
@@ -293,7 +274,6 @@ Holy Cross,Ben,Graham,Head Coach,bgraham@holycross.edu,508-793-3624,,,scrape
 Holy Cross,Chris,Wasilewski,Assistant Coach,cwasilew@holycross.edu,508-793-2488,,,scrape
 Holy Cross,Lizzie,Frattaroli,Assistant Coach,efrattaroli@holycross.edu,508-793-2571,,,scrape
 Holy Cross,Cat,Klein,Assistant Coach,cklein@holycross.edu,508-793-2571,,,scrape
-Houston,Brady,Schlesman,Assistant Coach,bschlesman@hc.edu,,,,scrape
 Houston Christian,Nick,Whiting,Head Coach,nwhiting@hc.edu,,,,scrape
 Houston Christian,Brady,Schlesman,Assistant Coach,bschlesman@hc.edu,,,,scrape
 Howard,Brent,Leiba,Head Coach,bleiba@howard.edu,(202) 806-7147,,,scrape
@@ -396,7 +376,6 @@ Louisville,Hunter,Norton,Head Coach,hunter@GoCards.com,,,,scrape
 Louisville,Olivia,Mills,Assistant Coach,omills@gocards.com,,,,scrape
 Louisville,Mitch,Hepburn,Assistant Coach,hepburn@gocards.com,,,,scrape
 Louisville,Jing,Hughley,Director of Operations,jing@GoCards.com,,,,scrape
-Loyola Chicago,Avery,Howell,Assistant Coach,ahowell@csu.edu,,,,scrape
 Loyola Marymount,Chris,Chamides,Head Coach,wsoccer@lmu.edu,232-90-53,,,scrape
 Loyola Marymount,Chelsey,Brown,Assistant Coach,wsoccer@lmu.edu,,,,scrape
 Loyola Marymount,Stephen,Merriwether,Assistant Coach,wsoccer@lmu.edu,,,,scrape
@@ -456,9 +435,6 @@ Mississippi State,Mark,Foster,Assistant Coach,mfoster@athletics.msstate.edu,,,,s
 Mississippi State,Emma,Webb,Assistant Coach,ewebb@athletics.msstate.edu,,,,scrape
 Mississippi State,Kat,Stratton,Assistant Coach,kstratton@athletics.msstate.edu,662-325-2722,,,scrape
 Mississippi State,Lucy,Ream,Director of Operations,lream@athletics.msstate.edu,,,,scrape
-Missouri,Sara,Halilhodzic,Assistant Coach,SHalilhodzic@MissouriState.edu,(417) 836-5242,,,scrape
-Missouri,Christy,Kononiuk,Assistant Coach,ChristinaKononiuk@MissouriState.edu,(417) 836-5242,,,scrape
-Missouri,Adam,Nerio,Assistant Coach,AdamNerio@MissouriState.edu,(417) 836-5242,,,scrape
 Missouri State,Kirk,Nelson,Head Coach,KirkNelson@missouristate.edu,(417) 836-6968,,,scrape
 Missouri State,Sara,Halilhodzic,Assistant Coach,SHalilhodzic@MissouriState.edu,(417) 836-5242,,,scrape
 Missouri State,Christy,Kononiuk,Assistant Coach,ChristinaKononiuk@MissouriState.edu,(417) 836-5242,,,scrape
@@ -484,8 +460,6 @@ NC State,Gary,Higgins,Head Coach,grhiggin@ncsu.edu,,,,scrape
 NC State,Joanna,Fennema,Assistant Coach,jbfennem@ncsu.edu,,,,scrape
 NC State,David,Rodriguez,Assistant Coach,darodri2@ncsu.edu,,,,scrape
 NC State,Juan,Basabe,Assistant Coach,jbasabe@ncsu.edu,,,,scrape
-Nevada,Austin,Rios,Assistant Coach,austin.rios@unlv.edu,,,,scrape
-Nevada,Diera,Walton,Assistant Coach,diera.walton@unlv.edu,,,,scrape
 New Hampshire,Steve,Welham,Head Coach,steve.welham@unh.edu,603-862-3822,,,scrape
 New Hampshire,Jessica,Nei,Assistant Coach,jessica.nei@unh.edu,,,,scrape
 New Hampshire,Stuart,Horne,Assistant Coach,stu.horne@unh.edu,603-862-0744,,,scrape
@@ -533,9 +507,6 @@ Northwestern,Michael,Moynihan,Head Coach,wsoccer@northwestern.edu,,,,scrape
 Northwestern,Rich,Manning,Assistant Coach,wsoccer@northwestern.edu,,,CoachManning,scrape
 Northwestern,Reaghan,Duval,Assistant Coach,wsoccer@northwestern.edu,,,reaghanduval_,scrape
 Northwestern,Christine,McBeath,Assistant Coach,wsoccer@northwestern.edu,,,,scrape
-Northwestern State,Rich,Manning,Assistant Coach,wsoccer@northwestern.edu,,,CoachManning,scrape
-Northwestern State,Reaghan,Duval,Assistant Coach,wsoccer@northwestern.edu,,,reaghanduval_,scrape
-Northwestern State,Christine,McBeath,Assistant Coach,wsoccer@northwestern.edu,,,,scrape
 Notre Dame,Nate,Norman,Head Coach,,,,,scrape
 Notre Dame,Dawn,Siergiej,Assistant Coach,dsiergiej@nd.edu,,,,scrape
 Notre Dame,Martin,Rennie,Assistant Coach,mrennie2@nd.edu,,,,scrape
@@ -575,14 +546,6 @@ Pepperdine,Tim,Ward,Head Coach,pepperdinesoccer@pepperdine.edu,(310) 506-4338,,H
 Pepperdine,Max,Rooke,Assistant Coach,pepperdinesoccer@pepperdine.edu,(310) 506-4538,,Max_Rooke,scrape
 Pepperdine,Kevin,Arellano,Assistant Coach,kevin.arellano@pepperdine.edu,(310) 506-4862,,,scrape
 Pepperdine,Amber,Marshall,Assistant Coach,amber.marshall@pepperdine.edu,(310) 506-4862,,,scrape
-Portland,Michelle,French,Head Coach,,,,,scrape
-Portland,Maite,Zabala,Assistant Coach,zabala@up.edu,510-551-6690,,,scrape
-Portland,Tina,Frimpong Ellertson,Assistant Coach,ellertso@up.edu,,,,scrape
-Portland,Ken,Krolicki,Assistant Coach,krolicki@up.edu,,,,scrape
-Portland State,Michelle,French,Head Coach,,,,,scrape
-Portland State,Maite,Zabala,Assistant Coach,zabala@up.edu,510-551-6690,,,scrape
-Portland State,Tina,Frimpong Ellertson,Assistant Coach,ellertso@up.edu,,,,scrape
-Portland State,Ken,Krolicki,Assistant Coach,krolicki@up.edu,,,,scrape
 Presbyterian,Matt,Smith,Head Coach,mrsmith@presby.edu,864-833-7091,,,scrape
 Presbyterian,Bradley,Anderson,Assistant Coach,banderson@presby.edu,,,,scrape
 Princeton,Sean,Driscoll,Head Coach,wsoccer@princeton.edu,609-258-5092,,,scrape
@@ -695,23 +658,14 @@ South Florida,Chris,Brown,Head Coach,chrisbrown@usf.edu,(813) 974-3317,,,scrape
 South Florida,Ashley,Meade,Assistant Coach,ashleymeade@usf.edu,,,,scrape
 South Florida,Jennifer,Wandt,Assistant Coach,jwandt@usf.edu,,GK Coach,,scrape
 South Florida,Steve,Golas,Assistant Coach,golas@usf.edu,,,,scrape
-Southeast Missouri State,Sara,Halilhodzic,Assistant Coach,SHalilhodzic@MissouriState.edu,(417) 836-5242,,,scrape
-Southeast Missouri State,Christy,Kononiuk,Assistant Coach,ChristinaKononiuk@MissouriState.edu,(417) 836-5242,,,scrape
-Southeast Missouri State,Adam,Nerio,Assistant Coach,AdamNerio@MissouriState.edu,(417) 836-5242,,,scrape
 Southeastern Louisiana,Nathan,Gillespie,Head Coach,nathan.gillespie@southeastern.edu,(276) 451-1566,,,scrape
 Southeastern Louisiana,Willem,Kelson,Assistant Coach,willem.kelson@southeastern.edu,,,,scrape
-Southern Illinois,Nick,Luciani,Assistant Coach,nilucia@siue.edu,618-650-2427,,,scrape
-Southern Illinois,Olivia,Killian,Assistant Coach,okillia@siue.edu,,,,scrape
 Southern Indiana,Eric,Schoenstein,Head Coach,emschoenst@usi.edu,812-465-1041,,,scrape
 Southern Indiana,Carly,Dean,Assistant Coach,cdean1@usi.edu,,,,scrape
 Southern Indiana,Skylar,Brant,Assistant Coach,sbrant@usi.edu,,,,scrape
 Southern Miss,Danny,Owens,Head Coach,Danny.Owens@usm.edu,,,,scrape
 Southern Miss,Ryan,Weir,Assistant Coach,r.weir@usm.edu,,,,scrape
 Southern Miss,Anita,Gudmundsdottir,Assistant Coach,Anita.Gudmundsdottir@usm.edu,,,,scrape
-Southern Utah,Tyler,Brown,Assistant Coach,tyler.brown5@utahtech.edu,,,,scrape
-Southern Utah,Juli,Nield,Assistant Coach,juli.nield@utahtech.edu,,,,scrape
-Southern Utah,Lauren,Towne,Assistant Coach,lauren.towne@utahtech.edu,,,,scrape
-Southern Utah,Kalea,Woodyatt,Director of Operations,kalea.woodyatt@utahtech.edu,,,,scrape
 Stephen F. Austin,Ashley,Whittemore,Head Coach,Ashley.Whittemore@sfasu.edu,,,,scrape
 Stephen F. Austin,McKenzie,Whittinghill,Assistant Coach,McKenzie.Whittinghill@sfasu.edu,,,,scrape
 Stephen F. Austin,Ben,Morrison,Assistant Coach,Benjamin.Morrison@sfasu.edu,,,,scrape
@@ -729,9 +683,6 @@ Stony Brook,Curtis,Copenhaver,Assistant Coach,curtis.copenhaver@stonybrook.edu,,
 Syracuse,Nicky,Thrasher Adams,Head Coach,nmadams@syr.edu,,,,scrape
 Syracuse,Brian,Dunleavy,Assistant Coach,bcdunlea@syr.edu,,,,scrape
 Syracuse,Michele,Barletta,Assistant Coach,mbarlett@syr.edu,,GK Coach,,scrape
-Tarleton State,Rex,Carrell,Assistant Coach,rcarrell@tarleton.edu,602-999-7807,,,scrape
-Tarleton State,Lexi,Stinson,Assistant Coach,astinson1@tarleton.edu,602-999-7807,,,scrape
-Tarleton State,Olivia,Stutzman,Assistant Coach,olivia.stutzman@go.tarleton.edu,970-818-1873,,,scrape
 TCU,Eric,Bell,Head Coach,tcusoccer@tcu.edu,,,,scrape
 TCU,Ryan,Higginbotham,Assistant Coach,tcusoccer@tcu.edu,,,,scrape
 TCU,Tom,Serratore,Assistant Coach,tcusoccer@tcu.edu,,,,scrape
@@ -741,8 +692,6 @@ Temple,Chris,Shaw,Head Coach,shaw@temple.edu,919-208-8515,,,scrape
 Temple,Kenie,Wright,Assistant Coach,kenie.wright@temple.edu,,,,scrape
 Temple,Adrian,Blewitt,Assistant Coach,adrian.blewitt@temple.edu,,,,scrape
 Temple,Ludvig,Wille,Assistant Coach,,,GK Coach,,scrape
-Tennessee,Jay,Yelton,Head Coach,,,,,scrape
-Tennessee,Matt,Yelton,Assistant Coach,zmby1@etsu.edu,,,,scrape
 Tennessee Tech,Jay,Yelton,Head Coach,,,,,scrape
 Tennessee Tech,Matt,Yelton,Assistant Coach,zmby1@etsu.edu,,,,scrape
 Texas A&M–Corpus Christi,Daniel,Clitnovici,Head Coach,daniel.clitnovici@tamucc.edu,,,,scrape
@@ -814,14 +763,6 @@ USC,Megan,Hinz,Assistant Coach,socpros@usc.edu,,GK Coach,,scrape
 UT Martin,Mike,Varga,Head Coach,mvarga3@utm.edu,731-881-7931,,,scrape
 UT Martin,Lauren,Smith,Assistant Coach,lsmit340@utm.edu,731-881-7931,,,scrape
 UT Martin,Maddie,Turlington,Assistant Coach,mturlin2@ut.utm.edu,731-881-3931,,,scrape
-Utah,Tyler,Brown,Assistant Coach,tyler.brown5@utahtech.edu,,,,scrape
-Utah,Juli,Nield,Assistant Coach,juli.nield@utahtech.edu,,,,scrape
-Utah,Lauren,Towne,Assistant Coach,lauren.towne@utahtech.edu,,,,scrape
-Utah,Kalea,Woodyatt,Director of Operations,kalea.woodyatt@utahtech.edu,,,,scrape
-Utah State,Tyler,Brown,Assistant Coach,tyler.brown5@utahtech.edu,,,,scrape
-Utah State,Juli,Nield,Assistant Coach,juli.nield@utahtech.edu,,,,scrape
-Utah State,Lauren,Towne,Assistant Coach,lauren.towne@utahtech.edu,,,,scrape
-Utah State,Kalea,Woodyatt,Director of Operations,kalea.woodyatt@utahtech.edu,,,,scrape
 Utah Tech,Lexi,Brown,Head Coach,lexi.brown1@utahtech.edu,,,,scrape
 Utah Tech,Tyler,Brown,Assistant Coach,tyler.brown5@utahtech.edu,,,,scrape
 Utah Tech,Juli,Nield,Assistant Coach,juli.nield@utahtech.edu,,,,scrape
@@ -856,8 +797,6 @@ Villanova,Adam,Kanji,Assistant Coach,,,,,scrape
 VMI,Jim,Robbins,Head Coach,robbinsjc@vmi.edu,540-464-7608,,,scrape
 VMI,McKayla,Wetsel,Assistant Coach,wetselm@vmi.edu,540-464-7956,,,scrape
 VMI,Sam,Honig,Assistant Coach,,,,,scrape
-Wagner,Huey,Ferguson,Assistant Coach,huey.ferguson@wagner.edu,,,,scrape
-Wagner,Kurt,Palmer,Assistant Coach,kurt.palmer@wagner.edu,,,,scrape
 Wake Forest,Tony,da Luz,Head Coach,daluz@wfu.edu,336-758-4375,,,scrape
 Wake Forest,Brittany,Cameron,Assistant Coach,camerob@wfu.edu,,,,scrape
 Wake Forest,Christine,Nairn,Assistant Coach,nairnc@wfu.edu,,,,scrape
@@ -866,8 +805,6 @@ Washington,Nicole,Van Dyke,Head Coach,nvandyke@uw.edu,,,,scrape
 Washington,Raphael,Cox,Assistant Coach,raphcox@uw.edu,,,,scrape
 Washington,Whitney,Pitalo,Assistant Coach,wpitalo@uw.edu,,,,scrape
 Washington,Paige,Brandt,Assistant Coach,pbrandtt@uw.edu,,,,scrape
-West Georgia,TK,Abderahman,Assistant Coach,tk1@gsu.edu,(803) 517-6056,,,scrape
-West Georgia,Brisa,Zavala,Assistant Coach,bzavala1@gsu.edu,(404) 496-0079,,,scrape
 West Virginia,Nikki,Izzo-Brown,Head Coach,,(304) 293-9885,,WVUIzzoBrown,scrape
 West Virginia,Lisa,Stoia,Assistant Coach,Lisa.Stoia@mail.wvu.edu,(304) 293-9884,,LisaStoiaWVU,scrape
 West Virginia,Eric,Beltran,Assistant Coach,eric.beltran@mail.wvu.edu,(304) 290-8196,,_EricBeltran,scrape
@@ -877,10 +814,6 @@ Western Carolina,Andrew,Green,Assistant Coach,greena@wcu.edu,(828) 227-2391,,,sc
 Western Carolina,Michael,Mazarky,Assistant Coach,mmazarky@email.wcu.edu,,,,scrape
 Western Illinois,Ross,Henderson,Head Coach,rg-henderson@wiu.edu,,,,scrape
 Western Illinois,Will,Kelson,Assistant Coach,wp-kelson@wiu.edu,,,,scrape
-Western Kentucky,Brenton,Saylor,Assistant Coach,,,,,scrape
-Western Kentucky,Jelena,Sever,Assistant Coach,jelena.sever@uky.edu,,,,scrape
-Western Kentucky,Marco,Fabiano,Assistant Coach,,,,,scrape
-Western Kentucky,Nick,Stevens,Director of Operations,nstevens@uky.edu,,,,scrape
 Western Michigan,Lewis,Robinson,Head Coach,lewis.robinson@wmich.edu,,,,scrape
 Western Michigan,Paige,Eli,Assistant Coach,paige.eli@wmich.edu,,,,scrape
 Western Michigan,Nate,Van Ryn,Assistant Coach,nathan.vanryn@wmich.edu,,,,scrape
@@ -1025,3 +958,86 @@ Washington State,Chris,Citowicki,Head Coach,athletics.soccer@wsu.edu,,,,manual
 Washington State,Molly,Rouse,Assistant Coach,athletics.soccer@wsu.edu,,,,manual
 Washington State,Ashley,Herndon,Assistant Coach,athletics.soccer@wsu.edu,,,,manual
 Washington State,Alex,Nestor,Assistant Coach,athletics.soccer@wsu.edu,,,,manual
+East Tennessee State,Jay,Yelton,Head Coach,,,,,manual
+East Tennessee State,Matt,Yelton,Assistant Coach,zmby1@etsu.edu,,,,manual
+Tennessee,Joe,Kirt,Head Coach,,,,,manual
+Tennessee,Jonathan,Morgan,Assistant Coach,jmorga79@utk.edu,,,,manual
+Tennessee,Mike,Lyons,Assistant Coach,mlyons16@utk.edu,,,,manual
+Tennessee,Marty,Baker,Assistant Coach,mbaker26@utk.edu,,,,manual
+Tennessee,Sam,Black,Assistant Coach,sblack43@utk.edu,,,,manual
+Portland,Michelle,French,Head Coach,,,,,manual
+Portland,Maite,Zabala,Assistant Coach,zabala@up.edu,510-551-6690,,,manual
+Portland,Tina,Frimpong Ellertson,Assistant Coach,ellertso@up.edu,,,,manual
+Portland,Ken,Krolicki,Assistant Coach,krolicki@up.edu,,,,manual
+Portland State,Maureen,Whitney,Head Coach,maureen6@pdx.edu,(503) 725-5611,,,manual
+Portland State,Lauren,Prott,Assistant Coach,prott@pdx.edu,,,,manual
+Portland State,Phoenix,Baltrus,Assistant Coach,,,,,manual
+Arkansas,Colby,Hale,Head Coach,cah013@uark.edu,,,,manual
+Arkansas,Jon,Harvey,Assistant Coach,jh178@uark.edu,,,,manual
+Arkansas,Sammy,Scofield,Assistant Coach,ss150@uark.edu,,,,manual
+Arkansas,Sandy,Davison,Assistant Coach,sd062@uark.edu,,,,manual
+Arkansas State,Brian,Dooley,Head Coach,bdooley@astate.edu,(870) 972-3195,,,manual
+Arkansas State,Phil,Woods,Assistant Coach,pwoods@astate.edu,(870) 972-2340,,,manual
+Missouri,Stefanie,Golan,Head Coach,sgolan@missouri.edu,,,,manual
+Missouri,Kelsey,Wys,Assistant Coach,kwys@missouri.edu,,,,manual
+Missouri,Renee,Horton,Assistant Coach,rhorton@missouri.edu,,,,manual
+Missouri,Callie,McKinney,Assistant Coach,cmzmk@missouri.edu,,,,manual
+Houston,Ben,Williams,Head Coach,bjwill20@central.uh.edu,,,,manual
+Houston,Peter,Mulamba,Assistant Coach,pmulamba@central.uh.edu,,,,manual
+Houston,Izzie,Vaccari,Assistant Coach,ikvaccar@central.uh.edu,,,,manual
+Houston,Brooke,Bradley,Assistant Coach,babradl4@central.uh.edu,,,,manual
+Eastern Michigan,Taylor,Clarke,Head Coach,tclarke5@emich.edu,734-487-1050,,,manual
+Eastern Michigan,Matt,Hinds,Assistant Coach,mhinds@emich.edu,,,,manual
+Eastern Michigan,Zach,Shuk,Assistant Coach,zshuk@emich.edu,,,,manual
+Eastern Kentucky,Matt,Cosinuke,Head Coach,matthew.cosinuke@eku.edu,,,,manual
+Eastern Kentucky,Darus,Ward,Assistant Coach,darus.ward@eku.edu,,,,manual
+Eastern Kentucky,Tatum,Tremain,Assistant Coach,tatum.tremain@eku.edu,,,,manual
+Eastern Kentucky,Wyatt,Burrows,Assistant Coach,wyatt.burrows@eku.edu,,,,manual
+Western Kentucky,Jason,Neidell,Head Coach,jason.neidell@wku.edu,(270) 745-6563,,,manual
+Western Kentucky,Antonio,La Gamba,Assistant Coach,antonio.lagamba@wku.edu,270-745-4326,,,manual
+Western Kentucky,Emma,Tompkins,Assistant Coach,emma.tompkins@wku.edu,270-745-3185,,,manual
+Alabama A&M,Prince,Borde,Head Coach,prince.borde@aamu.edu,(256) 947-9732,,,manual
+Alabama A&M,Kiara,Snel,Assistant Coach,kiara.snel@aamu.edu,,,,manual
+Alabama State,Alicia,Wilson,Head Coach,awilson1678@alasu.edu,,,,manual
+Alabama State,Oscar,Lopez,Assistant Coach,olopez@alasu.edu,,,,manual
+Alabama State,Wasila,Diwura Soale,Assistant Coach,wsoale@alasu.edu,,,,manual
+Charleston Southern,Jose,Gomez,Head Coach,jgomez@csuniv.edu,(843) 863-7931,,,manual
+Charleston Southern,Kelly,Coster,Assistant Coach,kcoster@csuniv.edu,(843) 863-7256,,,manual
+Charleston Southern,Isaac,Arco,Assistant Coach,iarco@csuniv.edu,,,,manual
+Delaware State,Eric,Belcher,Assistant Coach,eabelcher@desu.edu,,,,manual
+Loyola Chicago,Jon,Sandoval,Head Coach,jsandoval11@luc.edu,,,,manual
+Loyola Chicago,Brady,Moody,Assistant Coach,bmoody1@luc.edu,,,,manual
+Loyola Chicago,Camryn,Hart,Assistant Coach,chart15@luc.edu,,,,manual
+Loyola Chicago,Sean,Palacios,Assistant Coach,spalacios1@luc.edu,,,,manual
+Nevada,Jeremy,Evans,Head Coach,jeremyevans@unr.edu,,,,manual
+Nevada,Lauren,Wolcott,Assistant Coach,laurenwolcott@unr.edu,,,,manual
+Nevada,Jenn,Kovisto,Assistant Coach,jkovisto@unr.edu,(925) 337-4302,,,manual
+Northwestern State,Ian,Brophy,Head Coach,brophyi@nsula.edu,318-357-4337,,,manual
+Northwestern State,Clifford,Jordan,Assistant Coach,jordanc@nsula.edu,,,,manual
+Southeast Missouri State,John,Klein,Head Coach,jklein@semo.edu,,,,manual
+Southeast Missouri State,Carter,Redford,Assistant Coach,cmredford@semo.edu,(636) 362-9855,,,manual
+Southeast Missouri State,Justin,McMullen,Assistant Coach,jamcmullen@semo.edu,(573) 979-0440,,,manual
+Southern Illinois,Graeme,Orr,Head Coach,graeme.orr@siu.edu,618-453-5462,,,manual
+Southern Illinois,Carley,Kandel,Assistant Coach,Carley.kandel@siu.edu,618-453-4045,,,manual
+Southern Illinois,Ash,Phillips,Assistant Coach,ashley.phillips@siu.edu,,,,manual
+Southern Utah,Steven,Lindquist,Head Coach,stevenlindquist@suu.edu,,,,manual
+Southern Utah,Angie,Knies,Assistant Coach,angieknies@suu.edu,,,,manual
+Southern Utah,Olivia,Watson,Assistant Coach,,,,,manual
+Utah,Hideki,Nakada,Head Coach,h.nakada@utah.edu,,,,manual
+Utah,Jackie,Poortinga,Assistant Coach,j.poortinga@utah.edu,,,,manual
+Utah,Sam,Gomez,Assistant Coach,sgomez@utah.edu,,,,manual
+Utah,Emma,Greenwood,Assistant Coach,e.greenwood@utah.edu,,,,manual
+Utah State,Manny,Martins,Head Coach,manny.martins@usu.edu,,,,manual
+Utah State,Erin,Carrillo-Bautista,Assistant Coach,erin.carrillo@usu.edu,503-320-8071,,,manual
+Utah State,Mealii,Odum,Assistant Coach,mealii.odum@usu.edu,,,,manual
+Utah State,Brandon,DeNoyer,Assistant Coach,,,,,manual
+Tarleton State,Pete,Cuadrado,Head Coach,pcuadrado@tarleton.edu,254-459-5463,,,manual
+Tarleton State,Rex,Carrell,Assistant Coach,rcarrell@tarleton.edu,602-999-7807,,,manual
+Tarleton State,Lexi,Stinson,Assistant Coach,astinson1@tarleton.edu,,,,manual
+Tarleton State,Olivia,Stutzman,Assistant Coach,olivia.stutzman@go.tarleton.edu,970-818-1873,,,manual
+Wagner,Phil,Casella,Head Coach,philip.casella@wagner.edu,(718) 390-3156,,,manual
+Wagner,Huey,Ferguson,Assistant Coach,huey.ferguson@wagner.edu,,,,manual
+Wagner,Kurt,Palmer,Assistant Coach,kurt.palmer@wagner.edu,,,,manual
+West Georgia,Mallory,Sayre,Head Coach,msayre@westga.edu,678-839-6545,,,manual
+West Georgia,Jodi,DaCosta,Assistant Coach,jdacosta@westga.edu,,,,manual
+West Georgia,Jason,Lee,Assistant Coach,leej@westga.edu,,,,manual

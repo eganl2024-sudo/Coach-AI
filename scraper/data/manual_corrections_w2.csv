@@ -1,0 +1,84 @@
+school_name,first_name,last_name,title,email,phone,source
+East Tennessee State,Jay,Yelton,Head Coach,,,manual
+East Tennessee State,Matt,Yelton,Assistant Coach,zmby1@etsu.edu,,manual
+Tennessee,Joe,Kirt,Head Coach,,,manual
+Tennessee,Jonathan,Morgan,Assistant Coach,jmorga79@utk.edu,,manual
+Tennessee,Mike,Lyons,Assistant Coach,mlyons16@utk.edu,,manual
+Tennessee,Marty,Baker,Assistant Coach,mbaker26@utk.edu,,manual
+Tennessee,Sam,Black,Assistant Coach,sblack43@utk.edu,,manual
+Portland,Michelle,French,Head Coach,,,manual
+Portland,Maite,Zabala,Assistant Coach,zabala@up.edu,510-551-6690,manual
+Portland,Tina,Frimpong Ellertson,Assistant Coach,ellertso@up.edu,,manual
+Portland,Ken,Krolicki,Assistant Coach,krolicki@up.edu,,manual
+Portland State,Maureen,Whitney,Head Coach,maureen6@pdx.edu,(503) 725-5611,manual
+Portland State,Lauren,Prott,Assistant Coach,prott@pdx.edu,,manual
+Portland State,Phoenix,Baltrus,Assistant Coach,,,manual
+Arkansas,Colby,Hale,Head Coach,cah013@uark.edu,,manual
+Arkansas,Jon,Harvey,Assistant Coach,jh178@uark.edu,,manual
+Arkansas,Sammy,Scofield,Assistant Coach,ss150@uark.edu,,manual
+Arkansas,Sandy,Davison,Assistant Coach,sd062@uark.edu,,manual
+Arkansas State,Brian,Dooley,Head Coach,bdooley@astate.edu,(870) 972-3195,manual
+Arkansas State,Phil,Woods,Assistant Coach,pwoods@astate.edu,(870) 972-2340,manual
+Missouri,Stefanie,Golan,Head Coach,sgolan@missouri.edu,,manual
+Missouri,Kelsey,Wys,Assistant Coach,kwys@missouri.edu,,manual
+Missouri,Renee,Horton,Assistant Coach,rhorton@missouri.edu,,manual
+Missouri,Callie,McKinney,Assistant Coach,cmzmk@missouri.edu,,manual
+Houston,Ben,Williams,Head Coach,bjwill20@central.uh.edu,,manual
+Houston,Peter,Mulamba,Assistant Coach,pmulamba@central.uh.edu,,manual
+Houston,Izzie,Vaccari,Assistant Coach,ikvaccar@central.uh.edu,,manual
+Houston,Brooke,Bradley,Assistant Coach,babradl4@central.uh.edu,,manual
+Eastern Michigan,Taylor,Clarke,Head Coach,tclarke5@emich.edu,734-487-1050,manual
+Eastern Michigan,Matt,Hinds,Assistant Coach,mhinds@emich.edu,,manual
+Eastern Michigan,Zach,Shuk,Assistant Coach,zshuk@emich.edu,,manual
+Eastern Kentucky,Matt,Cosinuke,Head Coach,matthew.cosinuke@eku.edu,,manual
+Eastern Kentucky,Darus,Ward,Assistant Coach,darus.ward@eku.edu,,manual
+Eastern Kentucky,Tatum,Tremain,Assistant Coach,tatum.tremain@eku.edu,,manual
+Eastern Kentucky,Wyatt,Burrows,Assistant Coach,wyatt.burrows@eku.edu,,manual
+Western Kentucky,Jason,Neidell,Head Coach,jason.neidell@wku.edu,(270) 745-6563,manual
+Western Kentucky,Antonio,La Gamba,Assistant Coach,antonio.lagamba@wku.edu,270-745-4326,manual
+Western Kentucky,Emma,Tompkins,Assistant Coach,emma.tompkins@wku.edu,270-745-3185,manual
+Alabama A&M,Prince,Borde,Head Coach,prince.borde@aamu.edu,(256) 947-9732,manual
+Alabama A&M,Kiara,Snel,Assistant Coach,kiara.snel@aamu.edu,,manual
+Alabama State,Alicia,Wilson,Head Coach,awilson1678@alasu.edu,,manual
+Alabama State,Oscar,Lopez,Assistant Coach,olopez@alasu.edu,,manual
+Alabama State,Wasila,Diwura Soale,Assistant Coach,wsoale@alasu.edu,,manual
+Charleston Southern,Jose,Gomez,Head Coach,jgomez@csuniv.edu,(843) 863-7931,manual
+Charleston Southern,Kelly,Coster,Assistant Coach,kcoster@csuniv.edu,(843) 863-7256,manual
+Charleston Southern,Isaac,Arco,Assistant Coach,iarco@csuniv.edu,,manual
+Delaware State,Eric,Belcher,Assistant Coach,eabelcher@desu.edu,,manual
+Loyola Chicago,Jon,Sandoval,Head Coach,jsandoval11@luc.edu,,manual
+Loyola Chicago,Brady,Moody,Assistant Coach,bmoody1@luc.edu,,manual
+Loyola Chicago,Camryn,Hart,Assistant Coach,chart15@luc.edu,,manual
+Loyola Chicago,Sean,Palacios,Assistant Coach,spalacios1@luc.edu,,manual
+Nevada,Jeremy,Evans,Head Coach,jeremyevans@unr.edu,,manual
+Nevada,Lauren,Wolcott,Assistant Coach,laurenwolcott@unr.edu,,manual
+Nevada,Jenn,Kovisto,Assistant Coach,jkovisto@unr.edu,(925) 337-4302,manual
+Northwestern State,Ian,Brophy,Head Coach,brophyi@nsula.edu,318-357-4337,manual
+Northwestern State,Clifford,Jordan,Assistant Coach,jordanc@nsula.edu,,manual
+Southeast Missouri State,John,Klein,Head Coach,jklein@semo.edu,,manual
+Southeast Missouri State,Carter,Redford,Assistant Coach,cmredford@semo.edu,(636) 362-9855,manual
+Southeast Missouri State,Justin,McMullen,Assistant Coach,jamcmullen@semo.edu,(573) 979-0440,manual
+Southern Illinois,Graeme,Orr,Head Coach,graeme.orr@siu.edu,618-453-5462,manual
+Southern Illinois,Carley,Kandel,Assistant Coach,Carley.kandel@siu.edu,618-453-4045,manual
+Southern Illinois,Ash,Phillips,Assistant Coach,ashley.phillips@siu.edu,,manual
+Southern Utah,Steven,Lindquist,Head Coach,stevenlindquist@suu.edu,,manual
+Southern Utah,Angie,Knies,Assistant Coach,angieknies@suu.edu,,manual
+Southern Utah,Olivia,Watson,Assistant Coach,,,manual
+Utah,Hideki,Nakada,Head Coach,h.nakada@utah.edu,,manual
+Utah,Jackie,Poortinga,Assistant Coach,j.poortinga@utah.edu,,manual
+Utah,Sam,Gomez,Assistant Coach,sgomez@utah.edu,,manual
+Utah,Emma,Greenwood,Assistant Coach,e.greenwood@utah.edu,,manual
+Utah State,Manny,Martins,Head Coach,manny.martins@usu.edu,,manual
+Utah State,Erin,Carrillo-Bautista,Assistant Coach,erin.carrillo@usu.edu,503-320-8071,manual
+Utah State,Mealii,Odum,Assistant Coach,mealii.odum@usu.edu,,manual
+Utah State,Brandon,DeNoyer,Assistant Coach,,,manual
+Tarleton State,Pete,Cuadrado,Head Coach,pcuadrado@tarleton.edu,254-459-5463,manual
+Tarleton State,Rex,Carrell,Assistant Coach,rcarrell@tarleton.edu,602-999-7807,manual
+Tarleton State,Lexi,Stinson,Assistant Coach,astinson1@tarleton.edu,,manual
+Tarleton State,Olivia,Stutzman,Assistant Coach,olivia.stutzman@go.tarleton.edu,970-818-1873,manual
+Wagner,Phil,Casella,Head Coach,philip.casella@wagner.edu,(718) 390-3156,manual
+Wagner,Huey,Ferguson,Assistant Coach,huey.ferguson@wagner.edu,,manual
+Wagner,Kurt,Palmer,Assistant Coach,kurt.palmer@wagner.edu,,manual
+West Georgia,Mallory,Sayre,Head Coach,msayre@westga.edu,678-839-6545,manual
+West Georgia,Jodi,DaCosta,Assistant Coach,jdacosta@westga.edu,,manual
+West Georgia,Jason,Lee,Assistant Coach,leej@westga.edu,,manual
