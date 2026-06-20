@@ -173,11 +173,11 @@ Furman University,Charlie,Arndt,Assistant Coach,tickets@furman.edu,864-294-3099,
 Furman University,Bret,Boulware,Assistant Coach,Bret.Boulware@Furman.edu,864-294-3099,,,scrape
 Furman University,Dawson,Martin,Director of Operations,Dawson.Martin0@Furman.edu,864-294-3099,,,scrape
 Furman University,Camilo,Rodriguez,Assistant Coach,Camilo.Rodriguez7@Furman.edu,864-294-3099,,,scrape
-Gardner?Webb University,Scott,Wells,Head Coach,swells5@gardner-webb.edu,(704) 406-3856,,,scrape
-Gardner?Webb University,Daniel,Babbert,Assistant Coach,dbabbert@gardner-webb.edu,(908) 800-3076,,,scrape
-Gardner?Webb University,Calum,Erlenborn,Assistant Coach,cerlenborn@gardner-webb.edu,,,,scrape
-Gardner?Webb University,Ben,Goddard,Assistant Coach,bengoddard@yahoo.com,,,,scrape
-Gardner?Webb University,Carl,Reynolds,Assistant Coach,creynolds7@gardner-webb.edu,,,,scrape
+Gardner-Webb University,Scott,Wells,Head Coach,swells5@gardner-webb.edu,(704) 406-3856,,,scrape
+Gardner-Webb University,Daniel,Babbert,Assistant Coach,dbabbert@gardner-webb.edu,(908) 800-3076,,,scrape
+Gardner-Webb University,Calum,Erlenborn,Assistant Coach,cerlenborn@gardner-webb.edu,,,,scrape
+Gardner-Webb University,Ben,Goddard,Assistant Coach,bengoddard@yahoo.com,,,,scrape
+Gardner-Webb University,Carl,Reynolds,Assistant Coach,creynolds7@gardner-webb.edu,,,,scrape
 George Mason University,Rich,Costanzo,Head Coach,rcostanz@gmu.edu,,,,manual
 George Mason University,Noel,Orozco,Assistant Coach,norozco@gmu.edu,,,,manual
 George Mason University,Vahid,Talebloo,Assistant Coach,,,,,manual
@@ -355,7 +355,6 @@ Ohio State University,Brian,Maisonneuve,Head Coach,maisonneuve.2@osu.edu,,,,scra
 Ohio State University,Corey,Brueggeman,Assistant Coach,Brueggeman.11@osu.edu,,,,scrape
 Ohio State University,Matt,Foldesy,Assistant Coach,foldesy.1@osu.edu,,,,scrape
 Ohio State University,Travis,Morris,Assistant Coach,Morris.1925@osu.edu,,,,scrape
-Old Dominion University,Tennant,McVea,Head Coach,jmcvea@odu.edu,,,,manual
 Oral Roberts University,Ryan,Bush,Head Coach,rybush@oru.edu,918-495-6830,,,scrape
 Oral Roberts University,Edgardo,Mira,Assistant Coach,emira@oru.edu,918-495-7243,,,scrape
 Oral Roberts University,Sergio,Romero,Assistant Coach,sromero@oru.edu,918-495-6802,,,scrape
@@ -401,10 +400,10 @@ Rider University,Reilly,Fuller,Assistant Coach,rfuller@rider.edu,609-896-5319,,,
 Rider University,Gus,Valeriano,Assistant Coach,gvaleriano@rider.edu,,,,scrape
 Robert Morris University,Jonathan,Potter,Head Coach,menssoccer@rmu.edu,(412) 397-4971,,,scrape
 Robert Morris University,Abraham,Lopez-Mendoza,Assistant Coach,lopezmendoza@rmu.edu,(412) 397-4911,,,scrape
-Rutgers University?New Brunswick,Jim,McElderry,Head Coach,jmcelderry@scarletknights.com,,,,scrape
-Rutgers University?New Brunswick,Joe,Mortarulo,Assistant Coach,jmortarulo@scarletknights.com,,,,scrape
-Rutgers University?New Brunswick,Tyler,Stakiwicz,Assistant Coach,tstakiwicz@scarletknights.com,732-445-6223,,,scrape
-Rutgers University?New Brunswick,Gavin,Wyse,Assistant Coach,gwyse@scarletknights.com,732-445-6223,,,scrape
+Rutgers University-New Brunswick,Jim,McElderry,Head Coach,jmcelderry@scarletknights.com,,,,scrape
+Rutgers University-New Brunswick,Joe,Mortarulo,Assistant Coach,jmortarulo@scarletknights.com,,,,scrape
+Rutgers University-New Brunswick,Tyler,Stakiwicz,Assistant Coach,tstakiwicz@scarletknights.com,732-445-6223,,,scrape
+Rutgers University-New Brunswick,Gavin,Wyse,Assistant Coach,gwyse@scarletknights.com,732-445-6223,,,scrape
 Sacred Heart University,Anthony,Anzevui,Head Coach,msoccer@sacredheart.edu,(203) 365-7604,,,scrape
 Sacred Heart University,Oscar,Curras,Assistant Coach,msoccer@sacredheart.edu,(203) 365-7604,,,scrape
 Sacred Heart University,Javier,Decima,Assistant Coach,decimaj@sacredheart.edu,,,,scrape
@@ -443,9 +442,6 @@ Seattle University,Assistant,Coach,Assistant Coach,,,,,gap_scrape
 Seattle University,Soccer,Coaching,Assistant Coach,,,,,gap_scrape
 Seattle University,Jason,Farrell,Assistant Coach,jfarrell2@seattleu.edu,,,,manual
 Seattle University,Brooks,Hopp,Assistant Coach,bhopp@seattleu.edu,,,,manual
-Seton Hall University,Andreas,Lindberg,Head Coach,,(973) 275-6429,,,scrape
-Seton Hall University,Nico,Andersen,Assistant Coach,nicolai.andersen@shu.edu,,,,scrape
-Seton Hall University,Jeff,Matteo,Assistant Coach,jeffrey.matteo@shu.edu,(973) 275-6429,,,scrape
 Siena University,Graciano,Brito,Head Coach,gbrito@siena.edu,(518) 786-5042,,,scrape
 Siena University,Jim,Clementi,Assistant Coach,jclementi@siena.edu,(518) 783-2429,,,scrape
 Siena University,Matt,Cunningham,Assistant Coach,mkcunningham@siena.edu,(518) 783-2429,,,scrape
@@ -459,7 +455,6 @@ Southern Methodist University,Jaime,Ibarra-Perez,Assistant Coach,jibarraperez@sm
 Southern Methodist University,Jordaine,Jaeger,Assistant Coach,jjaeger@smu.edu,,,,scrape
 Southern Methodist University,Michael,King,Assistant Coach,mjking@smu.edu,,,,scrape
 Southern Methodist University,Trey,Nickel,Assistant Coach,tnickel@smu.edu,,,,scrape
-St. Bonaventure University,Mick,Giordano,Head Coach,mgiordano@sbu.edu,716-375-2359,,,scrape
 St. John's University,David,Masur,Head Coach,masurd@stjohns.edu,,,,manual
 St. John's University,Dr.,David Masur,Assistant Coach,masurd@stjohns.edu,,,,scrape
 St. John's University,David,Janezic,Assistant Coach,janezicd@stjohns.edu,,,,scrape
@@ -584,15 +579,8 @@ University of Massachusetts Amherst,Mack,Walton,Assistant Coach,macwalton@umass.
 University of Massachusetts Lowell,Kyle,Zenoni,Head Coach,Kyle_Zenoni@uml.edu,,,,scrape
 University of Massachusetts Lowell,Diego,Campos,Assistant Coach,Diego_Campos@uml.edu,,,,scrape
 University of Massachusetts Lowell,Jason,Stanton,Assistant Coach,Jason_Stanton@uml.edu,781-290-7662,,,scrape
-University of Memphis,Richard,Mulrooney,Head Coach,,,,,scrape
-University of Memphis,Tom,Gorman,Assistant Coach,igorman@memphis.edu,,,,scrape
-University of Memphis,Tony,McManus,Assistant Coach,pmcmnus1@memphis.edu,,,,scrape
-University of Michigan,Chaka,Daley,Head Coach,,,,,scrape
-University of Michigan,Mauro,Fuzetti,Assistant Coach,email.mscoccer@umich.edu,,,,scrape
-University of Michigan,Sean,Hughes,Assistant Coach,,,,,scrape
-University of Michigan,Jhojan,Obando,Assistant Coach,,,,,scrape
-University of Missouri?Kansas City,Ryan,Pore,Head Coach,msoccer@umkc.edu,816-235-5469,,,scrape
-University of Missouri?Kansas City,Rafael,Martinez,Assistant Coach,rmb42@umkc.edu,816-235-5469,,,scrape
+University of Missouri-Kansas City,Ryan,Pore,Head Coach,msoccer@umkc.edu,816-235-5469,,,scrape
+University of Missouri-Kansas City,Rafael,Martinez,Assistant Coach,rmb42@umkc.edu,816-235-5469,,,scrape
 University of Nebraska Omaha,Donovan,Dowling,Head Coach,ddowling@omavs.com,,,,scrape
 University of Nebraska Omaha,Brendan,Dally,Assistant Coach,bdally@omavs.com,,,,scrape
 University of Nebraska Omaha,Ed,Gordon,Assistant Coach,ergordon@omavs.com,,,,scrape
@@ -640,7 +628,6 @@ University of Notre Dame,Jeff,Rowland,Assistant Coach,jrowlan2@nd.edu,,,,scrape
 University of Pennsylvania,Brian,Gill,Head Coach,brgill@upenn.edu,,,,scrape
 University of Pennsylvania,Matt,Poplawski,Assistant Coach,mpop@upenn.edu,,,,scrape
 University of Pennsylvania,Maxx,Wurzburger,Assistant Coach,wurzbur1@upenn.edu,,,,scrape
-University of Pittsburgh,Jay,Vidovich,Head Coach,msoccer@athletics.pitt.edu,,,,manual
 University of Portland,Nick,Carlin-Voigt,Head Coach,carlinvo@up.edu,503-943-7738,,,scrape
 University of Portland,Matt,Deemer,Assistant Coach,deemer@up.edu,760-845-6090,,,scrape
 University of Portland,Alex,Hockborn,Assistant Coach,hockborn@up.edu,,,,scrape
@@ -664,11 +651,6 @@ University of South Carolina Upstate,Michael,Antoniewicz,Head Coach,AntonieM@usc
 University of South Carolina Upstate,Matthew,Dunn,Assistant Coach,md147@uscupstate.edu,,,,scrape
 University of South Carolina Upstate,Nathan,Girardi,Assistant Coach,ngirardi@uscupstate.edu,,,,scrape
 University of South Carolina Upstate,Tony,Vu,Assistant Coach,tv5@uscupstate.edu,727-514-3131,,,scrape
-University of South Florida,George,Kiefer,Head Coach,,,,,scrape
-University of South Florida,Daniel,De Oliveira,Assistant Coach,msoccer@usf.edu,,,,scrape
-University of South Florida,Rima,El Brouzi,Director of Operations,msoccer@usf.edu,,,,scrape
-University of South Florida,AJ,Madero,Assistant Coach,msoccer@usf.edu,,,,scrape
-University of South Florida,Armant?,Marshall,Assistant Coach,msoccer@usf.edu,(813)-974-8775,,,scrape
 University of Southern Indiana,Mads,Kaiser,Head Coach,mkaiser@usi.edu,812-464-1946,,,scrape
 University of Southern Indiana,Eric,Ramirez,Assistant Coach,earamirez@usi.edu,812-455-7992,,,scrape
 University of St. Thomas,Jon,Lowery,Head Coach,menssoccer@stthomas.edu,651-962-5923,,,scrape
@@ -677,9 +659,6 @@ University of St. Thomas,Raudel,Fierro-Perez,Assistant Coach,fier4609@stthomas.e
 University of Texas Rio Grande Valley,Bryheem,Hancock,Head Coach,bryheem.hancock@utrgv.edu,956-665-3754,,,scrape
 University of Texas Rio Grande Valley,Sheldon,Cipriani,Assistant Coach,sheldon.cipriani@utrgv.edu,,,,scrape
 University of Texas Rio Grande Valley,Jorge,Diaz,Assistant Coach,jorge.diaz@utrgv.edu,,,,scrape
-University of Tulsa,Tom,McIntosh,Head Coach,,,,,scrape
-University of Tulsa,Brian,McCurdy,Assistant Coach,brian-mccurdy@utulsa.edu,,,,scrape
-University of Tulsa,Henry,Sach,Assistant Coach,hms7580@utulsa.edu,,,,scrape
 University of Vermont,Adrian,Dubois,Head Coach,mens.soccer@uvm.edu,802.656.3131,,,scrape
 University of Vermont,Eric,Bissell,Director of Operations,,802.656.3131,,,scrape
 University of Vermont,Travis,Brent,Assistant Coach,mens.soccer@uvm.edu,802.656.3131,,,scrape
@@ -697,16 +676,16 @@ University of Washington,Jamie,Clark,Head Coach,huskysoccer@uw.edu,(206) 543-420
 University of Washington,Mark,Collings,Assistant Coach,markcoll@uw.edu,,,,scrape
 University of Washington,Ryan,Fahey,Assistant Coach,rwfahey@uw.edu,,,,scrape
 University of Washington,Richard,Reece,Assistant Coach,rjreece@uw.edu,,,,scrape
-University of Wisconsin?Green Bay,John,O'Reilly,Head Coach,o'reillyj@uwgb.edu,,,,scrape
-University of Wisconsin?Green Bay,Kyle,Ihn,Assistant Coach,ihnk@uwgb.edu,,,,scrape
-University of Wisconsin?Green Bay,Daniyal,Rana,Assistant Coach,ranad@uwgb.edu,,,,scrape
-University of Wisconsin?Madison,Neil,Jones,Head Coach,wisconsinmsoc@athletics.wisc.edu,,,,scrape
-University of Wisconsin?Madison,Nate,Boyden,Assistant Coach,NBB@athletics.wisc.edu,,,,scrape
-University of Wisconsin?Madison,Simon,Brown,Assistant Coach,SJB@athletics.wisc.edu,,,,scrape
-University of Wisconsin?Madison,Tyler,Smith,Assistant Coach,twsmith3@athletics.wisc.edu,,,,scrape
-University of Wisconsin?Milwaukee,Kris,Kelderman,Head Coach,kelderma@uwm.edu,414-639-5237,,,scrape
-University of Wisconsin?Milwaukee,Agustin,Rey,Assistant Coach,amrey@uwm.edu,,,,scrape
-University of Wisconsin?Milwaukee,Greg,Rosenthal,Assistant Coach,gtr@uwm.edu,,,,scrape
+University of Wisconsin-Green Bay,John,O'Reilly,Head Coach,o'reillyj@uwgb.edu,,,,scrape
+University of Wisconsin-Green Bay,Kyle,Ihn,Assistant Coach,ihnk@uwgb.edu,,,,scrape
+University of Wisconsin-Green Bay,Daniyal,Rana,Assistant Coach,ranad@uwgb.edu,,,,scrape
+University of Wisconsin-Madison,Neil,Jones,Head Coach,wisconsinmsoc@athletics.wisc.edu,,,,scrape
+University of Wisconsin-Madison,Nate,Boyden,Assistant Coach,NBB@athletics.wisc.edu,,,,scrape
+University of Wisconsin-Madison,Simon,Brown,Assistant Coach,SJB@athletics.wisc.edu,,,,scrape
+University of Wisconsin-Madison,Tyler,Smith,Assistant Coach,twsmith3@athletics.wisc.edu,,,,scrape
+University of Wisconsin-Milwaukee,Kris,Kelderman,Head Coach,kelderma@uwm.edu,414-639-5237,,,scrape
+University of Wisconsin-Milwaukee,Agustin,Rey,Assistant Coach,amrey@uwm.edu,,,,scrape
+University of Wisconsin-Milwaukee,Greg,Rosenthal,Assistant Coach,gtr@uwm.edu,,,,scrape
 University of the Incarnate Word,Kiki,Lara,Head Coach,rlara@uiwtx.edu,210-841-7396,,,scrape
 University of the Incarnate Word,Marquis,Muse,Assistant Coach,muse@uiwtx.edu,210-829-2722,,,scrape
 University of the Pacific,Andres,Ochoa,Head Coach,pacificmsoccer@pacific.edu,,,,scrape
@@ -754,7 +733,6 @@ Winthrop University,Trey,Morris,Assistant Coach,morrist@winthrop.edu,,,,scrape
 Wofford College,Ryan,Osborne,Head Coach,osbornera@wofford.edu,864-597-4090,,,scrape
 Wofford College,Joey,Backhaus,Assistant Coach,backhausjm@wofford.edu,864-597-4090,,,scrape
 Wofford College,Mac,Thomalla,Assistant Coach,thomallacf@wofford.edu,864-597-4090,,,scrape
-Wright State University,Alex,Van der Sluijs,Head Coach,alex.vandersluijs@wright.edu,937-775-2771,,,scrape
 Xavier University,John,Higgins,Head Coach,higginsj5@xavier.edu,513.745.3879,,,scrape
 Xavier University,Jovin,Grewal,Assistant Coach,grewalj@xavier.edu,205.957.7054,,,scrape
 Xavier University,Alex,Kamphaus,Assistant Coach,kamphausa1@xavier.edu,,,,scrape
@@ -763,3 +741,30 @@ Yale University,Kylie,Stannard,Head Coach,kylie.stannard@yale.edu,203-432-1495,,
 Yale University,Sean,Kelly,Assistant Coach,sean.d.kelly@yale.edu,,,,manual
 Yale University,Michael,Mordocco,Assistant Coach,michael.mordocco@yale.edu,,,,manual
 Yale University,Tyler,Sheikh,Assistant Coach,tyler.sheikh@yale.edu,,,,manual
+Seton Hall University,Andreas,Lindberg,Head Coach,,(973) 275-6429,,,manual
+Seton Hall University,Jeff,Matteo,Assistant Coach,jeffrey.matteo@shu.edu,(973) 275-6429,,,manual
+Seton Hall University,Nico,Andersen,Assistant Coach,nicolai.andersen@shu.edu,,,,manual
+Seton Hall University,Søren,Jensen,Assistant Coach,soren.jensen@student.shu.edu,,,,manual
+University of Memphis,Richard,Mulrooney,Head Coach,,,,,manual
+University of Memphis,Tony,McManus,Assistant Coach,pmcmnus1@memphis.edu,,,,manual
+University of Memphis,Tom,Gorman,Assistant Coach,igorman@memphis.edu,,,,manual
+University of Michigan,Chaka,Daley,Head Coach,email.msoccer@umich.edu,,,,manual
+University of Michigan,Kevin,Anderson,Assistant Coach,,,,,manual
+University of Michigan,Jhojan,Obando,Assistant Coach,,,,,manual
+University of Michigan,Mauro,Fuzetti,Assistant Coach,,,,,manual
+University of South Florida,George,Kiefer,Head Coach,msoccer@usf.edu,,,,manual
+University of South Florida,Daniel,De Oliveira,Assistant Coach,msoccer@usf.edu,,,,manual
+University of South Florida,Armanté,Marshall,Assistant Coach,msoccer@usf.edu,(813) 974-8775,,,manual
+University of South Florida,AJ,Madero,Assistant Coach,msoccer@usf.edu,,,,manual
+University of Tulsa,Tom,McIntosh,Head Coach,,,,,manual
+University of Tulsa,Brian,McCurdy,Assistant Coach,brian-mccurdy@utulsa.edu,,,,manual
+University of Tulsa,Henry,Sach,Assistant Coach,hms7580@utulsa.edu,,,,manual
+Old Dominion University,Tennant,McVea,Head Coach,jmcvea@odu.edu,,,,manual
+Old Dominion University,Nathan,Jones,Assistant Coach,n4jones@odu.edu,(757) 683-3022,,,manual
+Old Dominion University,Josh,Spencer,Assistant Coach,jospence@odu.edu,,,,manual
+St. Bonaventure University,Mick,Giordano,Head Coach,mgiordano@sbu.edu,716-375-2359,,,manual
+University of Pittsburgh,Jay,Vidovich,Head Coach,msoccer@athletics.pitt.edu,,,,manual
+University of Pittsburgh,Bryce,Cregan,Assistant Coach,bcregan@athletics.pitt.edu,,,,manual
+University of Pittsburgh,Will,Marshall,Assistant Coach,,,,,manual
+University of Pittsburgh,Robby,Dambrot,Assistant Coach,,,,,manual
+Wright State University,Alex,Van der Sluijs,Head Coach,alex.vandersluijs@wright.edu,937-775-2771,,,manual
