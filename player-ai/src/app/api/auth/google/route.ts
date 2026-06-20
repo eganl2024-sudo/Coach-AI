@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
+import { randomBytes } from 'crypto';
 
 export async function GET() {
   const clientId = process.env.GOOGLE_CLIENT_ID;
@@ -10,14 +11,13 @@ export async function GET() {
   if (!clientId || !clientSecret) {
     console.error('Google OAuth credentials not configured in environment variables.');
     return NextResponse.redirect(
-      new URL('/login?error=Google OAuth is not configured. Please set GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET.', appUrl)
+      new URL('/login?error=Google+sign-in+is+not+available+right+now.', appUrl),
     );
   }
 
-  // Generate a random state parameter for CSRF protection
-  const state = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  // Cryptographically random state — Math.random() is NOT safe for CSRF tokens
+  const state = randomBytes(32).toString('hex');
 
-  // Set the state in an HTTP-only cookie
   const cookieStore = await cookies();
   cookieStore.set('google_oauth_state', state, {
     httpOnly: true,

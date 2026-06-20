@@ -46,6 +46,17 @@ def create_user(username: str, password_hash: str, salt: str) -> None:
     except Exception as e:
         raise RuntimeError(f"create_user failed for '{username}': {e}") from e
 
+def update_password(username: str, password_hash: str, salt: str) -> None:
+    """Update stored password hash and salt (used by lazy re-hash on login)."""
+    try:
+        client = get_client()
+        client.table("users").update({
+            "password_hash": password_hash,
+            "salt": salt,
+        }).eq("username", username).execute()
+    except Exception as e:
+        raise RuntimeError(f"update_password failed for '{username}': {e}") from e
+
 def load_user_data(username: str, data_key: str) -> str | None:
     """Return data_value string for (username, data_key), or None if not found."""
     try:

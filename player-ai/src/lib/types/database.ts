@@ -2,6 +2,9 @@ export interface UserRow {
   username: string;
   password_hash: string;
   salt: string;
+  email: string | null;
+  reset_token: string | null;
+  reset_token_expires_at: string | null;
   created_at: string;
 }
 

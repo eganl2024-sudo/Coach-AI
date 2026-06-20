@@ -1,3 +1,5 @@
+import { timingSafeEqual } from 'crypto';
+
 function hexToBytes(hex: string): Uint8Array {
   const bytes = new Uint8Array(hex.length / 2);
   for (let i = 0; i < hex.length; i += 2) {
@@ -11,35 +13,61 @@ export function generateSalt(): string {
   return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-export async function hashPassword(password: string, salt: string): Promise<string> {
+export async function hashPassword(
+  password: string,
+  salt: string,
+  iterations = 600_000,
+): Promise<string> {
   const enc = new TextEncoder();
   const keyMaterial = await crypto.subtle.importKey(
     'raw',
     enc.encode(password),
     'PBKDF2',
     false,
-    ['deriveBits']
+    ['deriveBits'],
   );
   const bits = await crypto.subtle.deriveBits(
     {
       name: 'PBKDF2',
       hash: 'SHA-256',
-      salt: hexToBytes(salt) as any,
-      iterations: 100000,
+      salt: hexToBytes(salt) as unknown as BufferSource,
+      iterations,
     },
     keyMaterial,
-    256
+    256,
   );
   return Array.from(new Uint8Array(bits))
     .map(b => b.toString(16).padStart(2, '0'))
     .join('');
 }
 
+/**
+ * Verifies a password in constant time.
+ * Returns { valid, needsRehash } — needsRehash is true when the stored hash
+ * used the legacy 100K iteration count and should be transparently upgraded.
+ */
 export async function verifyPassword(
   password: string,
   salt: string,
-  storedHash: string
-): Promise<boolean> {
-  const computed = await hashPassword(password, salt);
-  return computed === storedHash;
+  storedHash: string,
+): Promise<{ valid: boolean; needsRehash: boolean }> {
+  const computed600k = await hashPassword(password, salt, 600_000);
+
+  const aBytes = Buffer.from(computed600k, 'hex');
+  const bBytes = Buffer.from(storedHash, 'hex');
+
+  // Buffers must be same length for timingSafeEqual
+  if (aBytes.length === bBytes.length && timingSafeEqual(aBytes, bBytes)) {
+    return { valid: true, needsRehash: false };
+  }
+
+  // Fallback: check legacy 100K hash (accounts created before the bump)
+  const computed100k = await hashPassword(password, salt, 100_000);
+  const aLegacy = Buffer.from(computed100k, 'hex');
+
+  if (aLegacy.length === bBytes.length && timingSafeEqual(aLegacy, bBytes)) {
+    return { valid: true, needsRehash: true };
+  }
+
+  return { valid: false, needsRehash: false };
 }

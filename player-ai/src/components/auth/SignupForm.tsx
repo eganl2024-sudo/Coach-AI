@@ -12,6 +12,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 export default function SignupForm() {
   const router = useRouter();
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
@@ -54,7 +55,7 @@ export default function SignupForm() {
 
     setLoading(true);
     try {
-      const result = await signupAction(username, password);
+      const result = await signupAction(username, password, email || undefined);
       if (result.success) {
         router.push('/onboarding');
         router.refresh();
@@ -99,6 +100,20 @@ export default function SignupForm() {
                 <p className="text-xs text-muted-foreground mt-1">
                   3–20 characters, letters, numbers, underscores only
                 </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="email">
+                  Email <span className="text-muted-foreground font-normal">(optional — needed for password reset)</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                />
               </div>
 
               <div className="space-y-2">

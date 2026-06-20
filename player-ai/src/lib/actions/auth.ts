@@ -4,16 +4,22 @@ import { createServerClient } from '@/lib/supabase/server';
 import { verifyPassword, generateSalt, hashPassword } from '@/lib/auth';
 import { getSession, getCurrentUser } from '@/lib/session';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { sendPasswordResetEmail } from '@/lib/email/resend';
+import { randomBytes } from 'crypto';
 import type { UserRow } from '@/lib/types/database';
 
-// 10 attempts per 15 minutes per username — brute force protection
-const LOGIN_RATE_LIMIT    = { limit: 10, windowMs: 15 * 60 * 1000 };
-// 5 signups per hour per origin — stops account farming
-const SIGNUP_RATE_LIMIT   = { limit: 5,  windowMs: 60 * 60 * 1000 };
+// 10 attempts per 15 minutes per username
+const LOGIN_RATE_LIMIT  = { limit: 10, windowMs: 15 * 60 * 1000 };
+// 5 signups per hour (global — stops account farming)
+const SIGNUP_RATE_LIMIT = { limit: 5,  windowMs: 60 * 60 * 1000 };
+// 3 reset requests per hour per username — stops email flooding
+const RESET_RATE_LIMIT  = { limit: 3,  windowMs: 60 * 60 * 1000 };
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
 export async function loginAction(
   username: string,
-  password: string
+  password: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_url_here') {
@@ -38,17 +44,25 @@ export async function loginAction(
     }
 
     const user = data as UserRow;
-    const valid = await verifyPassword(password, user.salt, user.password_hash);
+    const { valid, needsRehash } = await verifyPassword(password, user.salt, user.password_hash);
 
     if (!valid) {
       return { success: false, error: 'Invalid username or password.' };
     }
 
+    // Transparently upgrade legacy 100K-iteration hashes to 600K on successful login
+    if (needsRehash) {
+      const newSalt = generateSalt();
+      const newHash = await hashPassword(password, newSalt);
+      await supabase
+        .from('users')
+        .update({ password_hash: newHash, salt: newSalt })
+        .eq('username', normalizedLogin);
+    }
+
     const session = await getSession();
     session.username = user.username;
     await session.save();
-    // Clear login rate limit on success so legitimate users aren't penalized
-
 
     return { success: true };
   } catch {
@@ -63,7 +77,8 @@ export async function logoutAction(): Promise<void> {
 
 export async function signupAction(
   username: string,
-  password: string
+  password: string,
+  email?: string,
 ): Promise<{ success: boolean; error?: string }> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_url_here') {
@@ -98,10 +113,12 @@ export async function signupAction(
     }
 
     if (!password || password.length < 8) {
-      return {
-        success: false,
-        error: 'Password must be at least 8 characters long.',
-      };
+      return { success: false, error: 'Password must be at least 8 characters long.' };
+    }
+
+    const normalizedEmail = email?.trim().toLowerCase() || null;
+    if (normalizedEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      return { success: false, error: 'Invalid email address.' };
     }
 
     const supabase = await createServerClient();
@@ -124,7 +141,8 @@ export async function signupAction(
       .insert({
         username: normalizedUsername,
         password_hash: hash,
-        salt: salt,
+        salt,
+        email: normalizedEmail,
         created_at: new Date().toISOString(),
       });
 
@@ -142,9 +160,109 @@ export async function signupAction(
   }
 }
 
+export async function requestPasswordResetAction(
+  username: string,
+): Promise<{ success: boolean; error?: string }> {
+  const normalizedUsername = username.trim().toLowerCase();
+
+  if (!checkRateLimit(`reset:${normalizedUsername}`, RESET_RATE_LIMIT)) {
+    // Return success to avoid revealing whether the account exists
+    return { success: true };
+  }
+
+  try {
+    const supabase = await createServerClient();
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('username, email')
+      .eq('username', normalizedUsername)
+      .maybeSingle();
+
+    // Always return success — never confirm whether username exists
+    if (!user || !user.email) return { success: true };
+
+    // Block password reset for social accounts
+    const { data: userData } = await supabase
+      .from('users')
+      .select('password_hash')
+      .eq('username', normalizedUsername)
+      .single();
+
+    if (userData?.password_hash?.startsWith('SOCIAL_GOOGLE_')) return { success: true };
+
+    const token = randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + RESET_TOKEN_TTL_MS).toISOString();
+
+    await supabase
+      .from('users')
+      .update({ reset_token: token, reset_token_expires_at: expiresAt })
+      .eq('username', normalizedUsername);
+
+    await sendPasswordResetEmail({ email: user.email, username: normalizedUsername, token });
+
+    return { success: true };
+  } catch {
+    return { success: false, error: 'An unexpected error occurred. Please try again.' };
+  }
+}
+
+export async function confirmPasswordResetAction(
+  token: string,
+  newPassword: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (!token || token.length !== 64 || !/^[a-f0-9]+$/.test(token)) {
+    return { success: false, error: 'Invalid or expired reset link.' };
+  }
+
+  if (!newPassword || newPassword.length < 8) {
+    return { success: false, error: 'Password must be at least 8 characters.' };
+  }
+
+  try {
+    const supabase = await createServerClient();
+
+    const { data: user } = await supabase
+      .from('users')
+      .select('username, reset_token, reset_token_expires_at')
+      .eq('reset_token', token)
+      .maybeSingle();
+
+    if (!user || !user.reset_token_expires_at) {
+      return { success: false, error: 'Invalid or expired reset link.' };
+    }
+
+    if (new Date(user.reset_token_expires_at) < new Date()) {
+      // Clear the expired token
+      await supabase
+        .from('users')
+        .update({ reset_token: null, reset_token_expires_at: null })
+        .eq('username', user.username);
+      return { success: false, error: 'This reset link has expired. Please request a new one.' };
+    }
+
+    const newSalt = generateSalt();
+    const newHash = await hashPassword(newPassword, newSalt);
+
+    await supabase
+      .from('users')
+      .update({
+        password_hash: newHash,
+        salt: newSalt,
+        reset_token: null,
+        reset_token_expires_at: null,
+      })
+      .eq('username', user.username);
+
+    return { success: true };
+  } catch {
+    return { success: false, error: 'An unexpected error occurred. Please try again.' };
+  }
+}
+
 export async function changePasswordAction(
   currentPassword: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
   const username = await getCurrentUser();
   if (!username) return { success: false, error: 'Not authenticated.' };
@@ -163,8 +281,8 @@ export async function changePasswordAction(
     return { success: false, error: 'Password changes are not available for Google sign-in accounts.' };
   }
 
-  const isValid = await verifyPassword(currentPassword, user.salt, user.password_hash);
-  if (!isValid) return { success: false, error: 'Current password is incorrect.' };
+  const { valid } = await verifyPassword(currentPassword, user.salt, user.password_hash);
+  if (!valid) return { success: false, error: 'Current password is incorrect.' };
 
   if (newPassword.length < 8) return { success: false, error: 'New password must be at least 8 characters.' };
 
