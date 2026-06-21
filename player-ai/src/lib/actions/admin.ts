@@ -87,6 +87,42 @@ export async function updateDrillAction(
   }
 }
 
+export async function submitReviewResponseAction(
+  reelId: string,
+  response: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const isAdmin = await getAdminSession();
+    if (!isAdmin) return { success: false, error: 'Unauthorized.' };
+
+    if (!response || response.trim().length < 5) {
+      return { success: false, error: 'Response must be at least 5 characters.' };
+    }
+    if (response.length > 5000) {
+      return { success: false, error: 'Response must be under 5000 characters.' };
+    }
+
+    const supabase = await createServerClient();
+    const { error } = await supabase
+      .from('reel_submissions')
+      .update({
+        reviewer_response: response.trim(),
+        review_status: 'reviewed',
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq('id', reelId)
+      .eq('review_status', 'pending');
+
+    if (error) return { success: false, error: error.message };
+
+    revalidatePath('/admin/reels');
+    revalidatePath('/reel');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to submit review.' };
+  }
+}
+
 export async function addDrillAction(
   drill: Partial<Drill>
 ): Promise<{ success: boolean; error?: string; drill_id?: string }> {
