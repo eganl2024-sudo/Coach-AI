@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { saveOnboardingAction, type OnboardingFormData } from '@/lib/actions/onboarding';
-import { LEAGUES_BY_LEVEL } from '@/lib/constants/leagues';
+import { getLeagues } from '@/lib/constants/leagues';
 
 function FormLabel({ children, className, htmlFor }: { children: React.ReactNode; className?: string; htmlFor?: string }) {
   return (
@@ -220,7 +220,7 @@ export function OnboardingForm() {
     'Professional',
   ];
 
-  const leaguesByLevel = LEAGUES_BY_LEVEL;
+  const leagueOptions = getLeagues(formData.level, formData.gender);
 
   const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -387,7 +387,7 @@ export function OnboardingForm() {
                     <button
                       key={val}
                       type="button"
-                      onClick={() => setFormData(prev => ({ ...prev, gender: val }))}
+                      onClick={() => setFormData(prev => ({ ...prev, gender: val, league: '' }))}
                       className={cn(
                         'flex-1 h-9 text-sm font-semibold rounded-lg border transition-all duration-150',
                         formData.gender === val
@@ -433,7 +433,7 @@ export function OnboardingForm() {
                   onChange={(e) => setFormData(prev => ({ ...prev, league: e.target.value }))}
                 >
                   <option value="">Select league…</option>
-                  {(leaguesByLevel[formData.level] ?? []).map(l => (
+                  {leagueOptions.map(l => (
                     <option key={l} value={l}>{l}</option>
                   ))}
                 </FormSelect>

@@ -99,9 +99,8 @@ export default async function TrainingPlanPage() {
       {allSessionsComplete && currentWeek && (
         <div className="rounded-xl border border-primary/30 bg-primary/5 p-6 space-y-4">
           <div className="text-center space-y-1">
-            <div className="text-3xl">🎉</div>
             <h3 className="text-lg font-bold text-foreground">
-              Week {currentWeekNumber} Complete!
+              Week {currentWeekNumber} Complete
             </h3>
             <p className="text-sm text-muted-foreground">
               You finished all {currentWeek.sessions.length} sessions this week. Ready for your next challenge?

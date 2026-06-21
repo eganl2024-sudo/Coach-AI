@@ -52,7 +52,7 @@ export default async function ReelPage() {
       {/* Page Header */}
       <div>
         <h1 className="text-3xl font-black text-white tracking-tight">
-          🎬 Highlight Reel
+          Highlight Reel
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           Build a reel that gets you recruited.

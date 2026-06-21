@@ -179,7 +179,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <h1 className="text-3xl font-black tracking-tight text-white">
-            🎯 Recruiting Hub
+            Recruiting Hub
           </h1>
           <Badge className="bg-primary/15 text-primary border border-primary/30 text-xs font-bold px-2.5 py-1">
             212 D1 Programs · 686 Coaches

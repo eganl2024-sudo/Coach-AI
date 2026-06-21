@@ -1,28 +1,16 @@
-// Single source of truth for league options shown in onboarding and profile edit.
-// Boys pyramid:  MLS Next > ECNL Boys > USYS National > USYS Youth > ECNL-R/NPL/EDP > USYS State / US Club
-// Girls pyramid: ECNL Girls > Girls Academy > USYS National > USYS Youth > ECNL-R/NPL/EDP > USYS State / US Club
-// Both lists merged so players self-select regardless of gender.
+// Boys pyramid:  MLS Next > ECNL Boys > USYS National > USYS Youth > ECNL-R/NPL/EDP > State
+// Girls pyramid: ECNL Girls > Girls Academy > USYS National > USYS Youth > ECNL-R/NPL/EDP > State
 
-export const LEAGUES_BY_LEVEL: Record<string, string[]> = {
-  'Recreational': [
-    'Recreation League',
-    'Intramural',
-    'Other',
-  ],
+const LEAGUES_M: Record<string, string[]> = {
+  'Recreational': ['Recreation League', 'Intramural', 'Other'],
   'Competitive Club': [
-    // Tier 1 boys / girls
     'MLS Next',
     'ECNL Boys',
-    'ECNL Girls',
-    'Girls Academy',
-    // Tier 3
     'USYS National League',
     'USYS Youth League',
-    // Tier 4
     'ECNL Regional',
     'NPL',
     'EDP',
-    // Tier 5
     'US Club Soccer',
     'State League',
     'State Cup',
@@ -32,6 +20,23 @@ export const LEAGUES_BY_LEVEL: Record<string, string[]> = {
   'Academy/Select': [
     'MLS Next',
     'ECNL Boys',
+    'USYS National League',
+    'USYS Youth League',
+    'ECNL Regional',
+    'NPL',
+    'EDP',
+    'US Club Soccer',
+    'State League',
+    'Other',
+  ],
+  'Varsity High School': ['High School Varsity', 'State Ranked', 'Other'],
+  'College': ['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'NJCAA', 'Other'],
+  'Professional': ['MLS', 'MLS Next Pro', 'USL Championship', 'USL1', 'USL League Two', 'UPSL', 'Other'],
+};
+
+const LEAGUES_W: Record<string, string[]> = {
+  'Recreational': ['Recreation League', 'Intramural', 'Other'],
+  'Competitive Club': [
     'ECNL Girls',
     'Girls Academy',
     'USYS National League',
@@ -42,29 +47,30 @@ export const LEAGUES_BY_LEVEL: Record<string, string[]> = {
     'US Club Soccer',
     'State League',
     'State Cup',
+    'Regional League',
     'Other',
   ],
-  'Varsity High School': [
-    'High School Varsity',
-    'State Ranked',
+  'Academy/Select': [
+    'ECNL Girls',
+    'Girls Academy',
+    'USYS National League',
+    'USYS Youth League',
+    'ECNL Regional',
+    'NPL',
+    'EDP',
+    'US Club Soccer',
+    'State League',
     'Other',
   ],
-  'College': [
-    'NCAA D1',
-    'NCAA D2',
-    'NCAA D3',
-    'NAIA',
-    'NJCAA',
-    'Other',
-  ],
-  'Professional': [
-    'MLS',
-    'MLS Next Pro',
-    'USL Championship',
-    'USL Super League',
-    'USL1',
-    'USL League Two',
-    'UPSL',
-    'Other',
-  ],
+  'Varsity High School': ['High School Varsity', 'State Ranked', 'Other'],
+  'College': ['NCAA D1', 'NCAA D2', 'NCAA D3', 'NAIA', 'NJCAA', 'Other'],
+  'Professional': ['NWSL', 'USL Super League', 'W League', 'Other'],
 };
+
+export function getLeagues(level: string, gender: 'M' | 'W'): string[] {
+  const map = gender === 'W' ? LEAGUES_W : LEAGUES_M;
+  return map[level] ?? ['Other'];
+}
+
+// Legacy export kept for any existing callers
+export const LEAGUES_BY_LEVEL = LEAGUES_M;

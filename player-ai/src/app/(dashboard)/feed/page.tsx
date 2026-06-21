@@ -24,7 +24,7 @@ export default async function MentorFeedPage() {
     <div className="space-y-6 max-w-4xl mx-auto">
       {/* Page Header */}
       <div>
-        <h1 className="text-3xl font-black tracking-tight text-white animate-fade-in">Mentor Feed</h1>
+        <h1 className="text-3xl font-black tracking-tight text-white">Mentor Feed</h1>
         <p className="text-muted-foreground text-sm mt-1">
           Insights and advice from professional and college athletes.
         </p>

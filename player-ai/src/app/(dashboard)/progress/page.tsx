@@ -54,13 +54,11 @@ export default async function ProgressPage() {
 
         <Card className="border-border/50 bg-card/40">
           <CardContent className="py-16 text-center space-y-4">
-            <div className="text-5xl">⚽</div>
             <h2 className="text-xl font-bold text-foreground">
-              Your progress journey starts here
+              No data yet
             </h2>
             <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-              Complete your first training session to unlock your Skill
-              Radar, RRS Trend chart, and activity heatmap.
+              Complete your first training session to unlock your Skill Radar, RRS Trend, and activity heatmap.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center pt-2">
               <Link href="/training">

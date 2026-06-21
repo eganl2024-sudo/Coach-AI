@@ -23,7 +23,7 @@ export default async function OnboardingPage() {
       
       <div className="w-full max-w-lg text-center mb-6 relative z-10">
         <h1 className="text-xl font-black text-white tracking-wider mb-2 select-none">
-          ⚽ PLAYER AI
+          PLAYER AI
         </h1>
         <h2 className="text-2xl font-black tracking-tight text-foreground sm:text-3xl">
           Let's build your development plan

@@ -110,7 +110,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-foreground tracking-tight">
-            Welcome back, {activeProfile.name} 👋
+            Welcome back, {activeProfile.name}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Here's where you stand today.
@@ -128,7 +128,7 @@ export default async function DashboardPage() {
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
             <CardTitle className="text-base font-bold text-white">
-              🚀 Getting Started
+              Getting Started
             </CardTitle>
             <Badge className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 font-semibold text-xs px-2 py-0.5">
               {milestonesCompletedCount} of 4 complete
@@ -426,9 +426,8 @@ export default async function DashboardPage() {
         ) : (
           <Card className="border-primary/20 border-dashed bg-primary/5">
             <CardContent className="py-8 text-center space-y-3">
-              <div className="text-3xl">🎉</div>
-              <p className="text-foreground font-bold text-base">
-                Week {currentWeekNumber} Complete!
+                <p className="text-foreground font-bold text-base">
+                Week {currentWeekNumber} Complete
               </p>
               <p className="text-muted-foreground text-xs max-w-xs mx-auto">
                 You finished all your sessions this week. Head to your Training Plan to generate next week.
@@ -495,10 +494,7 @@ export default async function DashboardPage() {
       {/* Recruiting Hub teaser */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-2">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-lg">🎯</span>
-            <h2 className="text-sm font-bold text-white">Recruiting Hub</h2>
-          </div>
+          <h2 className="text-sm font-bold text-white">Recruiting Hub</h2>
           <Badge className="bg-primary/15 text-primary border border-primary/30 text-[10px] font-bold">
             212 D1 Programs · 686 Coaches
           </Badge>
