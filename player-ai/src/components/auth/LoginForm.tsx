@@ -52,7 +52,7 @@ export default function LoginForm() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tight text-white">
-            ⚽ Player AI
+            Player AI
           </div>
           <p className="text-muted-foreground text-sm">
             Your personal soccer development platform
@@ -167,11 +167,6 @@ export default function LoginForm() {
             </Button>
           </CardContent>
         </Card>
-
-        <p className="text-center text-xs text-muted-foreground">
-          Demo account: <span className="text-foreground font-mono">demo</span> /{' '}
-          <span className="text-foreground font-mono">PlayerAI2026</span>
-        </p>
 
         <p className="text-center text-xs text-muted-foreground">
           New here?{' '}

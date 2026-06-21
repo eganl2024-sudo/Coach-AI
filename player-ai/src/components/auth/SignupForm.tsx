@@ -57,7 +57,12 @@ export default function SignupForm() {
 
     setLoading(true);
     try {
-      const result = await signupAction(username, password, email || undefined, website || undefined);
+      if (!email || !email.trim()) {
+      setError('Email is required');
+      return;
+    }
+
+    const result = await signupAction(username, password, email.trim(), website || undefined);
       if (result.success) {
         router.push('/onboarding');
         router.refresh();
@@ -77,7 +82,7 @@ export default function SignupForm() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tight text-white select-none">
-            ⚽ Player AI
+            Player AI
           </div>
           <p className="text-muted-foreground text-sm">
             Your personal soccer development platform
@@ -119,9 +124,7 @@ export default function SignupForm() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  Email <span className="text-muted-foreground font-normal">(optional — needed for password reset)</span>
-                </Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -129,6 +132,7 @@ export default function SignupForm() {
                   autoComplete="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  required
                 />
               </div>
 

@@ -11,6 +11,7 @@ import { calculateSkillRadar } from '@/lib/utils/calculateSkillRadar';
 import { getAllDrills } from '@/lib/data/getDrills';
 import type { AthleteProfile, RRSHistory, CompletionLog, WeeklyTrainingPlan } from '@/lib/types/player';
 import { cn } from '@/lib/utils';
+import { Flame, CalendarDays, Dumbbell, Trophy } from 'lucide-react';
 
 export const metadata = {
   title: 'My Progress',
@@ -367,13 +368,13 @@ export default async function ProgressPage() {
         <CardContent>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {[
-              { label: 'Longest Streak', value: `${longestStreak}d`, icon: '🔥' },
-              { label: 'Total Sessions', value: totalSessions, icon: '📅' },
-              { label: 'Total Drills', value: totalDrillsAllTime, icon: '⚽' },
-              { label: 'Best Week', value: `${bestWeek} sessions`, icon: '🏆' },
+              { label: 'Longest Streak', value: `${longestStreak}d`, Icon: Flame },
+              { label: 'Total Sessions', value: totalSessions, Icon: CalendarDays },
+              { label: 'Total Drills', value: totalDrillsAllTime, Icon: Dumbbell },
+              { label: 'Best Week', value: `${bestWeek} sessions`, Icon: Trophy },
             ].map(stat => (
               <div key={stat.label} className="text-center space-y-1 p-3 rounded-lg bg-secondary/20">
-                <div className="text-2xl">{stat.icon}</div>
+                <stat.Icon className="w-5 h-5 text-primary mx-auto" />
                 <div className="text-xl font-black text-white">{stat.value}</div>
                 <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {stat.label}
