@@ -19,7 +19,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
   const [selectedIntensity, setSelectedIntensity] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const filterTabs = ['All', 'Warmup', 'Technical', 'Tactical', 'Physical', 'Game Application', 'Cool Down'];
+  const filterTabs = ['All', 'Warmup', 'Technical', 'Tactical', 'Small Sided Games', 'Conditioning', 'Cool Down'];
 
   const intensityOptions = ['All', ...Array.from(new Set(drills.map(d => d.intensity).filter(Boolean))).sort()];
 
