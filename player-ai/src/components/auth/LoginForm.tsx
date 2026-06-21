@@ -174,6 +174,12 @@ export default function LoginForm() {
             Create a free account →
           </Link>
         </p>
+
+        <p className="text-center text-xs text-muted-foreground/60">
+          <Link href="/terms" className="hover:text-muted-foreground underline">Terms</Link>
+          {' · '}
+          <Link href="/privacy" className="hover:text-muted-foreground underline">Privacy</Link>
+        </p>
       </div>
     </div>
   );

@@ -263,6 +263,13 @@ export default function SignupForm() {
             Sign in →
           </Link>
         </p>
+
+        <p className="text-center text-xs text-muted-foreground/60">
+          By creating an account you agree to our{' '}
+          <Link href="/terms" className="hover:text-muted-foreground underline">Terms of Service</Link>
+          {' '}and{' '}
+          <Link href="/privacy" className="hover:text-muted-foreground underline">Privacy Policy</Link>
+        </p>
       </div>
     </div>
   );

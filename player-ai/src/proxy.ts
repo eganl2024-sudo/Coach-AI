@@ -3,7 +3,15 @@ import { getIronSession } from 'iron-session';
 import type { SessionData, AdminSessionData } from '@/lib/session-config';
 import { sessionOptions, adminSessionOptions } from '@/lib/session-config';
 
-const PUBLIC_USER_PATHS = new Set(['/login', '/signup', '/onboarding']);
+const PUBLIC_USER_PATHS = new Set([
+  '/login',
+  '/signup',
+  '/onboarding',
+  '/forgot-password',
+  '/reset-password',
+  '/terms',
+  '/privacy',
+]);
 
 export async function proxy(request: NextRequest) {
   // Enforce HTTPS in production (Railway/Vercel set x-forwarded-proto)
