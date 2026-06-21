@@ -493,24 +493,24 @@ export default async function DashboardPage() {
       </div>
 
       {/* Recruiting Hub teaser */}
-      <div className="rounded-xl border border-yellow-500/20 bg-yellow-500/5 p-5 space-y-2">
+      <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-2">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-lg">🎯</span>
-            <h2 className="text-sm font-bold text-white">Recruiting Hub — Coming Soon</h2>
+            <h2 className="text-sm font-bold text-white">Recruiting Hub</h2>
           </div>
-          <Badge className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 text-[10px] font-bold">
-            Summer 2026
+          <Badge className="bg-primary/15 text-primary border border-primary/30 text-[10px] font-bold">
+            212 D1 Programs · 686 Coaches
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Find college coaches, draft personalized recruiting emails using your Player AI profile, and track your entire outreach pipeline in one place.
+          Search 212 D1 programs, find coaching staff contact info, draft personalized recruiting emails with AI, and track your entire outreach pipeline in one place.
         </p>
         <Link
           href="/recruiting"
-          className="text-xs font-semibold text-yellow-400 hover:text-yellow-300 transition-colors"
+          className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
         >
-          Preview the feature →
+          Open Recruiting Hub →
         </Link>
       </div>
     </div>
