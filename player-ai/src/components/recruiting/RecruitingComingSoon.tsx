@@ -137,23 +137,41 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
     }
   };
 
+  // Sort state
+  type SortKey = 'school_name' | 'conference' | 'state';
+  const [sortKey, setSortKey] = useState<SortKey>('school_name');
+  const [sortAsc, setSortAsc] = useState(true);
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) setSortAsc(a => !a);
+    else { setSortKey(key); setSortAsc(true); }
+  };
+
   // Dynamic Conference List
   const conferences = useMemo(() => {
     const set = new Set(programs.map(p => p.conference));
     return ['All', ...Array.from(set).sort()];
   }, [programs]);
 
-  // Client-side Filtering
+  // Client-side Filtering + Sorting
   const filtered = useMemo(() => {
-    return programs.filter(p => {
-      const matchesSearch = p.school_name.toLowerCase().includes(search.toLowerCase()) ||
-                            p.conference.toLowerCase().includes(search.toLowerCase());
+    const results = programs.filter(p => {
+      const q = search.toLowerCase();
+      const matchesSearch = !q ||
+        p.school_name.toLowerCase().includes(q) ||
+        p.conference.toLowerCase().includes(q) ||
+        (p.head_coach && `${p.head_coach.first_name} ${p.head_coach.last_name}`.toLowerCase().includes(q));
       const matchesRegion = region === 'All' || p.region === region;
       const matchesConference = conference === 'All' || p.conference === conference;
       const matchesEmail = !emailOnly || p.has_email;
       return matchesSearch && matchesRegion && matchesConference && matchesEmail;
     });
-  }, [programs, search, region, conference, emailOnly]);
+    return results.sort((a, b) => {
+      const av = (a[sortKey] ?? '').toLowerCase();
+      const bv = (b[sortKey] ?? '').toLowerCase();
+      return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    });
+  }, [programs, search, region, conference, emailOnly, sortKey, sortAsc]);
 
   return (
     <div className="space-y-10 max-w-4xl mx-auto">
@@ -249,22 +267,94 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
         </div>
       </div>
 
-      {/* Section 4: Results Grid */}
-      {filtered.length === 0 ? (
-        <div className="text-center py-16 text-muted-foreground text-sm">
-          No programs match your filters — try broadening your search.
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filtered.map(program => (
-            <ProgramCard
-              key={program.program_id}
-              program={program}
-              onClick={() => setSelectedProgram(program)}
-            />
+      {/* Section 4: Results Table */}
+      <div className="rounded-xl border border-border/50 overflow-hidden">
+        {/* Table header */}
+        <div className="grid grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 bg-secondary/30 border-b border-border/50 px-4 py-2.5">
+          {([
+            { label: 'School', key: 'school_name' },
+            { label: 'Conference', key: 'conference' },
+            { label: 'State', key: 'state' },
+            { label: 'Head Coach', key: null },
+            { label: 'Contact', key: null },
+          ] as { label: string; key: SortKey | null }[]).map(col => (
+            <button
+              key={col.label}
+              onClick={() => col.key && handleSort(col.key)}
+              className={cn(
+                'text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1',
+                col.key ? 'hover:text-white cursor-pointer' : 'cursor-default',
+              )}
+            >
+              {col.label}
+              {col.key && sortKey === col.key && (
+                <span className="text-primary">{sortAsc ? '↑' : '↓'}</span>
+              )}
+            </button>
           ))}
         </div>
-      )}
+
+        {filtered.length === 0 ? (
+          <div className="text-center py-12 text-muted-foreground text-sm">
+            No programs match your filters — try broadening your search.
+          </div>
+        ) : (
+          <div className="divide-y divide-border/30 max-h-[520px] overflow-y-auto">
+            {filtered.map(program => {
+              const hc = program.head_coach;
+              return (
+                <div
+                  key={program.program_id}
+                  onClick={() => setSelectedProgram(program)}
+                  className="grid grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 px-4 py-3 hover:bg-card/60 cursor-pointer transition-colors group items-center"
+                >
+                  {/* School */}
+                  <p className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate pr-3">
+                    {program.school_name}
+                  </p>
+                  {/* Conference */}
+                  <p className="text-xs text-muted-foreground truncate pr-3">
+                    {program.conference}
+                  </p>
+                  {/* State */}
+                  <p className="text-xs text-muted-foreground">
+                    {program.state}
+                  </p>
+                  {/* Head Coach */}
+                  <p className="text-xs text-muted-foreground truncate pr-3">
+                    {hc ? `${hc.first_name} ${hc.last_name}` : <span className="italic opacity-40">No info</span>}
+                  </p>
+                  {/* Contact */}
+                  <div className="flex items-center gap-2">
+                    {hc?.email ? (
+                      <a
+                        href={`mailto:${hc.email}`}
+                        onClick={e => e.stopPropagation()}
+                        className="text-[10px] text-primary hover:underline truncate"
+                        title={hc.email}
+                      >
+                        ✉ Email
+                      </a>
+                    ) : (
+                      <span className="text-[10px] text-muted-foreground/40 italic">—</span>
+                    )}
+                    <span className="text-[10px] text-muted-foreground/50 group-hover:text-primary transition-colors ml-auto">
+                      →
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="px-4 py-2 bg-secondary/20 border-t border-border/30">
+          <p className="text-[10px] text-muted-foreground">
+            {filtered.length} of {programs.length} programs · Click any row to view staff & draft email
+          </p>
+        </div>
+      </div>
 
       {/* Section 5: Staff Detail Modal / Email Drafter Wizard */}
       {selectedProgram && (
@@ -709,69 +799,6 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
   );
 }
 
-function ProgramCard({ program, onClick }: { program: ProgramWithCoaches; onClick: () => void }) {
-  const hc = program.head_coach;
-
-  return (
-    <Card
-      className="border-border/50 bg-card/40 hover:border-primary/40 hover:bg-card/60 transition-all cursor-pointer group flex flex-col justify-between"
-      onClick={onClick}
-    >
-      <CardContent className="p-5 space-y-3 flex-1 flex flex-col justify-between">
-        <div className="space-y-3">
-          {/* Header row */}
-          <div className="flex items-start justify-between gap-2">
-            <p className="text-sm font-bold text-white leading-tight group-hover:text-primary transition-colors">
-              {program.school_name}
-            </p>
-            <Badge className="shrink-0 bg-secondary/60 text-muted-foreground border-0 text-[10px] font-bold">
-              {program.state}
-            </Badge>
-          </div>
-
-          {/* Conference + region */}
-          <p className="text-xs text-muted-foreground">
-            {program.conference} · {program.region}
-          </p>
-
-          {/* Head coach info */}
-          {hc ? (
-            <div className="space-y-0.5">
-              <p className="text-xs font-semibold text-white">
-                {hc.first_name} {hc.last_name}
-                <span className="text-muted-foreground font-normal"> — Head Coach</span>
-              </p>
-              {hc.email ? (
-                <p
-                  className="text-xs text-primary truncate"
-                  onClick={e => e.stopPropagation()} // don't open modal when clicking email
-                >
-                  <a href={`mailto:${hc.email}`} className="hover:underline">
-                    {hc.email}
-                  </a>
-                </p>
-              ) : (
-                <p className="text-xs text-muted-foreground/50 italic">No email on file</p>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-muted-foreground/50 italic">Staff info unavailable</p>
-          )}
-        </div>
-
-        {/* Footer */}
-        <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/30">
-          <span className="text-[10px] text-muted-foreground">
-            {program.total_coaches} staff on file
-          </span>
-          <span className="text-[10px] text-primary font-semibold group-hover:underline">
-            View Staff →
-          </span>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
 
 function CoachRow({ coach }: { coach: CoachRecord }) {
   const [copied, setCopied] = useState(false);
