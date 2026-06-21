@@ -19,6 +19,8 @@ export default function SignupForm() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  // Honeypot: humans leave this blank; bots fill every visible-looking field
+  const [website, setWebsite] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -55,7 +57,7 @@ export default function SignupForm() {
 
     setLoading(true);
     try {
-      const result = await signupAction(username, password, email || undefined);
+      const result = await signupAction(username, password, email || undefined, website || undefined);
       if (result.success) {
         router.push('/onboarding');
         router.refresh();
@@ -86,6 +88,20 @@ export default function SignupForm() {
           <CardHeader className="pb-2" />
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Honeypot — hidden from real users; bots fill it and get silently rejected */}
+              <div style={{ position: 'absolute', left: '-9999px', top: '-9999px', opacity: 0, pointerEvents: 'none' }} aria-hidden="true">
+                <label htmlFor="website">Website</label>
+                <input
+                  id="website"
+                  name="website"
+                  type="text"
+                  value={website}
+                  onChange={e => setWebsite(e.target.value)}
+                  tabIndex={-1}
+                  autoComplete="off"
+                />
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input

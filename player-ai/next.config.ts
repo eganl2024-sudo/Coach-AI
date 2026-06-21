@@ -32,6 +32,16 @@ const nextConfig: NextConfig = {
               "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://o*.ingest.sentry.io",
             ].join('; '),
           },
+          // Prevent this app from being embedded in iframes on other domains
+          { key: 'X-Frame-Options', value: 'DENY' },
+          // Stop browsers from MIME-sniffing responses away from the declared Content-Type
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+          // Only send the origin as referrer for cross-origin requests
+          { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+          // Disable access to sensitive browser APIs not needed by this app
+          { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=(), payment=()' },
+          // Force HTTPS for 2 years (only active on https:// origins)
+          { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         ],
       },
     ];

@@ -6,6 +6,16 @@ import { sessionOptions, adminSessionOptions } from '@/lib/session-config';
 const PUBLIC_USER_PATHS = new Set(['/login', '/signup', '/onboarding']);
 
 export async function proxy(request: NextRequest) {
+  // Enforce HTTPS in production (Railway/Vercel set x-forwarded-proto)
+  if (process.env.NODE_ENV === 'production') {
+    const proto = request.headers.get('x-forwarded-proto');
+    if (proto && proto !== 'https') {
+      const url = request.nextUrl.clone();
+      url.protocol = 'https:';
+      return NextResponse.redirect(url, { status: 301 });
+    }
+  }
+
   const { pathname } = request.nextUrl;
 
   // Admin login is always public

@@ -4,16 +4,23 @@ import { createServerClient } from '@/lib/supabase/server';
 import { verifyPassword, generateSalt, hashPassword } from '@/lib/auth';
 import { getSession, getCurrentUser } from '@/lib/session';
 import { checkRateLimit } from '@/lib/rate-limit';
+import { log } from '@/lib/logger';
 import { sendPasswordResetEmail } from '@/lib/email/resend';
 import { randomBytes } from 'crypto';
 import type { UserRow } from '@/lib/types/database';
 
 // 10 attempts per 15 minutes per username
-const LOGIN_RATE_LIMIT  = { limit: 10, windowMs: 15 * 60 * 1000 };
+const LOGIN_RATE_LIMIT          = { limit: 10, windowMs: 15 * 60 * 1000 };
 // 5 signups per hour (global — stops account farming)
-const SIGNUP_RATE_LIMIT = { limit: 5,  windowMs: 60 * 60 * 1000 };
+const SIGNUP_RATE_LIMIT         = { limit: 5,  windowMs: 60 * 60 * 1000 };
 // 3 reset requests per hour per username — stops email flooding
-const RESET_RATE_LIMIT  = { limit: 3,  windowMs: 60 * 60 * 1000 };
+const RESET_RATE_LIMIT          = { limit: 3,  windowMs: 60 * 60 * 1000 };
+// 5 confirmation attempts per hour per token prefix — stops token brute-force
+const RESET_CONFIRM_RATE_LIMIT  = { limit: 5,  windowMs: 60 * 60 * 1000 };
+// 3 password changes per hour per user
+const CHANGE_PASSWORD_RATE_LIMIT = { limit: 3, windowMs: 60 * 60 * 1000 };
+// 2 account deletions per hour per user (prevents loop abuse on error paths)
+const DELETE_ACCOUNT_RATE_LIMIT  = { limit: 2, windowMs: 60 * 60 * 1000 };
 
 const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 
@@ -28,6 +35,7 @@ export async function loginAction(
 
   const normalizedLogin = username.trim().toLowerCase();
   if (!checkRateLimit(`login:${normalizedLogin}`, LOGIN_RATE_LIMIT)) {
+    log.loginRateLimited(normalizedLogin);
     return { success: false, error: 'Too many login attempts. Please wait 15 minutes and try again.' };
   }
 
@@ -40,6 +48,7 @@ export async function loginAction(
       .single();
 
     if (error || !data) {
+      log.loginFailure(normalizedLogin);
       return { success: false, error: 'Invalid username or password.' };
     }
 
@@ -47,6 +56,7 @@ export async function loginAction(
     const { valid, needsRehash } = await verifyPassword(password, user.salt, user.password_hash);
 
     if (!valid) {
+      log.loginFailure(normalizedLogin);
       return { success: false, error: 'Invalid username or password.' };
     }
 
@@ -64,8 +74,10 @@ export async function loginAction(
     session.username = user.username;
     await session.save();
 
+    log.loginSuccess(normalizedLogin);
     return { success: true };
-  } catch {
+  } catch (err) {
+    log.apiError('loginAction', err);
     return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -79,13 +91,21 @@ export async function signupAction(
   username: string,
   password: string,
   email?: string,
+  honeypot?: string,
 ): Promise<{ success: boolean; error?: string }> {
+  // Bots fill every field; humans leave the hidden honeypot blank.
+  // Return fake success so automated scanners get no signal.
+  if (honeypot) {
+    log.signupHoneypot();
+    return { success: true };
+  }
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL ||
       process.env.NEXT_PUBLIC_SUPABASE_URL === 'your_supabase_url_here') {
     return { success: false, error: 'Supabase credentials not configured. Fill in .env.local.' };
   }
 
   if (!checkRateLimit('signup:global', SIGNUP_RATE_LIMIT)) {
+    log.signupRateLimited();
     return { success: false, error: 'Too many accounts created recently. Please try again later.' };
   }
 
@@ -154,8 +174,10 @@ export async function signupAction(
     session.username = normalizedUsername;
     await session.save();
 
+    log.signupSuccess(normalizedUsername);
     return { success: true };
-  } catch {
+  } catch (err) {
+    log.apiError('signupAction', err);
     return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -201,8 +223,10 @@ export async function requestPasswordResetAction(
 
     await sendPasswordResetEmail({ email: user.email, username: normalizedUsername, token });
 
+    log.passwordResetRequested(normalizedUsername);
     return { success: true };
-  } catch {
+  } catch (err) {
+    log.apiError('requestPasswordResetAction', err);
     return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -213,6 +237,13 @@ export async function confirmPasswordResetAction(
 ): Promise<{ success: boolean; error?: string }> {
   if (!token || token.length !== 64 || !/^[a-f0-9]+$/.test(token)) {
     return { success: false, error: 'Invalid or expired reset link.' };
+  }
+
+  // Rate-limit by the first 16 hex chars of the token — stops brute-force
+  // enumeration while not requiring the full token in the rate-limit key.
+  if (!checkRateLimit(`reset-confirm:${token.slice(0, 16)}`, RESET_CONFIRM_RATE_LIMIT)) {
+    log.passwordResetRateLimited();
+    return { success: false, error: 'Too many attempts. Please request a new reset link.' };
   }
 
   if (!newPassword || newPassword.length < 8) {
@@ -254,8 +285,10 @@ export async function confirmPasswordResetAction(
       })
       .eq('username', user.username);
 
+    log.passwordResetConfirmed();
     return { success: true };
-  } catch {
+  } catch (err) {
+    log.apiError('confirmPasswordResetAction', err);
     return { success: false, error: 'An unexpected error occurred. Please try again.' };
   }
 }
@@ -266,6 +299,11 @@ export async function changePasswordAction(
 ): Promise<{ success: boolean; error?: string }> {
   const username = await getCurrentUser();
   if (!username) return { success: false, error: 'Not authenticated.' };
+
+  if (!checkRateLimit(`change-password:${username}`, CHANGE_PASSWORD_RATE_LIMIT)) {
+    log.passwordChangeRateLimited(username);
+    return { success: false, error: 'Too many password change attempts. Please try again in an hour.' };
+  }
 
   const supabase = await createServerClient();
 
@@ -296,12 +334,18 @@ export async function changePasswordAction(
 
   if (updateError) return { success: false, error: 'Failed to update password.' };
 
+  log.passwordChanged(username);
   return { success: true };
 }
 
 export async function deleteAccountAction(): Promise<{ success: boolean; error?: string }> {
   const username = await getCurrentUser();
   if (!username) return { success: false, error: 'Not authenticated.' };
+
+  if (!checkRateLimit(`delete-account:${username}`, DELETE_ACCOUNT_RATE_LIMIT)) {
+    log.accountDeleteRateLimited(username);
+    return { success: false, error: 'Too many requests. Please try again later.' };
+  }
 
   if (username === 'demo') {
     return { success: false, error: 'The demo account cannot be deleted.' };
@@ -316,6 +360,7 @@ export async function deleteAccountAction(): Promise<{ success: boolean; error?:
 
   if (error) return { success: false, error: 'Failed to delete account.' };
 
+  log.accountDeleted(username);
   const session = await getSession();
   session.destroy();
 

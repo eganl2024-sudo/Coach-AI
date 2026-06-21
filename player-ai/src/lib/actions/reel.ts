@@ -3,7 +3,14 @@
 import { revalidatePath } from 'next/cache';
 import { createServerClient } from '@/lib/supabase/server';
 import { getCurrentUser } from '@/lib/session';
+import { checkRateLimit } from '@/lib/rate-limit';
+import { log } from '@/lib/logger';
 import type { ReelSubmission } from '@/lib/types/reel';
+
+// 5 uploads per hour per user — prevents storage quota exhaustion
+const REEL_UPLOAD_RATE_LIMIT = { limit: 5, windowMs: 60 * 60 * 1000 };
+// 10 review submissions per hour per user
+const REEL_SUBMIT_RATE_LIMIT = { limit: 10, windowMs: 60 * 60 * 1000 };
 
 export async function uploadReelAction(
   formData: FormData
@@ -12,6 +19,11 @@ export async function uploadReelAction(
     const username = await getCurrentUser();
     if (!username) {
       return { success: false, error: 'Unauthorized: No user session found.' };
+    }
+
+    if (!checkRateLimit(`reel-upload:${username}`, REEL_UPLOAD_RATE_LIMIT)) {
+      log.reelUploadRateLimited(username);
+      return { success: false, error: 'Upload limit reached. You can upload up to 5 clips per hour.' };
     }
 
     const file = formData.get('file') as File | null;
@@ -83,6 +95,8 @@ export async function uploadReelAction(
   }
 }
 
+const VALID_REVIEWER_IDS = new Set(['KC-01', 'UNLV-01', 'TFC-01', 'YOU-01']);
+
 export async function submitForReviewAction(
   reelId: string,
   reviewerId: string,
@@ -94,13 +108,30 @@ export async function submitForReviewAction(
       return { success: false, error: 'Unauthorized: No user session found.' };
     }
 
+    if (!checkRateLimit(`reel-submit:${username}`, REEL_SUBMIT_RATE_LIMIT)) {
+      log.reelSubmitRateLimited(username);
+      return { success: false, error: 'Too many review submissions. Please try again later.' };
+    }
+
+    if (!VALID_REVIEWER_IDS.has(reviewerId)) {
+      return { success: false, error: 'Invalid reviewer selection.' };
+    }
+
+    if (!question || question.trim().length < 10) {
+      return { success: false, error: 'Please provide a question of at least 10 characters.' };
+    }
+
+    if (question.length > 1000) {
+      return { success: false, error: 'Question must be under 1000 characters.' };
+    }
+
     const supabase = await createServerClient();
     const { error } = await supabase
       .from('reel_submissions')
       .update({
         submit_for_review: true,
         reviewer_id: reviewerId,
-        review_question: question,
+        review_question: question.trim(),
         review_status: 'pending',
       })
       .eq('id', reelId)
@@ -119,7 +150,6 @@ export async function submitForReviewAction(
 
 export async function deleteReelAction(
   reelId: string,
-  clipPath: string
 ): Promise<{ success: boolean; error?: string }> {
   try {
     const username = await getCurrentUser();
@@ -129,12 +159,25 @@ export async function deleteReelAction(
 
     const supabase = await createServerClient();
 
-    // Delete from storage
-    const { error: storageError } = await supabase.storage
-      .from('Clip Uploader')
-      .remove([clipPath]);
+    // Fetch the row first so we use the server-side clip_path, not a client-supplied value.
+    // The username filter ensures we can only fetch (and therefore delete) our own reels.
+    const { data: reel, error: fetchError } = await supabase
+      .from('reel_submissions')
+      .select('clip_path')
+      .eq('id', reelId)
+      .eq('username', username)
+      .single();
 
-    // Delete from reel_submissions
+    if (fetchError || !reel) {
+      return { success: false, error: 'Reel not found or access denied.' };
+    }
+
+    // Delete from storage using the server-fetched path
+    await supabase.storage
+      .from('Clip Uploader')
+      .remove([reel.clip_path]);
+
+    // Delete the DB row
     const { error: dbError } = await supabase
       .from('reel_submissions')
       .delete()

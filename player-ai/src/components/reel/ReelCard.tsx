@@ -44,7 +44,7 @@ export default function ReelCard({ reel, signedUrl }: ReelCardProps) {
 
     setDeleting(true);
     try {
-      const res = await deleteReelAction(reel.id, reel.clip_path);
+      const res = await deleteReelAction(reel.id);
       if (!res.success) {
         alert(res.error || 'Failed to delete clip');
       }
