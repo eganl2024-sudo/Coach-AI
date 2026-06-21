@@ -48,7 +48,7 @@ const deriveAgeGroup = (age: number): string => {
   if (age <= 18) return 'U18';
   if (age <= 19) return 'U19';
   if (age <= 23) return 'U23';
-  return 'Senior';
+  return 'Senior'; // 24+
 };
 
 export function OnboardingForm() {
@@ -113,8 +113,8 @@ export function OnboardingForm() {
       if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
         newErrors.email = 'Please enter a valid email address.';
       }
-      if (!formData.age || formData.age < 10 || formData.age > 22) {
-        newErrors.age = 'Age must be between 10 and 22.';
+      if (!formData.age || formData.age < 10 || formData.age > 40) {
+        newErrors.age = 'Age must be between 10 and 40.';
       }
       if (!formData.position) {
         newErrors.position = 'Primary position is required.';
@@ -312,7 +312,7 @@ export function OnboardingForm() {
                     id="age"
                     type="number"
                     min="10"
-                    max="22"
+                    max="40"
                     value={formData.age}
                     onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) || 0 }))}
                     className="bg-card/50 border-input h-8 px-2.5 text-sm rounded-lg"
