@@ -110,7 +110,9 @@ export function OnboardingForm() {
       if (!formData.name.trim()) {
         newErrors.name = 'Name is required.';
       }
-      if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email address is required.';
+      } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
         newErrors.email = 'Please enter a valid email address.';
       }
       if (!formData.age || formData.age < 10 || formData.age > 40) {
@@ -291,7 +293,7 @@ export function OnboardingForm() {
               </div>
 
               <div>
-                <FormLabel htmlFor="email">Email Address <span className="text-muted-foreground normal-case font-normal">(optional — for weekly summary)</span></FormLabel>
+                <FormLabel htmlFor="email">Email Address</FormLabel>
                 <Input
                   id="email"
                   type="email"

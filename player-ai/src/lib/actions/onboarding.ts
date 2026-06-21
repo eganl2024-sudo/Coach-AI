@@ -50,7 +50,11 @@ export async function saveOnboardingAction(
       return { success: false, error: 'Profile already exists. Use the profile settings page to make changes.' };
     }
 
-    // 3. Validate numeric bounds
+    // 3. Validate required fields
+    if (!formData.email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      return { success: false, error: 'A valid email address is required.' };
+    }
+
     if (formData.sessions_per_week < 1 || formData.sessions_per_week > 7) {
       return { success: false, error: 'Sessions per week must be between 1 and 7.' };
     }
