@@ -37,6 +37,12 @@ export default async function AdminLayout({
             >
               Reel Reviews
             </Link>
+            <Link
+              href="/admin/feed"
+              className="px-3 py-1.5 rounded-md text-xs font-semibold text-muted-foreground hover:text-white hover:bg-secondary/60 transition-colors"
+            >
+              Mentor Feed
+            </Link>
           </nav>
         </div>
         <AdminLogoutButton />

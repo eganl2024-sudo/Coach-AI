@@ -4,6 +4,7 @@ import { PRESENTER_MAP } from '@/lib/data/presenters';
 import { MentorFeedClient } from '@/components/feed/MentorFeedClient';
 import type { FeedPost } from '@/lib/types/feed';
 import { SEED_POSTS } from '@/lib/data/feedPosts';
+import { getDynamicFeedPosts } from '@/lib/actions/admin';
 import { getUserData } from '@/lib/data/getUserData';
 import type { AthleteProfile } from '@/lib/types/player';
 
@@ -17,8 +18,17 @@ export default async function MentorFeedPage() {
     redirect('/login');
   }
 
-  const profile = await getUserData<AthleteProfile>(username, 'athlete_profile');
+  const [profile, dynamicPosts] = await Promise.all([
+    getUserData<AthleteProfile>(username, 'athlete_profile'),
+    getDynamicFeedPosts(),
+  ]);
   const playerPosition = profile?.position ?? '';
+
+  // Dynamic posts first (newest), then seed posts
+  const allPosts: FeedPost[] = [
+    ...dynamicPosts,
+    ...SEED_POSTS.filter(s => !dynamicPosts.some(d => d.post_id === s.post_id)),
+  ];
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -32,7 +42,7 @@ export default async function MentorFeedPage() {
 
       {/* Feed Filter and List Client View */}
       <MentorFeedClient
-        posts={SEED_POSTS}
+        posts={allPosts}
         presenterMap={PRESENTER_MAP}
         playerPosition={playerPosition}
       />

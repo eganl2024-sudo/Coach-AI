@@ -58,6 +58,58 @@ export async function sendPasswordResetEmail(params: {
   });
 }
 
+export async function sendReelReviewNotificationEmail(params: {
+  email: string;
+  playerName: string;
+  reelTitle: string;
+  reviewerName: string;
+  response: string;
+}): Promise<void> {
+  const { email, playerName, reelTitle, reviewerName, response } = params;
+  const appUrl = APP_URL;
+
+  await resend.emails.send({
+    from: FROM_EMAIL,
+    to: email,
+    subject: `Your reel feedback is ready — ${reelTitle}`,
+    html: `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#0f1117;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0f1117;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
+        <tr><td style="text-align:center;padding-bottom:24px;">
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Player AI</div>
+        </td></tr>
+        <tr><td style="background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:32px 28px;">
+          <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:8px;">Your feedback is ready</div>
+          <div style="font-size:14px;color:#9ca3af;margin-bottom:24px;">
+            Hi <strong style="color:#e5e7eb;">${playerName}</strong> — ${reviewerName} reviewed your clip
+            <strong style="color:#e5e7eb;">${reelTitle}</strong> and left you feedback.
+          </div>
+          <div style="background:#0f1117;border:1px solid #2d3748;border-radius:8px;padding:16px 20px;margin-bottom:24px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:0.1em;color:#6b7280;text-transform:uppercase;margin-bottom:10px;">Feedback from ${reviewerName}</div>
+            <div style="font-size:14px;color:#d1d5db;white-space:pre-wrap;line-height:1.6;">${response}</div>
+          </div>
+          <div style="text-align:center;">
+            <a href="${appUrl}/reel"
+               style="display:inline-block;background:#22c55e;color:#000000;font-weight:700;font-size:14px;padding:12px 32px;border-radius:8px;text-decoration:none;">
+              View in Player AI →
+            </a>
+          </div>
+          <div style="font-size:12px;color:#6b7280;border-top:1px solid #2d3748;padding-top:16px;margin-top:24px;">
+            Log in at <a href="${appUrl}/reel" style="color:#9ca3af;">${appUrl}/reel</a> to see your full clip and submit another for review.
+          </div>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`,
+  });
+}
+
 export async function sendWeeklySummaryEmail(params: {
   profile: AthleteProfile;
   completionLog: CompletionLog;

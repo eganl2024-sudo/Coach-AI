@@ -5,7 +5,13 @@ import { createServerClient } from '@/lib/supabase/server';
 import { getAdminSession, setAdminSession, clearAdminSession } from '@/lib/admin';
 import { checkRateLimit } from '@/lib/rate-limit';
 import { log } from '@/lib/logger';
+import { sendReelReviewNotificationEmail } from '@/lib/email/resend';
+import { PRESENTER_MAP } from '@/lib/data/presenters';
 import type { Drill } from '@/lib/types/player';
+import type { FeedPost } from '@/lib/types/feed';
+
+const FEED_SYSTEM_USER = '_feed';
+const FEED_DATA_KEY    = 'posts';
 
 // 5 attempts per 15 minutes — single shared key since there is only one admin
 const ADMIN_LOGIN_RATE_LIMIT = { limit: 5, windowMs: 15 * 60 * 1000 };
@@ -117,9 +123,126 @@ export async function submitReviewResponseAction(
 
     revalidatePath('/admin/reels');
     revalidatePath('/reel');
+
+    // Send notification email to player — non-fatal
+    try {
+      const { data: reel } = await supabase
+        .from('reel_submissions')
+        .select('username, title, reviewer_id')
+        .eq('id', reelId)
+        .single();
+
+      if (reel) {
+        const { data: user } = await supabase
+          .from('users')
+          .select('email')
+          .eq('username', reel.username)
+          .maybeSingle();
+
+        if (user?.email) {
+          const reviewer = PRESENTER_MAP[reel.reviewer_id];
+          await sendReelReviewNotificationEmail({
+            email: user.email,
+            playerName: reel.username,
+            reelTitle: reel.title,
+            reviewerName: reviewer?.name ?? reel.reviewer_id,
+            response: response.trim(),
+          });
+        }
+      }
+    } catch {
+      // email failure never blocks the review submission
+    }
+
     return { success: true };
   } catch (err: any) {
     return { success: false, error: err.message || 'Failed to submit review.' };
+  }
+}
+
+// ── Feed post management ─────────────────────────────────────────────────────
+
+async function getFeedPostsRaw(supabase: Awaited<ReturnType<typeof createServerClient>>): Promise<FeedPost[]> {
+  const { data } = await supabase
+    .from('user_data')
+    .select('value')
+    .eq('username', FEED_SYSTEM_USER)
+    .eq('data_key', FEED_DATA_KEY)
+    .maybeSingle();
+  return (data?.value as FeedPost[]) ?? [];
+}
+
+async function saveFeedPosts(
+  supabase: Awaited<ReturnType<typeof createServerClient>>,
+  posts: FeedPost[]
+): Promise<void> {
+  await supabase
+    .from('user_data')
+    .upsert(
+      { username: FEED_SYSTEM_USER, data_key: FEED_DATA_KEY, value: posts },
+      { onConflict: 'username,data_key' }
+    );
+}
+
+export async function createFeedPostAction(
+  post: Omit<FeedPost, 'post_id' | 'date_posted'>
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const isAdmin = await getAdminSession();
+    if (!isAdmin) return { success: false, error: 'Unauthorized.' };
+
+    if (!post.title?.trim() || !post.description?.trim()) {
+      return { success: false, error: 'Title and description are required.' };
+    }
+
+    const supabase = await createServerClient();
+    const existing = await getFeedPostsRaw(supabase);
+
+    const newPost: FeedPost = {
+      ...post,
+      post_id: `DYN_${Date.now()}`,
+      date_posted: new Date().toISOString().split('T')[0],
+      title: post.title.trim(),
+      description: post.description.trim(),
+      body: post.body?.trim() || '',
+      video_url: post.video_url?.trim() || '',
+      tags: post.tags?.trim() || '',
+      position_tags: post.position_tags?.trim() || '',
+    };
+
+    await saveFeedPosts(supabase, [newPost, ...existing]);
+    revalidatePath('/feed');
+    revalidatePath('/admin/feed');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to create post.' };
+  }
+}
+
+export async function deleteFeedPostAction(
+  postId: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const isAdmin = await getAdminSession();
+    if (!isAdmin) return { success: false, error: 'Unauthorized.' };
+
+    const supabase = await createServerClient();
+    const existing = await getFeedPostsRaw(supabase);
+    await saveFeedPosts(supabase, existing.filter(p => p.post_id !== postId));
+    revalidatePath('/feed');
+    revalidatePath('/admin/feed');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to delete post.' };
+  }
+}
+
+export async function getDynamicFeedPosts(): Promise<FeedPost[]> {
+  try {
+    const supabase = await createServerClient();
+    return await getFeedPostsRaw(supabase);
+  } catch {
+    return [];
   }
 }
 
