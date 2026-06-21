@@ -262,7 +262,7 @@ if 'All' not in intensity_filter and len(intensity_filter) > 0:
     filtered_df = filtered_df[filtered_df['intensity'].isin(intensity_filter)]
 
 if search_query:
-    filtered_df = filtered_df[filtered_df['drill_name'].str.contains(search_query, case=False, na=False)]
+    filtered_df = filtered_df[filtered_df['drill_name'].str.contains(search_query, case=False, na=False, regex=False)]
 
 if 'All' not in tag_filter and len(tag_filter) > 0:
     tag_set = set(tag_filter)

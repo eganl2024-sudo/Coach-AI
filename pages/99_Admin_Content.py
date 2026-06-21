@@ -1,3 +1,4 @@
+import re
 import streamlit as st
 import sys
 import os
@@ -10,7 +11,10 @@ import config
 
 st.set_page_config(page_title="Admin Content | Player AI", page_icon="🔐", layout="wide")
 
-ADMIN_PASSWORD = os.environ.get("PLAYER_AI_ADMIN_PASSWORD", "AdminPlayerAI2026")
+ADMIN_PASSWORD = os.environ.get("PLAYER_AI_ADMIN_PASSWORD", "")
+if not ADMIN_PASSWORD:
+    st.error("⚠️ PLAYER_AI_ADMIN_PASSWORD environment variable is not set. Admin access is disabled.")
+    st.stop()
 
 if "admin_authenticated" not in st.session_state:
     st.session_state.admin_authenticated = False
@@ -32,10 +36,15 @@ st.write("Manage drill library video links, schematic diagrams, beta status, and
 if st.session_state.get("_pending_schematic_save"):
     ps = st.session_state.pop("_pending_schematic_save")
     try:
-        ddir = Path("assets/diagrams")
+        ddir = Path("assets/diagrams").resolve()
         ddir.mkdir(parents=True, exist_ok=True)
-        fn = f"{ps['drill_id']}.png"
-        fp = ddir / fn
+        _safe_did = re.sub(r'[^A-Z0-9_]', '', ps['drill_id'].upper())
+        if not _safe_did:
+            raise ValueError("Invalid drill ID in pending save.")
+        fn = f"{_safe_did}.png"
+        fp = (ddir / fn).resolve()
+        if not str(fp).startswith(str(ddir)):
+            raise ValueError("Path traversal detected.")
         with open(fp, "wb") as f:
             f.write(ps["bytes"])
         raw_url = f"https://raw.githubusercontent.com/eganl2024-sudo/MDP_APP/main/assets/diagrams/{fn}"
@@ -59,34 +68,50 @@ CSV_PATH = Path("data/production/drill_library.csv")
 df = pd.read_csv(CSV_PATH, dtype=str).fillna("")
 
 
+_YT_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{5,20}$')
+
+
+def _safe_yt_id(raw: str) -> str | None:
+    """Return the video ID only if it looks like a legitimate YouTube ID."""
+    vid = raw.strip()
+    return vid if _YT_ID_RE.match(vid) else None
+
+
 def normalize_yt_url(url: str) -> str:
     """
-    Convert any YouTube URL format to a standard
-    watch?v= URL that st.video() can embed.
+    Convert any YouTube URL format to a standard watch?v= URL.
 
     Handles:
       https://youtube.com/shorts/VIDEO_ID
-      https://www.youtube.com/shorts/VIDEO_ID
       https://youtu.be/VIDEO_ID
-      https://www.youtube.com/watch?v=VIDEO_ID  (already correct)
-      https://youtube.com/watch?v=VIDEO_ID      (already correct)
+      https://www.youtube.com/watch?v=VIDEO_ID
+    Returns an empty string if the URL is unrecognised or the video ID is invalid.
     """
     if not url:
         return url
     url = url.strip()
 
-    # Shorts: youtube.com/shorts/VIDEO_ID
     if "youtube.com/shorts/" in url:
-        video_id = url.split("/shorts/")[1].split("?")[0]
-        return f"https://www.youtube.com/watch?v={video_id}"
+        raw_id = url.split("/shorts/")[1].split("?")[0]
+        vid = _safe_yt_id(raw_id)
+        return f"https://www.youtube.com/watch?v={vid}" if vid else ""
 
-    # Short link: youtu.be/VIDEO_ID
     if "youtu.be/" in url:
-        video_id = url.split("youtu.be/")[1].split("?")[0]
-        return f"https://www.youtube.com/watch?v={video_id}"
+        raw_id = url.split("youtu.be/")[1].split("?")[0]
+        vid = _safe_yt_id(raw_id)
+        return f"https://www.youtube.com/watch?v={vid}" if vid else ""
 
-    # Already a watch URL — return as-is
-    return url
+    # Already a watch URL — validate the v= param
+    if "youtube.com/watch" in url:
+        import urllib.parse
+        params = urllib.parse.parse_qs(urllib.parse.urlparse(url).query)
+        raw_ids = params.get("v", [])
+        if raw_ids:
+            vid = _safe_yt_id(raw_ids[0])
+            return f"https://www.youtube.com/watch?v={vid}" if vid else ""
+        return ""
+
+    return ""
 
 
 SCHEMATIC_HTML = """
@@ -534,8 +559,11 @@ with tab2:
                 ntl=st.multiselect("Tags",["1v1","dribbling","passing","finishing","first touch","weak foot","shooting","defending","heading","crossing","speed","agility","strength","goalkeeping","ball mastery","transition","pressing","movement","warmup","solo"],default=[])
             if st.form_submit_button("➕ Create Drill",type="primary",use_container_width=True):
                 cid=ni.strip().upper();cnm=nn.strip()
+                _DRILL_ID_RE = re.compile(r'^[A-Z0-9_]{2,30}$')
                 if not cid: st.error("❌ Drill ID cannot be empty.")
+                elif not _DRILL_ID_RE.match(cid): st.error("❌ Drill ID must be 2–30 uppercase letters, digits, or underscores.")
                 elif not cnm: st.error("❌ Drill Name cannot be empty.")
+                elif len(cnm) > 200: st.error("❌ Drill name is too long (max 200 characters).")
                 elif cid in df["drill_id"].values: st.error(f"❌ Drill ID '{cid}' already exists.")
                 else:
                     from data_loader import DRILL_DEFAULTS
@@ -584,8 +612,16 @@ with tab2:
     )
 
     if uploaded is not None:
-        st.session_state["_uploaded_png_bytes"] = uploaded.read()
-        st.session_state["_uploaded_png_drill_id"] = sel_did
+        raw_bytes = uploaded.read()
+        _PNG_MAGIC = b'\x89PNG\r\n\x1a\n'
+        _MAX_SIZE = 5 * 1024 * 1024  # 5 MB
+        if len(raw_bytes) > _MAX_SIZE:
+            st.error("❌ File too large. PNG must be under 5 MB.")
+        elif not raw_bytes.startswith(_PNG_MAGIC):
+            st.error("❌ Invalid file. Only real PNG images are accepted.")
+        else:
+            st.session_state["_uploaded_png_bytes"] = raw_bytes
+            st.session_state["_uploaded_png_drill_id"] = sel_did
 
     save_ready = (
         st.session_state.get("_uploaded_png_bytes") is not None
@@ -682,10 +718,15 @@ with tab4:
     with st.form("drive_folder_form"):
         folder_id_input = st.text_input("Drive Folder ID",value=queue_cfg.get("drive_folder_id",""),placeholder="e.g. 1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74")
         if st.form_submit_button("💾 Save Folder ID"):
-            queue_cfg["drive_folder_id"] = folder_id_input.strip()
-            queue_path.write_text(json.dumps(queue_cfg, indent=2))
-            st.session_state.admin_success_msg = "✅ Drive folder saved."
-            st.rerun()
+            _fid = folder_id_input.strip()
+            _FOLDER_ID_RE = re.compile(r'^[a-zA-Z0-9_-]{10,100}$')
+            if _fid and not _FOLDER_ID_RE.match(_fid):
+                st.error("❌ Invalid folder ID format. Google Drive folder IDs only contain letters, digits, hyphens, and underscores.")
+            else:
+                queue_cfg["drive_folder_id"] = _fid
+                queue_path.write_text(json.dumps(queue_cfg, indent=2))
+                st.session_state.admin_success_msg = "✅ Drive folder saved."
+                st.rerun()
 
     folder_id = queue_cfg.get("drive_folder_id", "").strip()
 

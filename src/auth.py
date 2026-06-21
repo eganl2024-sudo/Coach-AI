@@ -4,6 +4,7 @@ import hashlib
 import hmac
 import os
 import json
+import logging
 import shutil
 import re
 import time
@@ -12,6 +13,35 @@ from pathlib import Path
 import streamlit as st
 import config
 import db
+
+# ---------------------------------------------------------------------------
+# Structured security logger — emits JSON lines to stdout.
+# Streamlit Cloud and Heroku both capture stdout; filter by "security" key.
+# ---------------------------------------------------------------------------
+class _JsonFormatter(logging.Formatter):
+    def format(self, record: logging.LogRecord) -> str:
+        entry: dict = {
+            "ts": self.formatTime(record, "%Y-%m-%dT%H:%M:%SZ"),
+            "level": record.levelname,
+            "event": record.getMessage(),
+        }
+        # Merge any extra fields set by _security_log()
+        for key, value in record.__dict__.items():
+            if key.startswith("_sl_"):
+                entry[key[4:]] = value
+        return json.dumps(entry)
+
+_sec_logger = logging.getLogger("player_ai.security")
+if not _sec_logger.handlers:
+    _sh = logging.StreamHandler()
+    _sh.setFormatter(_JsonFormatter())
+    _sec_logger.addHandler(_sh)
+    _sec_logger.setLevel(logging.INFO)
+    _sec_logger.propagate = False
+
+def _security_log(event: str, level: int = logging.INFO, **fields: object) -> None:
+    extra = {f"_sl_{k}": v for k, v in fields.items()}
+    _sec_logger.log(level, event, extra=extra)
 
 # ---------------------------------------------------------------------------
 # Rate limiting — simple in-memory token bucket per username.
@@ -31,6 +61,24 @@ def _is_rate_limited(username: str) -> bool:
     if len(attempts) >= _MAX_ATTEMPTS:
         return True
     _login_attempts[username].append(now)
+    return False
+
+# Signup rate limit — global, prevents account farming.
+# Stored as a list of timestamps; max 5 signups per hour across all users.
+_signup_timestamps: list[float] = []
+_MAX_SIGNUPS = 5
+_SIGNUP_WINDOW_SECONDS = 60 * 60  # 1 hour
+
+def _is_signup_rate_limited() -> bool:
+    """Return True if global signup rate limit has been exceeded."""
+    now = time.time()
+    window_start = now - _SIGNUP_WINDOW_SECONDS
+    recent = [t for t in _signup_timestamps if t > window_start]
+    _signup_timestamps.clear()
+    _signup_timestamps.extend(recent)
+    if len(recent) >= _MAX_SIGNUPS:
+        return True
+    _signup_timestamps.append(now)
     return False
 
 # ---------------------------------------------------------------------------
@@ -161,6 +209,10 @@ def is_valid_username(username: str) -> bool:
 
 
 def signup_user(username, password) -> bool:
+    if _is_signup_rate_limited():
+        _security_log("auth.signup.rate_limited", logging.WARNING)
+        st.error("Too many accounts created recently. Please try again later.")
+        return False
     username = username.strip().lower()
     if not username:
         st.error("Username cannot be empty.")
@@ -187,6 +239,7 @@ def signup_user(username, password) -> bool:
         st.error(f"Could not create account: {e}")
         return False
     bootstrap_user_sandbox(username)
+    _security_log("auth.signup.success", logging.INFO, username=username)
     return True
 
 
@@ -197,21 +250,25 @@ def login_user(username, password) -> bool:
         return False
 
     if _is_rate_limited(username):
+        _security_log("auth.login.rate_limited", logging.WARNING, username=username)
         st.error("Too many login attempts. Please wait 15 minutes and try again.")
         return False
 
     try:
         user_data = db.get_user(username)
     except RuntimeError as e:
+        _security_log("auth.login.db_error", logging.ERROR, username=username)
         st.error(f"Database error: {e}")
         return False
     if not user_data:
+        _security_log("auth.login.failure", logging.WARNING, username=username)
         st.error("Invalid username or password.")
         return False
 
     valid, needs_rehash = verify_password(password, user_data["password_hash"], user_data["salt"])
 
     if not valid:
+        _security_log("auth.login.failure", logging.WARNING, username=username)
         st.error("Invalid username or password.")
         return False
 
@@ -226,6 +283,7 @@ def login_user(username, password) -> bool:
     if username == "demo":
         _seed_demo_to_supabase()
 
+    _security_log("auth.login.success", logging.INFO, username=username)
     st.session_state.authenticated = True
     st.session_state.username = username
     st.session_state.login_at = time.time()
