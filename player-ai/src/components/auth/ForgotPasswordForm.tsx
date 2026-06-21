@@ -35,7 +35,7 @@ export default function ForgotPasswordForm() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tight text-white select-none">
-            ⚽ Player AI
+            Player AI
           </div>
           <p className="text-muted-foreground text-sm">Reset your password</p>
         </div>
@@ -45,7 +45,6 @@ export default function ForgotPasswordForm() {
           <CardContent>
             {submitted ? (
               <div className="text-center space-y-4 py-2">
-                <div className="text-4xl">📧</div>
                 <p className="text-sm text-muted-foreground">
                   If that username has an email address on file, we&apos;ve sent a reset link.
                   Check your inbox — the link expires in <strong className="text-foreground">1 hour</strong>.

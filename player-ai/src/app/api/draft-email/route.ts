@@ -5,8 +5,10 @@ import { log } from '@/lib/logger';
 import { getUserData } from '@/lib/data/getUserData';
 import type { AthleteProfile } from '@/lib/types/player';
 
-// 5 drafts per 10 minutes per user
-const RATE_LIMIT = { limit: 5, windowMs: 10 * 60 * 1000 };
+// 5 drafts per 10 minutes per user (burst)
+const RATE_LIMIT_BURST = { limit: 5,  windowMs: 10 * 60 * 1000 };
+// 20 drafts per day per user (cost cap)
+const RATE_LIMIT_DAILY = { limit: 20, windowMs: 24 * 60 * 60 * 1000 };
 
 export async function POST(req: NextRequest) {
   // Auth — proxy enforces this too, but a direct check here makes the route
@@ -16,12 +18,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  // Rate limit per user
-  const allowed = checkRateLimit(`draft-email:${username}`, RATE_LIMIT);
-  if (!allowed) {
+  // Rate limit per user — burst then daily cap
+  if (!checkRateLimit(`draft-email:burst:${username}`, RATE_LIMIT_BURST)) {
     log.aiRateLimited(username);
     return NextResponse.json(
       { error: 'Too many requests. Please wait a few minutes before drafting another email.' },
+      { status: 429 }
+    );
+  }
+  if (!checkRateLimit(`draft-email:daily:${username}`, RATE_LIMIT_DAILY)) {
+    log.aiRateLimited(username);
+    return NextResponse.json(
+      { error: 'Daily email draft limit reached (20 per day). Come back tomorrow.' },
       { status: 429 }
     );
   }

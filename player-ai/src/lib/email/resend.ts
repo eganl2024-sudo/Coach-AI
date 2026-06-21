@@ -29,7 +29,6 @@ export async function sendPasswordResetEmail(params: {
     <tr><td align="center">
       <table width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
         <tr><td style="text-align:center;padding-bottom:24px;">
-          <div style="font-size:28px;margin-bottom:4px;">⚽</div>
           <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Player AI</div>
         </td></tr>
         <tr><td style="background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:32px 28px;">
