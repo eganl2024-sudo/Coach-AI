@@ -274,21 +274,15 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
                     
                     <div className="shrink-0">
                       {post.coming_soon ? (
-                        <Badge className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 text-[11px] font-semibold hover:bg-yellow-500/20">
+                        <Badge className="bg-yellow-500/15 text-yellow-400 border border-yellow-500/30 text-[11px] font-semibold cursor-default">
                           Coming Soon
                         </Badge>
                       ) : post.video_url ? (
-                        <Badge className="bg-primary/15 text-primary border border-primary/30 text-[11px] font-semibold hover:bg-primary/20">
-                          ▶ Watch Now
-                        </Badge>
-                      ) : post.body ? (
-                        <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold">
-                          Full Post
+                        <Badge className="bg-primary/15 text-primary border border-primary/30 text-[11px] font-semibold cursor-default">
+                          ▶ Video
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="bg-secondary text-muted-foreground text-[11px] border-transparent">
-                          Read
-                        </Badge>
+                        null
                       )}
                     </div>
                   </div>
