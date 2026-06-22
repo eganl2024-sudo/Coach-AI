@@ -124,6 +124,7 @@ CRITICAL RULES:
 - End with ONE clear, specific ask (a call, ID camp info, or film review)
 - Include academics naturally only if GPA ≥ 3.5 or test scores are provided
 - Do NOT mention Player AI or any platform by name
+- NEVER use placeholder brackets like [Club Name], [High School Name], [Phone Number], [Email Address] — if data is missing, omit that detail entirely rather than leaving a bracket placeholder
 - Output ONLY valid JSON — no preamble, no markdown fences
 
 ${instructions}
@@ -150,7 +151,8 @@ Region: ${safeRegion}
 
 What the player wants to mention specifically: ${safeInterest || 'nothing specific provided — write a strong general interest email'}
 
-Subject line format: [Position] Prospect | [Player Name] | Class of [Year] | [School Name]`;
+Subject line format: [Position] Prospect | [Player Name] | Class of [Year] | [Target School Name]
+Note: [Target School Name] must be exactly "${safeSchool}" — the university the player is writing TO, not their current school.`;
 
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey || apiKey === 'mock-key' || apiKey.startsWith('your_') || apiKey.trim() === '') {
