@@ -443,7 +443,7 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-semibold text-foreground tracking-tight">
             Latest from Your Mentors
           </h2>
-          <Link href="/feed" className="text-xs text-primary font-semibold hover:underline inline-block py-2">
+          <Link href="/feed" className="text-xs text-primary font-semibold hover:underline inline-block py-3.5">
             View all →
           </Link>
         </div>
@@ -484,7 +484,7 @@ export default async function DashboardPage() {
         </p>
         <Link
           href="/recruiting"
-          className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors inline-block py-2"
+          className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors inline-block py-3.5"
         >
           Open Recruiting Hub →
         </Link>
