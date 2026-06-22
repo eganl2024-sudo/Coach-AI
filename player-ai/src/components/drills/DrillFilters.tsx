@@ -45,7 +45,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
           placeholder="Search drills..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="w-full h-9 rounded-lg border border-border/50 bg-secondary/20 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
+          className="w-full min-h-[44px] rounded-lg border border-border/50 bg-secondary/20 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20"
         />
         <svg
           className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none"
@@ -155,7 +155,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
                       <h3 className="font-bold text-foreground text-base tracking-tight truncate group-hover:text-primary transition-colors">
                         {drill.drill_name}
                       </h3>
-                      <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
                         {drill.description}
                       </p>
                     </div>
