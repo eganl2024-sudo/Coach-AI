@@ -360,26 +360,6 @@ export default async function DashboardPage() {
         </Card>
       )}
 
-      {/* Next Actions Section */}
-      {nextActions.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground tracking-tight">
-            Next Actions
-          </h2>
-          <div className="space-y-2">
-            {nextActions.map((action, i) => (
-              <div key={i}
-                className="flex items-start gap-3 bg-card/50 border border-border/50 rounded-lg px-4 py-3">
-                <span className="text-primary font-bold mt-0.5 shrink-0">
-                  →
-                </span>
-                <p className="text-sm text-muted-foreground">{action}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* 3. Up Next Section */}
       <div className="space-y-3">
         <h2 className="text-lg font-semibold text-foreground tracking-tight">Up Next</h2>
