@@ -181,38 +181,34 @@ export default function ReelGuide({ defaultTabIndex, playerPosition }: ReelGuide
             Coaches watch hundreds of reels a week. Get these right before worrying about anything else.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <ol className="divide-y divide-border/30 border border-border/50 rounded-xl overflow-hidden bg-card/40">
           {[
             {
-              number: '1',
               title: 'Keep it under 3 minutes',
               text: 'A 6-minute reel signals the player and family do not understand the recruiting process. 90 seconds to 3 minutes is the sweet spot.',
             },
             {
-              number: '2',
               title: 'Quality over quantity',
               text: 'Eight clips of you doing something exceptional beat twenty clips of average plays. Every clip should make the coach think "I want to see more."',
             },
             {
-              number: '3',
               title: 'Real game footage only',
               text: 'Training clips can supplement but should never lead. Coaches want to see how you perform under real match pressure, with real opponents.',
             },
             {
-              number: '4',
               title: 'Start strong',
               text: 'The first 20 seconds determine whether a coach watches the rest. Lead with your single best moment. Do not build up to it.',
             },
-          ].map((rule) => (
-            <Card key={rule.number} className="border-border/50 bg-card/40">
-              <CardContent className="p-5 space-y-2">
-                <div className="text-3xl font-black text-primary">{rule.number}</div>
+          ].map((rule, i) => (
+            <li key={i} className="flex gap-4 px-5 py-4">
+              <span className="text-xl font-black text-primary shrink-0 w-5 leading-tight">{i + 1}</span>
+              <div className="space-y-0.5 min-w-0">
                 <div className="text-sm font-bold text-white">{rule.title}</div>
                 <div className="text-xs text-muted-foreground leading-relaxed">{rule.text}</div>
-              </CardContent>
-            </Card>
+              </div>
+            </li>
           ))}
-        </div>
+        </ol>
       </div>
 
       {/* Section 2 — Position-Specific Tabs */}
