@@ -58,3 +58,6 @@ data/production/users/
 # ===== Scratch / agent working files =====
 scratch/
 .gstack/
+
+# ===== Scraper outputs (generated) =====
+scraper/output/
