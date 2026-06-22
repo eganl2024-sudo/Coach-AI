@@ -49,7 +49,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
       <aside className="hidden md:flex flex-col w-60 border-r border-border/50 bg-card/50 backdrop-blur-sm shrink-0 h-screen">
         {/* Brand */}
         <div className="px-5 py-6">
-          <span className="text-lg font-black tracking-tight text-white">Player AI</span>
+          <span className="text-lg font-black tracking-tight text-white font-display">Player AI</span>
         </div>
 
         <Separator className="opacity-30" />
@@ -63,7 +63,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
                 key={href}
                 href={href}
                 className={cn(
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                  'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors',
                   active
                     ? 'bg-primary/15 text-primary'
                     : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -90,7 +90,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
           </div>
           <Button
             variant="ghost"
-            className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3 text-sm"
+            className="w-full justify-start text-muted-foreground hover:text-foreground h-11 px-3 text-sm"
             onClick={handleLogout}
           >
             Sign Out
@@ -100,7 +100,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
 
       {/* PART B: Mobile Header Bar */}
       <header className="flex md:hidden items-center justify-between px-4 fixed top-0 left-0 w-full h-14 bg-card/95 backdrop-blur-sm border-b border-border/50 z-40">
-        <span className="text-lg font-black tracking-tight text-white">Player AI</span>
+        <span className="text-lg font-black tracking-tight text-white font-display">Player AI</span>
         <Button
           onClick={() => setIsOpen(true)}
           variant="ghost"
@@ -118,7 +118,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
           <aside className="relative flex flex-col w-64 bg-card/95 backdrop-blur-sm h-full border-r border-border/50 shadow-2xl">
             {/* Header / Brand & Close */}
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-lg font-black tracking-tight text-white">Player AI</span>
+              <span className="text-lg font-black tracking-tight text-white font-display">Player AI</span>
               <Button
                 onClick={() => setIsOpen(false)}
                 variant="ghost"
@@ -141,7 +141,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
                     href={href}
                     onClick={handleLinkClick}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      'flex items-center gap-3 px-3 py-3 rounded-lg text-sm font-medium transition-colors',
                       active
                         ? 'bg-primary/15 text-primary'
                         : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
@@ -168,7 +168,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
               </div>
               <Button
                 variant="ghost"
-                className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3 text-sm"
+                className="w-full justify-start text-muted-foreground hover:text-foreground h-11 px-3 text-sm"
                 onClick={() => {
                   handleLogout();
                   setIsOpen(false);
