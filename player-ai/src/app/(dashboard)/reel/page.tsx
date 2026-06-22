@@ -59,19 +59,8 @@ export default async function ReelPage() {
         </p>
       </div>
 
-      {/* Guide — all new content */}
-      <ReelGuide defaultTabIndex={defaultTabIndex} playerPosition={playerPosition} />
-
-      {/* Divider between guide and upload */}
-      <div className="border-t border-border/30 pt-8 space-y-8">
-        <div>
-          <h2 className="text-xl font-bold text-white mb-1">Upload Your Reel</h2>
-          <p className="text-sm text-muted-foreground">
-            Submit your clips for review. Our team will give you position-specific feedback.
-          </p>
-        </div>
-
-        {/* Upload Section */}
+      {/* Upload Section — primary action first */}
+      <div className="space-y-6">
         <div className="space-y-3">
           <h2 className="text-lg font-semibold text-foreground tracking-tight">
             Upload a Clip
@@ -91,6 +80,17 @@ export default async function ReelPage() {
           </div>
           <ReelGrid reels={reels} signedUrls={signedUrls} />
         </div>
+      </div>
+
+      {/* Guide — below the fold as reference */}
+      <div className="border-t border-border/30 pt-8">
+        <div className="mb-6">
+          <h2 className="text-xl font-bold text-white mb-1">Reel Guide</h2>
+          <p className="text-sm text-muted-foreground">
+            What college coaches look for. Get these right before worrying about anything else.
+          </p>
+        </div>
+        <ReelGuide defaultTabIndex={defaultTabIndex} playerPosition={playerPosition} />
       </div>
     </div>
   );
