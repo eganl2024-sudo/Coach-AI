@@ -283,7 +283,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
                         </Badge>
                       ) : post.body ? (
                         <Badge className="bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[11px] font-semibold">
-                          ✦ Full Post
+                          Full Post
                         </Badge>
                       ) : (
                         <Badge variant="secondary" className="bg-secondary text-muted-foreground text-[11px] border-transparent">
@@ -301,7 +301,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
         {/* Athlete2Athlete teaser banner */}
         <div className="mt-8 rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-2 text-left">
           <h3 className="text-lg font-bold text-white">
-            🚀 Athlete2Athlete — Coming Soon
+            Athlete2Athlete — Coming Soon
           </h3>
           <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
             Soon you will be able to submit your game footage directly to Mitch, Nick, or Liam 
