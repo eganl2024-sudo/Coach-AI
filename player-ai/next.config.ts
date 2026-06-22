@@ -29,7 +29,7 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.supabase.co",
               "media-src 'self' blob:",
               "frame-src 'self' https://www.youtube.com https://youtube.com",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://o*.ingest.sentry.io",
+              "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://*.ingest.sentry.io",
             ].join('; '),
           },
           // Prevent this app from being embedded in iframes on other domains
