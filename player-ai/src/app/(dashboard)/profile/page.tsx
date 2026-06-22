@@ -52,11 +52,19 @@ export default async function ProfilePage() {
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       {/* 1. Page Header */}
-      <div>
-        <h1 className="text-3xl font-black text-white tracking-tight">My Profile</h1>
-        <p className="text-muted-foreground text-xs mt-1">
-          Your player identity and development goals.
-        </p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-white tracking-tight">My Profile</h1>
+          <p className="text-muted-foreground text-xs mt-1">
+            Your player identity and development goals.
+          </p>
+        </div>
+        <a
+          href="#edit-profile"
+          className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary border border-primary/30 bg-primary/10 hover:bg-primary/20 transition-colors px-4 py-2 rounded-lg mt-1"
+        >
+          Edit Profile ↓
+        </a>
       </div>
 
       {/* 2. Player Identity Card */}
@@ -217,7 +225,7 @@ export default async function ProfilePage() {
       )}
 
       {/* 6. Profile Edit Form Section */}
-      <div className="space-y-4 pt-4 border-t border-border/30">
+      <div id="edit-profile" className="space-y-4 pt-4 border-t border-border/30">
         <div>
           <h2 className="text-lg font-bold text-white tracking-tight">
             Edit Profile
