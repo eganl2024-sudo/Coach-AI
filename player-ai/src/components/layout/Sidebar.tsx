@@ -105,7 +105,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
           onClick={() => setIsOpen(true)}
           variant="ghost"
           size="icon"
-          className="w-9 h-9 rounded-md bg-secondary/50 text-foreground hover:bg-secondary"
+          className="w-11 h-11 rounded-md bg-secondary/50 text-foreground hover:bg-secondary"
         >
           <Menu className="w-5 h-5" />
         </Button>
@@ -123,7 +123,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
                 onClick={() => setIsOpen(false)}
                 variant="ghost"
                 size="icon"
-                className="w-8 h-8 rounded-md text-muted-foreground hover:text-foreground"
+                className="w-11 h-11 rounded-md text-muted-foreground hover:text-foreground"
               >
                 <X className="w-4 h-4" />
               </Button>
