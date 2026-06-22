@@ -319,7 +319,7 @@ export default async function DashboardPage() {
 
       {/* Next Milestone Card */}
       {rrsResult?.unlocked && (
-        <Card className="border-border/50 border-l-4 border-l-primary bg-card/50 backdrop-blur-sm">
+        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardContent className="p-6 space-y-4">
             <div className="space-y-1">
               <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
