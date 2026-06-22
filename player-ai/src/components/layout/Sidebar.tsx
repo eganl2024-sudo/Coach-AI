@@ -90,8 +90,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
           </div>
           <Button
             variant="ghost"
-            size="sm"
-            className="w-full justify-start text-muted-foreground hover:text-foreground"
+            className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3 text-sm"
             onClick={handleLogout}
           >
             Sign Out
@@ -169,8 +168,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
               </div>
               <Button
                 variant="ghost"
-                size="sm"
-                className="w-full justify-start text-muted-foreground hover:text-foreground"
+                className="w-full justify-start text-muted-foreground hover:text-foreground h-10 px-3 text-sm"
                 onClick={() => {
                   handleLogout();
                   setIsOpen(false);
