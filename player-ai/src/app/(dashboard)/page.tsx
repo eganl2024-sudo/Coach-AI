@@ -443,7 +443,7 @@ export default async function DashboardPage() {
           <h2 className="text-lg font-semibold text-foreground tracking-tight">
             Latest from Your Mentors
           </h2>
-          <Link href="/feed" className="text-xs text-primary font-semibold hover:underline">
+          <Link href="/feed" className="text-xs text-primary font-semibold hover:underline inline-block py-2">
             View all →
           </Link>
         </div>
@@ -474,7 +474,7 @@ export default async function DashboardPage() {
       {/* Recruiting Hub teaser */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold text-white">Recruiting Hub</h2>
+          <h2 className="text-base font-bold text-white">Recruiting Hub</h2>
           <Badge className="bg-primary/15 text-primary border border-primary/30 text-[10px] font-bold">
             212 D1 Programs · 686 Coaches
           </Badge>
@@ -484,7 +484,7 @@ export default async function DashboardPage() {
         </p>
         <Link
           href="/recruiting"
-          className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+          className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors inline-block py-2"
         >
           Open Recruiting Hub →
         </Link>
