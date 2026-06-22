@@ -51,7 +51,7 @@ export default function LoginForm() {
          style={{ background: 'radial-gradient(ellipse at top, #0d1f0f 0%, #0f1117 60%)' }}>
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1">
-          <div className="text-4xl font-black tracking-tight text-white">
+          <div className="text-4xl font-black tracking-tight text-white font-display">
             Player AI
           </div>
           <p className="text-muted-foreground text-sm">

@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  --font-display: var(--font-barlow), 'Barlow Condensed', sans-serif;
   --color-background: hsl(var(--background));
   --color-foreground: hsl(var(--foreground));
   --color-card: hsl(var(--card));
@@ -58,7 +57,13 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   h1 {
-    font-family: var(--font-barlow), 'Barlow Condensed', sans-serif;
+    font-family: var(--font-barlow), sans-serif;
     letter-spacing: -0.01em;
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-barlow), sans-serif;
   }
 }
