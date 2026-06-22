@@ -369,7 +369,7 @@ export default async function DashboardPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
                   <h3 className="text-base font-bold text-foreground">
-                    {nextSession.name}
+                    {nextSession.name.replace(/^.+Development Plan\s*[-–]\s*/i, '')}
                   </h3>
                   <p className="text-xs text-muted-foreground mt-0.5">
                     {nextSession.drills?.length ?? 0} drills · {nextSession.duration_minutes} min
