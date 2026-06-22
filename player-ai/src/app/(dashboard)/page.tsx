@@ -397,7 +397,7 @@ export default async function DashboardPage() {
 
               <Button
                 asChild
-                className="w-full sm:w-fit font-semibold bg-primary hover:bg-primary/95 text-primary-foreground"
+                className="w-full sm:w-fit min-h-[44px] font-semibold bg-primary hover:bg-primary/95 text-primary-foreground"
               >
                 <Link href="/training">View Training Plan →</Link>
               </Button>
