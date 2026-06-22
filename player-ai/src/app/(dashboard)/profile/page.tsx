@@ -172,7 +172,7 @@ export default async function ProfilePage() {
             {profile.equipment_available.map((item) => (
               <Badge
                 key={item}
-                className="bg-secondary text-muted-foreground border border-border/50 text-sm px-3 py-1.5 rounded-lg"
+                className="bg-secondary text-muted-foreground border border-border/50 text-sm font-semibold px-4 py-2 rounded-full"
               >
                 {item}
               </Badge>
