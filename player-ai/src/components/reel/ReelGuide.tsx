@@ -9,12 +9,12 @@ interface ReelGuideProps {
 }
 
 const TABS = [
-  '🧤 Goalkeeper',
-  '🛡️ Center Back', 
-  '🏃 Full Back',
-  '⚙️ Midfielder',
-  '⚡ Winger',
-  '🥅 Striker',
+  'Goalkeeper',
+  'Center Back',
+  'Full Back',
+  'Midfielder',
+  'Winger',
+  'Striker',
 ];
 
 const POSITION_CONTENT = [
@@ -270,7 +270,7 @@ export default function ReelGuide({ defaultTabIndex, playerPosition }: ReelGuide
             <Card className="border-destructive/20 bg-destructive/5">
               <CardContent className="p-5 space-y-2">
                 <p className="text-xs font-bold text-destructive uppercase tracking-widest">
-                  ⚠️ What to Leave Out
+                  What to Leave Out
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {content.leaveOut}
@@ -282,7 +282,7 @@ export default function ReelGuide({ defaultTabIndex, playerPosition }: ReelGuide
             <Card className="border-primary/20 bg-primary/5">
               <CardContent className="p-5 space-y-2">
                 <p className="text-xs font-bold text-primary uppercase tracking-widest">
-                  📋 Ideal Reel Structure
+                  Ideal Reel Structure
                 </p>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   {content.structure}
@@ -334,7 +334,7 @@ export default function ReelGuide({ defaultTabIndex, playerPosition }: ReelGuide
       {/* Section 4 — Athlete2Athlete teaser */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-2">
         <h3 className="text-lg font-bold text-white">
-          🚀 Athlete2Athlete — Coming Soon
+          Athlete2Athlete — Coming Soon
         </h3>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
           Soon you will be able to submit your game footage directly to Mitch, Nick, or Liam for a personal video review — and book a live 30-minute Q&A session with a current college or professional player who plays your position.
