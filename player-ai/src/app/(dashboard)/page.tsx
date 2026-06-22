@@ -336,7 +336,7 @@ export default async function DashboardPage() {
                 </>
               ) : (
                 <h3 className="text-lg font-bold text-white">
-                  🏆 D1 Ready — Elite level achieved.
+                  D1 Ready — Elite level achieved.
                 </h3>
               )}
             </div>

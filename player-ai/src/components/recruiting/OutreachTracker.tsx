@@ -25,7 +25,7 @@ const STATUS_CONFIG: Record<OutreachStatus, { label: string; color: string; dot:
   call_scheduled: { label: 'Call Scheduled',   color: 'text-yellow-400', dot: 'bg-yellow-400' },
   visited:        { label: 'Visited',          color: 'text-purple-400', dot: 'bg-purple-400' },
   not_interested: { label: 'Not Interested',   color: 'text-red-400',    dot: 'bg-red-400' },
-  committed:      { label: 'Committed ⚽',     color: 'text-primary',    dot: 'bg-primary' },
+  committed:      { label: 'Committed',         color: 'text-primary',    dot: 'bg-primary' },
 };
 
 function FormLabel({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) {
@@ -205,7 +205,7 @@ export default function OutreachTracker({ outreachLog, prefilled, onPrefilledUse
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              📋 Outreach Tracker
+              Outreach Tracker
             </CardTitle>
             <div className="flex items-center gap-2 text-xs text-muted-foreground mt-1 font-semibold">
               <span className="text-white">{uniqueSchoolsCount}</span> {uniqueSchoolsCount === 1 ? 'school' : 'schools'} contacted
@@ -427,7 +427,7 @@ export default function OutreachTracker({ outreachLog, prefilled, onPrefilledUse
                       <p>Contacted: {formatDateString(entry.contacted_date)}</p>
                       {entry.follow_up_date && (
                         <p className={cn(overdue ? "text-yellow-400 font-bold" : "text-muted-foreground")}>
-                          {overdue ? "⚠ Follow up: " : "Follow up: "}{formatDateString(entry.follow_up_date)}
+                          {overdue ? "! Follow up: " : "Follow up: "}{formatDateString(entry.follow_up_date)}
                         </p>
                       )}
                     </div>
@@ -438,14 +438,14 @@ export default function OutreachTracker({ outreachLog, prefilled, onPrefilledUse
                         className="text-muted-foreground hover:text-white transition-colors cursor-pointer text-xs p-1"
                         title="Edit entry"
                       >
-                        ✏️
+                        Edit
                       </button>
                       <button
                         onClick={() => handleDelete(entry.id)}
                         className="text-muted-foreground hover:text-destructive transition-colors cursor-pointer text-xs p-1"
                         title="Delete entry"
                       >
-                        🗑️
+                        ×
                       </button>
                     </div>
                   </div>

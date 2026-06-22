@@ -447,7 +447,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                     }, 100);
                   }}
                 >
-                  📋 Track Outreach
+                  Track Outreach
                 </Button>
               </div>
             </>
@@ -654,7 +654,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                   onClick={generateEmail}
                   disabled={draftLoading}
                 >
-                  {draftLoading ? '...' : '🔄 Regenerate'}
+                  {draftLoading ? '...' : 'Regenerate'}
                 </Button>
                 <CopyEmailButton subject={draftSubject} body={draftBody} />
               </div>
@@ -679,7 +679,6 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
         {FEATURES.map((feature) => (
           <Card key={feature.title} className="border-border/50 bg-card/40 backdrop-blur-sm">
             <CardContent className="p-5 space-y-3">
-              <div className="text-3xl">{feature.icon}</div>
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-bold text-white">{feature.title}</p>
@@ -750,7 +749,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
 
             {/* Overlay label */}
             <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-              <span className="text-yellow-400 text-xs">⚡</span>
+              <span className="text-yellow-400 text-xs">→</span>
               <p className="text-xs text-yellow-400 font-medium">
                 Example preview — highlighted fields auto-fill from your Player AI profile when this feature launches.
               </p>
@@ -837,7 +836,7 @@ function CoachRow({ coach }: { coach: CoachRecord }) {
             className="shrink-0 text-[10px] text-muted-foreground hover:text-white transition-colors cursor-pointer"
             title="Copy email"
           >
-            {copied ? '✓' : '📋'}
+            {copied ? '✓' : 'Copy'}
           </button>
         </div>
       )}
@@ -867,7 +866,7 @@ function CopyEmailButton({ subject, body }: { subject: string; body: string }) {
       className="font-semibold flex-1 cursor-pointer"
       onClick={handleCopy}
     >
-      {copied ? '✓ Copied!' : '📋 Copy Email'}
+      {copied ? '✓ Copied!' : 'Copy Email'}
     </Button>
   );
 }

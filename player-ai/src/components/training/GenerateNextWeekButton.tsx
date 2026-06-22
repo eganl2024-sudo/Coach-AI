@@ -45,7 +45,7 @@ export default function GenerateNextWeekButton({ nextWeekNumber }: GenerateNextW
         ) : success ? (
           '✓ New week generated! Loading...'
         ) : (
-          `🔄 Generate Week ${nextWeekNumber} →`
+          `Generate Week ${nextWeekNumber} →`
         )}
       </button>
       {error && <p className="text-red-500 text-xs text-center">{error}</p>}

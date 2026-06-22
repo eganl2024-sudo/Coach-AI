@@ -170,7 +170,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
                       </Badge>
                       {drill.min_equipment && (
                         <span className="text-[10px] text-muted-foreground truncate max-w-[100px]" title={drill.min_equipment}>
-                          🔧 {drill.min_equipment}
+                          {drill.min_equipment}
                         </span>
                       )}
                       {hasVideo && (

@@ -737,7 +737,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
         </Button>
         {planAffected && !saved && !saving && (
           <p className="text-[10px] text-muted-foreground/80 text-center">
-            ⚡ Saving will offer to regenerate your training plan
+            Saving will offer to regenerate your training plan
           </p>
         )}
       </div>

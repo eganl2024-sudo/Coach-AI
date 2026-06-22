@@ -191,7 +191,7 @@ export default async function DrillDetailPage({ params }: PageProps) {
             </div>
           ) : (
             <div className="aspect-video w-full flex flex-col items-center justify-center rounded-lg border border-border/50 bg-card/20 p-6 text-center">
-              <span className="text-lg font-bold text-muted-foreground">📺 Video coming soon</span>
+              <span className="text-lg font-bold text-muted-foreground">Video coming soon</span>
               <p className="text-xs text-muted-foreground/60 mt-1">
                 Visual demo is currently being processed for this drill.
               </p>

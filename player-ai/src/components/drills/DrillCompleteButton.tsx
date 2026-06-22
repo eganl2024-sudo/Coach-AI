@@ -62,7 +62,7 @@ export default function DrillCompleteButton({
             Logging completion...
           </span>
         ) : (
-          '⚡ Mark Drill Complete'
+          'Mark Drill Complete'
         )}
       </Button>
       {error && (
