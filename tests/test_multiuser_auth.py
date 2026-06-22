@@ -52,12 +52,13 @@ def test_password_hashing():
     assert len(pwd_hash) > 0
     assert len(salt) > 0
     
-    # Verification should succeed with correct password
-    assert auth.verify_password(password, pwd_hash, salt) is True
-    
+    # Verification should succeed with correct password (returns (valid, needs_rehash) tuple)
+    valid, _ = auth.verify_password(password, pwd_hash, salt)
+    assert valid is True
+
     # Verification should fail with incorrect password
-    assert auth.verify_password("wrong_password", pwd_hash, salt) is False
-    assert auth.verify_password("", pwd_hash, salt) is False
+    assert auth.verify_password("wrong_password", pwd_hash, salt)[0] is False
+    assert auth.verify_password("", pwd_hash, salt)[0] is False
 
 def test_username_validation():
     # Valid usernames
