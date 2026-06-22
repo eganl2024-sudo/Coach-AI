@@ -177,11 +177,11 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
     <div className="space-y-10 max-w-4xl mx-auto">
       {/* Section 1: Page Header */}
       <div className="space-y-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-3xl font-black tracking-tight text-white">
             Recruiting Hub
           </h1>
-          <Badge className="bg-primary/15 text-primary border border-primary/30 text-xs font-bold px-2.5 py-1">
+          <Badge className="bg-primary/15 text-primary border border-primary/30 text-xs font-bold px-2.5 py-1 shrink-0">
             212 D1 Programs · 686 Coaches
           </Badge>
         </div>
@@ -270,20 +270,21 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
       {/* Section 4: Results Table */}
       <div className="rounded-xl border border-border/50 overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 bg-secondary/30 border-b border-border/50 px-4 py-2.5">
+        <div className="grid grid-cols-[2fr_2fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 bg-secondary/30 border-b border-border/50 px-4 py-2.5">
           {([
-            { label: 'School', key: 'school_name' },
-            { label: 'Conference', key: 'conference' },
-            { label: 'State', key: 'state' },
-            { label: 'Head Coach', key: null },
-            { label: 'Contact', key: null },
-          ] as { label: string; key: SortKey | null }[]).map(col => (
+            { label: 'School', key: 'school_name', mobileHide: false },
+            { label: 'Conference', key: 'conference', mobileHide: true },
+            { label: 'State', key: 'state', mobileHide: true },
+            { label: 'Head Coach', key: null, mobileHide: false },
+            { label: 'Contact', key: null, mobileHide: false },
+          ] as { label: string; key: SortKey | null; mobileHide: boolean }[]).map(col => (
             <button
               key={col.label}
               onClick={() => col.key && handleSort(col.key)}
               className={cn(
                 'text-left text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1',
                 col.key ? 'hover:text-white cursor-pointer' : 'cursor-default',
+                col.mobileHide ? 'hidden sm:flex' : '',
               )}
             >
               {col.label}
@@ -306,18 +307,18 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                 <div
                   key={program.program_id}
                   onClick={() => setSelectedProgram(program)}
-                  className="grid grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 px-4 py-3 hover:bg-card/60 cursor-pointer transition-colors group items-center"
+                  className="grid grid-cols-[2fr_2fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 px-4 py-3 hover:bg-card/60 cursor-pointer transition-colors group items-center"
                 >
                   {/* School */}
                   <p className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate pr-3">
                     {program.school_name}
                   </p>
-                  {/* Conference */}
-                  <p className="text-xs text-muted-foreground truncate pr-3">
+                  {/* Conference — hidden on mobile */}
+                  <p className="hidden sm:block text-xs text-muted-foreground truncate pr-3">
                     {program.conference}
                   </p>
-                  {/* State */}
-                  <p className="text-xs text-muted-foreground">
+                  {/* State — hidden on mobile */}
+                  <p className="hidden sm:block text-xs text-muted-foreground">
                     {program.state}
                   </p>
                   {/* Head Coach */}
