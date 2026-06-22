@@ -65,7 +65,7 @@ export function SessionCard({ session, isCurrent, isNext, weekNumber, forceColla
             </Badge>
           </div>
           <h3 className="font-bold text-foreground text-sm sm:text-base">
-            {session.name}
+            {session.name.replace(/^.+Development Plan\s*[-–]\s*/i, '')}
           </h3>
         </div>
 
