@@ -8,7 +8,10 @@
       "Bash(python -m py_compile:*)",
       "Bash(python:*)",
       "Bash(find:*)",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(git *)",
+      "Read(//c/Users/ljega/.claude/skills/gstack/**)",
+      "Bash(./setup)"
     ],
     "deny": [],
     "ask": []
