@@ -70,7 +70,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
                 : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
             }`}
           >
-            {opt}
+            {opt.charAt(0).toUpperCase() + opt.slice(1)}
           </button>
         ))}
       </div>
