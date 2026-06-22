@@ -110,7 +110,7 @@ export default function LoginForm() {
               </div>
 
               <div className="flex justify-end">
-                <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors">
+                <Link href="/forgot-password" className="text-xs text-muted-foreground hover:text-primary transition-colors min-h-[44px] flex items-center">
                   Forgot password?
                 </Link>
               </div>
@@ -121,7 +121,7 @@ export default function LoginForm() {
 
               <Button
                 type="submit"
-                className="w-full font-semibold"
+                className="w-full min-h-[44px] font-semibold"
                 disabled={loading}
               >
                 {loading ? 'Signing in...' : 'Sign In'}
@@ -140,7 +140,7 @@ export default function LoginForm() {
             <Button
               variant="outline"
               type="button"
-              className="w-full border-border/50 hover:bg-secondary/40 font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200"
+              className="w-full min-h-[44px] border-border/50 hover:bg-secondary/40 font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200"
               onClick={() => {
                 router.push('/api/auth/google');
               }}
