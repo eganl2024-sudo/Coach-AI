@@ -57,3 +57,4 @@ data/production/users/
 
 # ===== Scratch / agent working files =====
 scratch/
+.gstack/
