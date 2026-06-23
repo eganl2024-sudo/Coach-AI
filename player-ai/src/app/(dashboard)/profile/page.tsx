@@ -61,7 +61,7 @@ export default async function ProfilePage() {
         </div>
         <a
           href="#edit-profile"
-          className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary border border-primary/30 bg-primary/10 hover:bg-primary/20 transition-colors px-4 py-2 rounded-lg mt-1"
+          className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-primary border border-primary/30 bg-primary/10 hover:bg-primary/20 transition-colors px-4 min-h-[44px] rounded-lg mt-1"
         >
           Edit Profile ↓
         </a>

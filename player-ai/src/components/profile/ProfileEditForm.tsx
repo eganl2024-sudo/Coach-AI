@@ -28,7 +28,7 @@ function FormSelect({ className, children, ...props }: React.ComponentProps<'sel
     <div className="relative w-full">
       <select
         className={cn(
-          "h-8 w-full rounded-lg border border-border/50 bg-secondary/20 px-2.5 py-1 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 text-foreground cursor-pointer appearance-none pr-8",
+          "min-h-[44px] w-full rounded-lg border border-border/50 bg-secondary/20 px-2.5 py-1 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 text-foreground cursor-pointer appearance-none pr-8",
           className
         )}
         {...props}
@@ -473,7 +473,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
                       };
                     })}
                     className={cn(
-                      'flex-1 h-9 text-xs font-bold rounded-lg border transition-all duration-150',
+                      'flex-1 min-h-[44px] text-xs font-bold rounded-lg border transition-all duration-150',
                       isSelected
                         ? 'bg-primary text-primary-foreground border-primary'
                         : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
@@ -500,7 +500,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
                   type="button"
                   onClick={() => setFormData((prev) => ({ ...prev, gender: val }))}
                   className={cn(
-                    'flex-1 h-9 text-sm font-semibold rounded-lg border transition-all duration-150',
+                    'flex-1 min-h-[44px] text-sm font-semibold rounded-lg border transition-all duration-150',
                     formData.gender === val
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
@@ -679,7 +679,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
                     disabled={!isSelected && isMaxSelected}
                     onClick={() => handleFocusClick(area)}
                     className={cn(
-                      'w-full h-8 text-[11px] font-semibold rounded-full border transition-all duration-150 truncate disabled:opacity-30 disabled:cursor-not-allowed',
+                      'w-full min-h-[44px] text-[11px] font-semibold rounded-full border transition-all duration-150 truncate disabled:opacity-30 disabled:cursor-not-allowed',
                       isSelected
                         ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/95'
                         : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
@@ -704,7 +704,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
                     type="button"
                     onClick={() => handleEquipmentClick(eq)}
                     className={cn(
-                      'h-8 text-[11px] font-semibold py-1.5 px-4 rounded-full border transition-all duration-150',
+                      'min-h-[44px] text-[11px] font-semibold py-1.5 px-4 rounded-full border transition-all duration-150',
                       isSelected
                         ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/95'
                         : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
@@ -765,7 +765,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
               <Button
                 type="button"
                 onClick={() => saveProfile(true)}
-                className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs h-9"
+                className="w-full min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs"
               >
                 Yes, regenerate my plan
               </Button>
@@ -773,7 +773,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
                 type="button"
                 variant="outline"
                 onClick={() => saveProfile(false)}
-                className="w-full border-border/80 hover:bg-secondary/40 text-foreground font-semibold text-xs h-9"
+                className="w-full min-h-[44px] border-border/80 hover:bg-secondary/40 text-foreground font-semibold text-xs"
               >
                 Save without regenerating
               </Button>
