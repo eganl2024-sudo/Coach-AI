@@ -221,11 +221,18 @@ export default async function ProgressPage() {
                 RRS Pillars
               </p>
               <div className="grid grid-cols-2 gap-x-4 gap-y-3 pt-2">
-                {Object.entries(pillars).map(([key, score]) => (
+                {Object.entries(pillars).map(([key, score]) => {
+                  const weights: Record<string, number> = { consistency: 30, volume: 20, coverage: 25, progression: 25 };
+                  return (
                   <div key={key} className="space-y-1">
                     <div className="flex justify-between items-center text-xs">
-                      <span className="capitalize text-muted-foreground font-medium">{key}</span>
-                      <span className="font-bold text-white">{score}</span>
+                      <div className="flex items-center gap-1 min-w-0">
+                        <span className="capitalize text-muted-foreground font-medium truncate">{key}</span>
+                        {weights[key] && (
+                          <span className="text-muted-foreground/40 text-[10px] shrink-0">{weights[key]}%</span>
+                        )}
+                      </div>
+                      <span className="font-bold text-white ml-1 shrink-0">{score}</span>
                     </div>
                     <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
                       <div
@@ -234,7 +241,8 @@ export default async function ProgressPage() {
                       />
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </CardContent>
