@@ -14,12 +14,12 @@ const BENCHMARKS = [
   { min: 45, max: 59,  label: 'Club Level',          color: '#34d399' },
   { min: 60, max: 74,  label: 'Varsity Starter',     color: '#fbbf24' },
   { min: 75, max: 87,  label: 'College Prospect',    color: '#f97316' },
-  { min: 88, max: 100, label: 'D1 Ready',            color: '#a855f7' },
+  { min: 88, max: 100, label: 'D1 Ready',            color: '#22c55e' },
 ];
 
 function getBenchmark(score: number): { label: string; color: string } {
   if (score < 0) return { label: 'Getting Started', color: '#94a3b8' };
-  if (score > 100) return { label: 'D1 Ready', color: '#a855f7' };
+  if (score > 100) return { label: 'D1 Ready', color: '#22c55e' };
   for (const b of BENCHMARKS) {
     if (score >= b.min && score <= b.max) {
       return { label: b.label, color: b.color };
