@@ -270,7 +270,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
       {/* Section 4: Results Table */}
       <div className="rounded-xl border border-border/50 overflow-hidden">
         {/* Table header */}
-        <div className="grid grid-cols-[2fr_2fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 bg-secondary/30 border-b border-border/50 px-4 py-2.5">
+        <div className="grid grid-cols-[3fr_2fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 bg-secondary/30 border-b border-border/50 px-4 py-2.5">
           {([
             { label: 'School', key: 'school_name', mobileHide: false },
             { label: 'Conference', key: 'conference', mobileHide: true },
@@ -307,7 +307,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                 <div
                   key={program.program_id}
                   onClick={() => setSelectedProgram(program)}
-                  className="grid grid-cols-[2fr_2fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 px-4 py-3 hover:bg-card/60 cursor-pointer transition-colors group items-center"
+                  className="grid grid-cols-[3fr_2fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 px-4 py-3 hover:bg-card/60 cursor-pointer transition-colors group items-center"
                 >
                   {/* School */}
                   <p className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate pr-3">
