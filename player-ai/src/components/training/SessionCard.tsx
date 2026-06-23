@@ -106,9 +106,13 @@ export function SessionCard({ session, isCurrent, isNext, weekNumber, forceColla
                   <div key={drill.drill_id || idx} className="py-2.5 first:pt-0 last:pb-0 flex items-start justify-between gap-4">
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <Link href={`/drills/${drill.drill_id}`} className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
-                          {drill.drill_name}
-                        </Link>
+                        {drill.drill_id ? (
+                          <Link href={`/drills/${drill.drill_id}`} className="text-sm font-semibold text-foreground hover:text-primary transition-colors">
+                            {drill.drill_name}
+                          </Link>
+                        ) : (
+                          <span className="text-sm font-semibold text-foreground">{drill.drill_name}</span>
+                        )}
                         <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
                           {drill.category}
                         </Badge>
@@ -152,7 +156,7 @@ export function SessionCard({ session, isCurrent, isNext, weekNumber, forceColla
                     });
                   }}
                   disabled={isPending}
-                  className="w-full font-semibold text-sm py-2.5 rounded-lg bg-primary text-primary-foreground hover:bg-primary/95"
+                  className="w-full font-semibold text-sm min-h-[44px] rounded-lg bg-primary text-primary-foreground hover:bg-primary/95"
                 >
                   {isPending ? 'Marking complete...' : '✓ Mark Session Complete'}
                 </Button>

@@ -19,7 +19,17 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
   const [selectedIntensity, setSelectedIntensity] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const filterTabs = ['All', 'Warmup', 'Technical', 'Tactical', 'Small Sided Games', 'Conditioning', 'Cool Down'];
+  const CATEGORY_ORDER = ['Warmup', 'Technical', 'Tactical', 'Small Sided Games', 'Conditioning', 'Cool Down'];
+  const dynamicCategories = Array.from(new Set(drills.map(d => d.category).filter(Boolean)))
+    .sort((a, b) => {
+      const ai = CATEGORY_ORDER.indexOf(a);
+      const bi = CATEGORY_ORDER.indexOf(b);
+      if (ai === -1 && bi === -1) return a.localeCompare(b);
+      if (ai === -1) return 1;
+      if (bi === -1) return -1;
+      return ai - bi;
+    });
+  const filterTabs = ['All', ...dynamicCategories];
 
   const INTENSITY_ORDER = ['low', 'medium', 'high'];
   const intensityOptions = ['All', ...Array.from(new Set(drills.map(d => d.intensity).filter(Boolean)))
@@ -66,7 +76,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
           <button
             key={opt}
             onClick={() => setSelectedIntensity(opt)}
-            className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all cursor-pointer ${
+            className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer min-h-[36px] ${
               selectedIntensity === opt
                 ? 'bg-primary text-primary-foreground border-primary'
                 : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
