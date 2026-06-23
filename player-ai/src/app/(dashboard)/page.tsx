@@ -330,9 +330,9 @@ export default async function DashboardPage() {
         <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
           <CardContent className="p-6 space-y-4">
             <div className="space-y-1">
-              <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+              <h2 className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
                 Next Milestone
-              </p>
+              </h2>
               {pointsToNext !== null && nextBenchmark ? (
                 <>
                   <h3 className="text-lg font-bold text-white">
@@ -482,7 +482,7 @@ export default async function DashboardPage() {
       {/* Recruiting Hub teaser */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-5 space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-base font-bold text-white">Recruiting Hub</h2>
+          <h2 className="text-lg font-semibold text-white tracking-tight">Recruiting Hub</h2>
           <Badge className="bg-primary/15 text-primary border border-primary/30 text-[10px] font-bold">
             212 D1 Programs · 686 Coaches
           </Badge>
