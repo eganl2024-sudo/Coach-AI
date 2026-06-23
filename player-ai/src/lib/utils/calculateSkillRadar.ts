@@ -246,7 +246,8 @@ export function calculateSkillRadar(
     }
 
     if (focusAreas.includes(axis)) {
-      score += 10;
+      // Focus areas get a floor of 50 — a stated priority should never look neglected
+      score = Math.max(50, score + 10);
     }
 
     // Cap at level-based ceiling — no youth player should feel "done"
