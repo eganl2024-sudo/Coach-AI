@@ -47,9 +47,9 @@ export default async function TrainingPlanPage() {
       {/* 1. Page Header */}
       <div>
         <h1 className="text-3xl font-black text-foreground tracking-tight">Training Plan</h1>
-        <h2 className="text-base font-semibold text-primary mt-1">
-          {activeProfileName}'s Week {currentWeekNumber}
-        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          {activeProfileName} · Week {currentWeekNumber}
+        </p>
         <p className="text-muted-foreground text-xs mt-0.5">
           {sessionsCompletedThisWeek} of {sessionsThisWeek} sessions complete this week
         </p>
