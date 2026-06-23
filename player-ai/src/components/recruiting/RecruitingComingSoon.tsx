@@ -682,17 +682,22 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                   {draftLoading ? '...' : 'Regenerate'}
                 </Button>
                 <CopyEmailButton subject={draftSubject} body={draftBody} />
-                {(selectedCoach ?? selectedProgram?.head_coach)?.email && (
-                  <Button asChild size="sm" variant="outline" className="border-primary/40 text-primary font-semibold cursor-pointer">
-                    <a
-                      href={`mailto:${(selectedCoach ?? selectedProgram?.head_coach)?.email}?subject=${encodeURIComponent(draftSubject)}&body=${encodeURIComponent(draftBody)}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      Open in Email ↗
-                    </a>
-                  </Button>
-                )}
+                {(() => {
+                  const recipientEmail = selectedCoach?.email
+                    || selectedProgram?.head_coach?.email
+                    || selectedProgram?.coaches.find(c => c.email)?.email;
+                  return recipientEmail ? (
+                    <Button asChild size="sm" variant="outline" className="border-primary/40 text-primary font-semibold cursor-pointer">
+                      <a
+                        href={`mailto:${recipientEmail}?subject=${encodeURIComponent(draftSubject)}&body=${encodeURIComponent(draftBody)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Open in Email ↗
+                      </a>
+                    </Button>
+                  ) : null;
+                })()}
               </div>
             </>
           )}

@@ -165,9 +165,13 @@ export function Sidebar({ username, displayName, avatarUrl }: SidebarProps) {
             <div className="px-3 py-4 space-y-3">
               <div className="flex items-center gap-3 px-2">
                 <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
-                    {initials}
-                  </AvatarFallback>
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt={displayName ?? username} className="w-full h-full object-cover rounded-full" />
+                  ) : (
+                    <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
+                      {initials}
+                    </AvatarFallback>
+                  )}
                 </Avatar>
                 <span className="text-sm font-medium text-foreground truncate">{displayName ?? username}</span>
               </div>
