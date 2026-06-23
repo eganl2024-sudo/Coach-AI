@@ -51,7 +51,7 @@ function formatDate(dateStr: string): string {
 export function MentorFeedClient({ posts, presenterMap, playerPosition }: MentorFeedClientProps) {
   const [selectedPresenter, setSelectedPresenter] = useState<string>('All');
   const [selectedPosition, setSelectedPosition] = useState<string>(
-    playerPosition ?? 'All Positions'
+    playerPosition || 'All Positions'
   );
   const [expandedPosts, setExpandedPosts] = useState<Set<string>>(new Set());
 
