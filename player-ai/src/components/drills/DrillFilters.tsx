@@ -77,8 +77,8 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
         ))}
       </div>
 
-      {/* 3. Category Filter Tabs */}
-      <div className="flex flex-wrap gap-2 pb-2 border-b border-border/30">
+      {/* 3. Category Filter Tabs — horizontal scroll on mobile instead of wrapping */}
+      <div className="flex gap-2 overflow-x-auto pb-2 border-b border-border/30 [&::-webkit-scrollbar]:hidden [scrollbar-width:none]">
         {filterTabs.map((tab) => {
           const isActive = selectedCategory.toLowerCase() === tab.toLowerCase();
           return (
@@ -88,7 +88,7 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
               size="sm"
               onClick={() => setSelectedCategory(tab)}
               className={cn(
-                "rounded-full transition-all text-xs font-semibold px-4 cursor-pointer",
+                "rounded-full transition-all text-xs font-semibold px-4 cursor-pointer shrink-0",
                 isActive
                   ? "bg-primary/15 text-primary border-primary hover:bg-primary/25 hover:text-primary"
                   : "border-border/50 text-muted-foreground hover:text-foreground hover:bg-secondary/50"

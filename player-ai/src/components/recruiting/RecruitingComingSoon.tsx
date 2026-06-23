@@ -310,7 +310,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                   className="grid grid-cols-[1fr_auto] sm:grid-cols-[2fr_2fr_1fr_2fr_1fr] gap-0 px-4 py-3 hover:bg-card/60 cursor-pointer transition-colors group items-center"
                 >
                   {/* School */}
-                  <p className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate pr-3">
+                  <p title={program.school_name} className="text-sm font-semibold text-white group-hover:text-primary transition-colors truncate pr-3">
                     {program.school_name}
                   </p>
                   {/* Conference — hidden on mobile */}

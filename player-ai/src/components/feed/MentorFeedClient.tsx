@@ -129,7 +129,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span>{name}</span>
+              <span className="hidden sm:inline">{name}</span>
             </Button>
           );
         })}
