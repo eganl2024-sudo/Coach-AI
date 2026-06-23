@@ -232,89 +232,97 @@ export default async function DashboardPage() {
 
       {/* 2. Stat Cards Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {/* Card 1: RRS Score */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              RRS Score
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black text-foreground">
-                {latestRRS ? latestRRS.overall : '--'}
-              </span>
-              {rrsDelta !== null && rrsDelta !== 0 && (
-                <Badge
-                  className={
-                    rrsDelta > 0
-                      ? 'text-primary bg-primary/15 border-transparent text-xs font-semibold'
-                      : 'text-destructive bg-destructive/15 border-transparent text-xs font-semibold'
-                  }
-                >
-                  {rrsDelta > 0 ? `+${rrsDelta}` : rrsDelta} this week
-                </Badge>
+        {/* Card 1: RRS Score → Progress */}
+        <Link href="/progress">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 transition-all duration-200 cursor-pointer h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                RRS Score
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="flex items-baseline gap-3">
+                <span className="text-3xl font-black text-foreground">
+                  {latestRRS ? latestRRS.overall : '--'}
+                </span>
+                {rrsDelta !== null && rrsDelta !== 0 && (
+                  <Badge
+                    className={
+                      rrsDelta > 0
+                        ? 'text-primary bg-primary/15 border-transparent text-xs font-semibold'
+                        : 'text-destructive bg-destructive/15 border-transparent text-xs font-semibold'
+                    }
+                  >
+                    {rrsDelta > 0 ? `+${rrsDelta}` : rrsDelta} this week
+                  </Badge>
+                )}
+              </div>
+              {rrsHistory && rrsHistory.snapshots && rrsHistory.snapshots.length >= 2 && (
+                <RRSSparkline snapshots={rrsHistory.snapshots} />
               )}
-            </div>
-            {rrsHistory && rrsHistory.snapshots && rrsHistory.snapshots.length >= 2 && (
-              <RRSSparkline snapshots={rrsHistory.snapshots} />
-            )}
-            <p className="text-xs text-muted-foreground">
-              Readiness & Reliability Score
-            </p>
-          </CardContent>
-        </Card>
+              <p className="text-xs text-muted-foreground">
+                Readiness & Reliability Score
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Card 2: Training Streak */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Streak
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-3xl font-black text-foreground">
-              {streak} {streak === 1 ? 'day' : 'days'}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Consecutive training days
-            </p>
-          </CardContent>
-        </Card>
+        {/* Card 2: Training Streak → Training */}
+        <Link href="/training">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 transition-all duration-200 cursor-pointer h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Streak
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="text-3xl font-black text-foreground">
+                {streak} {streak === 1 ? 'day' : 'days'}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Consecutive training days
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Card 3: Drills Completed */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Drills Done
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-3xl font-black text-foreground">
-              {drillsCompleted}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Across all sessions
-            </p>
-          </CardContent>
-        </Card>
+        {/* Card 3: Drills Completed → Drills */}
+        <Link href="/drills">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 transition-all duration-200 cursor-pointer h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                Drills Done
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="text-3xl font-black text-foreground">
+                {drillsCompleted}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Across all sessions
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
 
-        {/* Card 4: This Week */}
-        <Card className="border-border/50 bg-card/50 backdrop-blur-sm">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              This Week
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-3xl font-black text-foreground">
-              {sessionsCompletedThisWeek}/{sessionsThisWeek}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Sessions complete
-            </p>
-          </CardContent>
-        </Card>
+        {/* Card 4: This Week → Training */}
+        <Link href="/training">
+          <Card className="border-border/50 bg-card/50 backdrop-blur-sm hover:bg-card/80 hover:border-primary/30 transition-all duration-200 cursor-pointer h-full">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                This Week
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <div className="text-3xl font-black text-foreground">
+                {sessionsCompletedThisWeek}/{sessionsThisWeek}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Sessions complete
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
 
       {/* Next Milestone Card */}
