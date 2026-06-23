@@ -225,7 +225,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
           <select
             value={region}
             onChange={e => setRegion(e.target.value)}
-            className="h-9 px-3 rounded-md border border-border/50 bg-card/60 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+            className="min-h-[44px] px-3 rounded-md border border-border/50 bg-card/60 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
           >
             {REGIONS.map(r => (
               <option key={r} value={r}>
@@ -238,7 +238,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
           <select
             value={conference}
             onChange={e => setConference(e.target.value)}
-            className="h-9 px-3 rounded-md border border-border/50 bg-card/60 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary max-w-xs"
+            className="min-h-[44px] px-3 rounded-md border border-border/50 bg-card/60 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary max-w-xs"
           >
             {conferences.map(c => (
               <option key={c} value={c}>
@@ -251,7 +251,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
           <button
             onClick={() => setEmailOnly(!emailOnly)}
             className={cn(
-              "h-9 px-3 rounded-md border text-xs font-semibold transition-colors cursor-pointer",
+              "min-h-[44px] px-3 rounded-md border text-xs font-semibold transition-colors cursor-pointer",
               emailOnly
                 ? "border-primary bg-primary/15 text-primary"
                 : "border-border/50 bg-card/40 text-muted-foreground hover:text-white"
@@ -315,11 +315,11 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                   </p>
                   {/* Conference — hidden on mobile */}
                   <p className="hidden sm:block text-xs text-muted-foreground truncate pr-3">
-                    {program.conference}
+                    {program.conference || '—'}
                   </p>
                   {/* State — hidden on mobile */}
                   <p className="hidden sm:block text-xs text-muted-foreground">
-                    {program.state}
+                    {program.state || '—'}
                   </p>
                   {/* Head Coach */}
                   <p className="text-xs text-muted-foreground truncate pr-3">

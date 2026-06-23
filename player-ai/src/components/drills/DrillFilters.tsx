@@ -21,7 +21,9 @@ export function DrillFilters({ drills, initialCategory = 'All' }: DrillFiltersPr
 
   const filterTabs = ['All', 'Warmup', 'Technical', 'Tactical', 'Small Sided Games', 'Conditioning', 'Cool Down'];
 
-  const intensityOptions = ['All', ...Array.from(new Set(drills.map(d => d.intensity).filter(Boolean))).sort()];
+  const INTENSITY_ORDER = ['low', 'medium', 'high'];
+  const intensityOptions = ['All', ...Array.from(new Set(drills.map(d => d.intensity).filter(Boolean)))
+    .sort((a, b) => INTENSITY_ORDER.indexOf(a.toLowerCase()) - INTENSITY_ORDER.indexOf(b.toLowerCase()))];
 
   const filteredDrills = drills
     .filter(d => selectedCategory === 'All' || d.category?.toLowerCase() === selectedCategory.toLowerCase())
