@@ -20,7 +20,7 @@ export default function GlobalError({
       style={{ background: 'radial-gradient(ellipse at top, #0d1f0f 0%, #0f1117 60%)' }}
     >
       <div className="text-4xl font-black tracking-tight text-white select-none">
-        ⚽ Player AI
+        Footy Mentor
       </div>
       <div className="space-y-2">
         <h1 className="text-xl font-bold text-white">Something went wrong</h1>

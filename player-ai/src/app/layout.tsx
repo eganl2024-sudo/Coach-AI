@@ -10,29 +10,29 @@ const barlowCondensed = Barlow_Condensed({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://playerai.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://footymentor.app'),
   title: {
-    default: 'Player AI',
-    template: '%s | Player AI',
+    default: 'Footy Mentor',
+    template: '%s | Footy Mentor',
   },
   description: 'The personal soccer development platform for serious youth athletes. Track your training, unlock your Recruit Readiness Score, and get discovered.',
   openGraph: {
     type: 'website',
-    siteName: 'Player AI',
-    title: 'Player AI — Soccer Development for Serious Athletes',
+    siteName: 'Footy Mentor',
+    title: 'Footy Mentor — Soccer Development for Serious Athletes',
     description: 'Track your training, unlock your RRS score, and build the highlight reel that gets you recruited.',
     images: [
       {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'Player AI — Soccer Development Platform',
+        alt: 'Footy Mentor — Soccer Development Platform',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Player AI — Soccer Development for Serious Athletes',
+    title: 'Footy Mentor — Soccer Development for Serious Athletes',
     description: 'Track your training, unlock your RRS score, and build the highlight reel that gets you recruited.',
     images: ['/og-image.png'],
   },

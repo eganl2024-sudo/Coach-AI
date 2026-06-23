@@ -40,7 +40,7 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1 select-none">
           <div className="text-4xl font-black tracking-tight text-white font-display">
-            Player AI Admin
+            Footy Mentor Admin
           </div>
           <p className="text-muted-foreground text-sm">
             Internal library administration panel

@@ -6,8 +6,8 @@ import type { CompletionLog, Drill } from '@/lib/types/player';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const APP_URL = process.env.RESEND_APP_URL || 'http://localhost:3000';
-// For production: verify a custom domain at resend.com/domains and set RESEND_FROM_EMAIL=Player AI <noreply@yourdomain.com>
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Player AI <onboarding@resend.dev>';
+// For production: verify a custom domain at resend.com/domains and set RESEND_FROM_EMAIL=Footy Mentor <noreply@yourdomain.com>
+const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || 'Footy Mentor <onboarding@resend.dev>';
 
 export async function sendPasswordResetEmail(params: {
   email: string;
@@ -20,7 +20,7 @@ export async function sendPasswordResetEmail(params: {
   await resend.emails.send({
     from: FROM_EMAIL,
     to: email,
-    subject: 'Reset your Player AI password',
+    subject: 'Reset your Footy Mentor password',
     html: `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
@@ -29,7 +29,7 @@ export async function sendPasswordResetEmail(params: {
     <tr><td align="center">
       <table width="480" cellpadding="0" cellspacing="0" style="max-width:480px;width:100%;">
         <tr><td style="text-align:center;padding-bottom:24px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Player AI</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Footy Mentor</div>
         </td></tr>
         <tr><td style="background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:32px 28px;">
           <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:8px;">Reset your password</div>
@@ -80,7 +80,7 @@ export async function sendReelReviewNotificationEmail(params: {
     <tr><td align="center">
       <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px;width:100%;">
         <tr><td style="text-align:center;padding-bottom:24px;">
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Player AI</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Footy Mentor</div>
         </td></tr>
         <tr><td style="background:#1a1f2e;border:1px solid #2d3748;border-radius:12px;padding:32px 28px;">
           <div style="font-size:22px;font-weight:800;color:#ffffff;margin-bottom:8px;">Your feedback is ready</div>
@@ -95,7 +95,7 @@ export async function sendReelReviewNotificationEmail(params: {
           <div style="text-align:center;">
             <a href="${appUrl}/reel"
                style="display:inline-block;background:#22c55e;color:#000000;font-weight:700;font-size:14px;padding:12px 32px;border-radius:8px;text-decoration:none;">
-              View in Player AI →
+              View in Footy Mentor →
             </a>
           </div>
           <div style="font-size:12px;color:#6b7280;border-top:1px solid #2d3748;padding-top:16px;margin-top:24px;">
@@ -176,7 +176,7 @@ export async function sendWeeklySummaryEmail(params: {
   await resend.emails.send({
     from: FROM_EMAIL,
     to: profile.email,
-    subject: `Week ${completedWeekNumber} Complete — Your Player AI Summary`,
+    subject: `Week ${completedWeekNumber} Complete — Your Footy Mentor Summary`,
     html,
   });
 }
@@ -222,7 +222,7 @@ function buildEmailHtml(data: {
         <!-- Header -->
         <tr><td style="text-align:center;padding-bottom:28px;">
           <div style="font-size:28px;margin-bottom:6px;">⚽</div>
-          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Player AI</div>
+          <div style="font-size:11px;font-weight:700;letter-spacing:0.15em;color:#6b7280;text-transform:uppercase;">Footy Mentor</div>
         </td></tr>
 
         <!-- Hero -->
@@ -286,7 +286,7 @@ function buildEmailHtml(data: {
         <!-- CTA -->
         <tr><td style="text-align:center;">
           <a href="${appUrl}" style="display:inline-block;background:#22c55e;color:#000000;font-weight:700;font-size:14px;padding:12px 32px;border-radius:8px;text-decoration:none;letter-spacing:0.02em;">
-            Open Player AI →
+            Open Footy Mentor →
           </a>
         </td></tr>
 
@@ -294,7 +294,7 @@ function buildEmailHtml(data: {
 
         <!-- Footer -->
         <tr><td style="text-align:center;">
-          <div style="font-size:11px;color:#4b5563;">You're receiving this because you have a Player AI account.</div>
+          <div style="font-size:11px;color:#4b5563;">You're receiving this because you have a Footy Mentor account.</div>
           <div style="font-size:11px;color:#4b5563;margin-top:4px;">Update your email in <a href="${appUrl}/profile" style="color:#6b7280;">Profile Settings</a>.</div>
         </td></tr>
 

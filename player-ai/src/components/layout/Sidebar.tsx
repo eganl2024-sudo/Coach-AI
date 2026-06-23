@@ -24,9 +24,10 @@ const navItems = [
 interface SidebarProps {
   username: string;
   displayName?: string;
+  avatarUrl?: string | null;
 }
 
-export function Sidebar({ username, displayName }: SidebarProps) {
+export function Sidebar({ username, displayName, avatarUrl }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
@@ -49,7 +50,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
       <aside className="hidden md:flex flex-col w-60 border-r border-border/50 bg-card/50 backdrop-blur-sm shrink-0 h-screen">
         {/* Brand */}
         <div className="px-5 py-6">
-          <span className="text-lg font-black tracking-tight text-white font-display">Player AI</span>
+          <span className="text-lg font-black tracking-tight text-white font-display">Footy Mentor</span>
         </div>
 
         <Separator className="opacity-30" />
@@ -82,9 +83,13 @@ export function Sidebar({ username, displayName }: SidebarProps) {
         <div className="px-3 py-4 space-y-3">
           <div className="flex items-center gap-3 px-2">
             <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
-                {initials}
-              </AvatarFallback>
+              {avatarUrl ? (
+                <img src={avatarUrl} alt={displayName ?? username} className="w-full h-full object-cover rounded-full" />
+              ) : (
+                <AvatarFallback className="bg-primary/20 text-primary text-xs font-bold">
+                  {initials}
+                </AvatarFallback>
+              )}
             </Avatar>
             <span className="text-sm font-medium text-foreground truncate">{displayName ?? username}</span>
           </div>
@@ -100,7 +105,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
 
       {/* PART B: Mobile Header Bar */}
       <header className="flex md:hidden items-center justify-between px-4 fixed top-0 left-0 w-full h-14 bg-card/95 backdrop-blur-sm border-b border-border/50 z-40">
-        <span className="text-lg font-black tracking-tight text-white font-display">Player AI</span>
+        <span className="text-lg font-black tracking-tight text-white font-display">Footy Mentor</span>
         <Button
           onClick={() => setIsOpen(true)}
           variant="ghost"
@@ -118,7 +123,7 @@ export function Sidebar({ username, displayName }: SidebarProps) {
           <aside className="relative flex flex-col w-64 bg-card/95 backdrop-blur-sm h-full border-r border-border/50 shadow-2xl">
             {/* Header / Brand & Close */}
             <div className="flex items-center justify-between px-5 py-4">
-              <span className="text-lg font-black tracking-tight text-white font-display">Player AI</span>
+              <span className="text-lg font-black tracking-tight text-white font-display">Footy Mentor</span>
               <Button
                 onClick={() => setIsOpen(false)}
                 variant="ghost"

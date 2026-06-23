@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Privacy Policy — Player AI',
+  title: 'Privacy Policy — Footy Mentor',
 };
 
 export default function PrivacyPage() {
@@ -25,12 +25,12 @@ export default function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-white">1. Overview</h2>
             <p>
-              Player AI (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is committed to protecting
+              Footy Mentor (&ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is committed to protecting
               your personal information. This Privacy Policy explains what data we collect, how we use it,
               who we share it with, and what rights you have over it.
             </p>
             <p>
-              This policy applies to all users of the Player AI website and application (the &ldquo;Service&rdquo;).
+              This policy applies to all users of the Footy Mentor website and application (the &ldquo;Service&rdquo;).
               By using the Service, you agree to the collection and use of your data as described here.
             </p>
           </section>
@@ -146,7 +146,7 @@ export default function PrivacyPage() {
 
               <div className="border border-border/40 rounded-lg p-4 space-y-1">
                 <p className="text-foreground font-semibold text-sm">Railway</p>
-                <p className="text-xs">Role: Application hosting provider. The Player AI application runs on Railway&apos;s infrastructure. Railway receives standard web traffic (IP addresses, request logs) as part of normal hosting operations.</p>
+                <p className="text-xs">Role: Application hosting provider. The Footy Mentor application runs on Railway&apos;s infrastructure. Railway receives standard web traffic (IP addresses, request logs) as part of normal hosting operations.</p>
                 <a href="https://railway.app/legal/privacy" target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">railway.app/legal/privacy</a>
               </div>
             </div>
@@ -207,7 +207,7 @@ export default function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-white">9. Children&apos;s Privacy</h2>
             <p>
-              Player AI is not directed at children under 13. We do not knowingly collect personal
+              Footy Mentor is not directed at children under 13. We do not knowingly collect personal
               information from children under 13. If you believe a child under 13 has provided us
               with personal information, please contact us and we will delete it promptly.
             </p>

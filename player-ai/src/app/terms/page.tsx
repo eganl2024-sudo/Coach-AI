@@ -1,7 +1,7 @@
 import Link from 'next/link';
 
 export const metadata = {
-  title: 'Terms of Service — Player AI',
+  title: 'Terms of Service — Footy Mentor',
 };
 
 export default function TermsPage() {
@@ -25,10 +25,10 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-white">1. Who We Are</h2>
             <p>
-              Player AI (&ldquo;Player AI,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is a soccer
+              Footy Mentor (&ldquo;Footy Mentor,&rdquo; &ldquo;we,&rdquo; &ldquo;us,&rdquo; or &ldquo;our&rdquo;) is a soccer
               athlete development platform that provides personalized training plans, skill tracking, highlight reel
               submission and review, and tools to support the college recruiting process. These Terms of Service
-              (&ldquo;Terms&rdquo;) govern your use of the Player AI website and application (the &ldquo;Service&rdquo;).
+              (&ldquo;Terms&rdquo;) govern your use of the Footy Mentor website and application (the &ldquo;Service&rdquo;).
             </p>
             <p>
               By creating an account or using the Service, you agree to these Terms. If you do not agree,
@@ -39,7 +39,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-bold text-white">2. Eligibility</h2>
             <p>
-              You must be at least <strong className="text-foreground">13 years old</strong> to use Player AI.
+              You must be at least <strong className="text-foreground">13 years old</strong> to use Footy Mentor.
               If you are between 13 and 17, a parent or legal guardian must review and agree to these Terms
               on your behalf, and they are responsible for your use of the Service.
             </p>
@@ -67,7 +67,7 @@ export default function TermsPage() {
           </section>
 
           <section className="space-y-3">
-            <h2 className="text-lg font-bold text-white">4. What Player AI Does</h2>
+            <h2 className="text-lg font-bold text-white">4. What Footy Mentor Does</h2>
             <p>The Service provides:</p>
             <ul className="list-disc list-inside space-y-1 pl-2">
               <li>
@@ -114,7 +114,7 @@ export default function TermsPage() {
             <p>
               <strong className="text-foreground">Important:</strong> AI-generated drafts are starting points
               only. You are solely responsible for reviewing, editing, and sending any emails to coaches.
-              Player AI makes no guarantee that any email will result in a recruiting inquiry, offer,
+              Footy Mentor makes no guarantee that any email will result in a recruiting inquiry, offer,
               scholarship, or any other outcome.
             </p>
             <p>
@@ -128,7 +128,7 @@ export default function TermsPage() {
             <h2 className="text-lg font-bold text-white">6. Your Content</h2>
             <p>
               You retain ownership of any video clips and other content you upload to the Service
-              (&ldquo;Your Content&rdquo;). By uploading content, you grant Player AI a limited,
+              (&ldquo;Your Content&rdquo;). By uploading content, you grant Footy Mentor a limited,
               non-exclusive license to store, display, and share Your Content with our coaching staff
               for the purpose of providing feedback to you.
             </p>
@@ -193,7 +193,7 @@ export default function TermsPage() {
               ERROR-FREE, OR FREE OF VIRUSES OR OTHER HARMFUL COMPONENTS.
             </p>
             <p>
-              Player AI does not guarantee any recruiting outcomes. The presence of a coach&apos;s
+              Footy Mentor does not guarantee any recruiting outcomes. The presence of a coach&apos;s
               contact information in the Coach Finder does not imply any relationship with, endorsement by,
               or interest from that coach or institution.
             </p>

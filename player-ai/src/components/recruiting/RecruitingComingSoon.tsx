@@ -28,8 +28,8 @@ const FEATURES = [
   {
     icon: '✉️',
     title: 'AI Email Drafter',
-    description: 'Generate personalized recruiting emails using your Player AI profile. Your position, level, highlight reel, and focus areas — pre-filled and ready to personalize.',
-    stat: 'Coming Soon',
+    description: 'Generate personalized recruiting emails using your Footy Mentor profile. Your position, level, focus areas, and academic scores — pre-filled and ready to send.',
+    stat: 'AI-Powered',
   },
   {
     icon: '📋',
@@ -71,6 +71,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
   // Email Drafter State
   type DraftStep = 'staff' | 'form' | 'draft';
   const [draftStep, setDraftStep] = useState<DraftStep>('staff');
+  const [selectedCoach, setSelectedCoach] = useState<CoachRecord | null>(null);
   const [draftGradYear, setDraftGradYear] = useState(gradYear.toString());
   const [draftGpa, setDraftGpa] = useState(profile?.gpa?.toString() ?? '');
   const [draftAct, setDraftAct] = useState(profile?.act_score?.toString() ?? '');
@@ -86,6 +87,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
   const closeModal = () => {
     setSelectedProgram(null);
     setDraftStep('staff');
+    setSelectedCoach(null);
     setDraftInterest('');
     setDraftSubject('');
     setDraftBody('');
@@ -96,7 +98,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
   // Generate Email Handler
   const generateEmail = async () => {
     if (!selectedProgram) return;
-    const hc = selectedProgram.head_coach;
+    const hc = selectedCoach ?? selectedProgram.head_coach;
     if (!hc) return;
 
     setDraftLoading(true);
@@ -415,10 +417,15 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
               <div className="p-4 border-t border-border/30 flex gap-3">
                 <Button
                   size="sm"
-                  onClick={() => setDraftStep('form')}
-                  disabled={!selectedProgram?.head_coach}
+                  onClick={() => {
+                    if (!selectedCoach && selectedProgram?.head_coach) {
+                      setSelectedCoach(selectedProgram.head_coach);
+                    }
+                    setDraftStep('form');
+                  }}
+                  disabled={!selectedProgram?.coaches.length}
                   className="font-semibold cursor-pointer"
-                  title={!selectedProgram?.head_coach ? "No head coach on file" : undefined}
+                  title={!selectedProgram?.coaches.length ? "No coaches on file" : undefined}
                 >
                   ✉ Draft Email
                 </Button>
@@ -458,13 +465,30 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
             <>
               {/* Scrollable Form Body */}
               <div className="overflow-y-auto flex-1 p-6 space-y-5 max-h-[50vh]">
-                <div className="space-y-1">
+                <div className="space-y-2">
                   <p className="text-xs font-bold text-white">
-                    Drafting email to Coach {selectedProgram.head_coach?.last_name}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
                     {selectedProgram.school_name} · {selectedProgram.conference}
                   </p>
+                  {/* Coach selector */}
+                  <div>
+                    <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-1">
+                      Recipient
+                    </label>
+                    <select
+                      value={selectedCoach?.coach_id ?? ''}
+                      onChange={e => {
+                        const c = selectedProgram.coaches.find(c => c.coach_id === e.target.value) ?? null;
+                        setSelectedCoach(c);
+                      }}
+                      className="w-full h-9 px-3 rounded-md border border-border/50 bg-card/60 text-sm text-white focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                      {selectedProgram.coaches.map(c => (
+                        <option key={c.coach_id} value={c.coach_id}>
+                          {c.first_name} {c.last_name} — {c.title}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 {/* Grad Year */}
@@ -646,7 +670,7 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                   className="border-border/50 font-semibold cursor-pointer"
                   onClick={() => setDraftStep('form')}
                 >
-                  ← Edit Details
+                  ← Edit
                 </Button>
                 <Button
                   size="sm"
@@ -658,6 +682,17 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
                   {draftLoading ? '...' : 'Regenerate'}
                 </Button>
                 <CopyEmailButton subject={draftSubject} body={draftBody} />
+                {(selectedCoach ?? selectedProgram?.head_coach)?.email && (
+                  <Button asChild size="sm" variant="outline" className="border-primary/40 text-primary font-semibold cursor-pointer">
+                    <a
+                      href={`mailto:${(selectedCoach ?? selectedProgram?.head_coach)?.email}?subject=${encodeURIComponent(draftSubject)}&body=${encodeURIComponent(draftBody)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Open in Email ↗
+                    </a>
+                  </Button>
+                )}
               </div>
             </>
           )}
@@ -696,77 +731,15 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
         ))}
       </div>
 
-      {/* Sample Email Preview */}
-      <div className="space-y-3">
-        <div>
-          <h2 className="text-lg font-bold text-white">What Your Recruiting Email Will Look Like</h2>
-          <p className="text-xs text-muted-foreground mt-1">
-            Your Player AI profile auto-fills every bracket. You personalize, review, and send.
-          </p>
-        </div>
-
-        <Card className="border-primary/20 bg-card/40 overflow-hidden">
-          {/* Email header bar */}
-          <div className="bg-secondary/30 border-b border-border/30 px-5 py-3 space-y-1">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">To:</span>
-              <span className="text-primary">coach@university.edu</span>
-            </div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-              <span className="font-semibold text-foreground">Subject:</span>
-              <span>{position} Prospect — {name} — Class of {gradYear}</span>
-            </div>
-          </div>
-
-          {/* Email body */}
-          <CardContent className="p-5">
-            <div className="text-sm text-muted-foreground leading-relaxed space-y-3 font-mono text-xs">
-              <p>Coach [Last Name],</p>
-              <p>
-                My name is <span className="text-primary font-semibold">{name}</span> and
-                I am a <span className="text-primary font-semibold">{level} {position}</span> graduating
-                in <span className="text-primary font-semibold">{gradYear}</span>. I have been
-                researching programs that compete at the highest level and I am very interested
-                in learning more about your program and any opportunities that may exist.
-              </p>
-              <p>
-                I am currently training with a focus on{' '}
-                <span className="text-primary font-semibold">
-                  {profile?.focus_areas?.slice(0, 2).join(' and ') ?? 'distribution and positioning'}
-                </span>.
-                My highlight reel and full profile are available through Player AI.
-              </p>
-              <p>
-                I would welcome the opportunity to connect at your convenience — whether by
-                phone, at an upcoming ID camp, or at a tournament where your staff may be
-                present. Thank you for your time and consideration.
-              </p>
-              <p>
-                Respectfully,<br />
-                <span className="text-primary font-semibold">{name}</span><br />
-                <span className="text-muted-foreground/60">{position} · Class of {gradYear}</span>
-              </p>
-            </div>
-
-            {/* Overlay label */}
-            <div className="mt-4 flex items-center gap-2 p-3 rounded-lg bg-yellow-500/10 border border-yellow-500/20">
-              <span className="text-yellow-400 text-xs">→</span>
-              <p className="text-xs text-yellow-400 font-medium">
-                Example preview — highlighted fields auto-fill from your Player AI profile when this feature launches.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* How it works timeline */}
       <div className="space-y-3">
         <h2 className="text-lg font-bold text-white">How It Works</h2>
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
           {[
-            { step: '1', title: 'Complete Your Profile', desc: 'Your position, level, focus areas, and highlight reel — already in Player AI' },
+            { step: '1', title: 'Complete Your Profile', desc: 'Your position, level, focus areas, and highlight reel — already in Footy Mentor' },
             { step: '2', title: 'Find Your Programs', desc: 'Search and filter 212 D1 programs by division, region, and conference' },
-            { step: '3', title: 'Draft Your Email', desc: 'AI generates a personalized email using your profile in seconds' },
+            { step: '3', title: 'Draft Your Email', desc: 'AI generates a personalized email in seconds — edit it, copy it, or open directly in Gmail' },
             { step: '4', title: 'Track Everything', desc: 'Log every contact, response, and follow-up in one organized view' },
           ].map((item) => (
             <Card key={item.step} className="border-border/50 bg-card/40">
@@ -782,9 +755,9 @@ export default function RecruitingComingSoon({ profile, programs, outreachLog }:
 
       {/* Bottom CTA */}
       <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-3">
-        <h3 className="text-lg font-bold text-white">While You Wait — Get Your Profile Ready</h3>
+        <h3 className="text-lg font-bold text-white">Get Your Profile in Shape First</h3>
         <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          The stronger your Player AI profile, the better your recruiting emails will be when this feature launches. Make sure your highlight reel is uploaded, your focus areas are accurate, and your position and level reflect where you are right now.
+          The stronger your Footy Mentor profile, the better your emails. Make sure your focus areas are accurate, your position and level are current, and your highlight reel is uploaded before you start outreach.
         </p>
         <div className="flex flex-wrap gap-3 pt-1">
           <Button asChild size="sm" className="font-semibold cursor-pointer">

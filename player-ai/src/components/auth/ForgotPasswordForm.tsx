@@ -35,7 +35,7 @@ export default function ForgotPasswordForm() {
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-1">
           <div className="text-4xl font-black tracking-tight text-white select-none">
-            Player AI
+            Footy Mentor
           </div>
           <p className="text-muted-foreground text-sm">Reset your password</p>
         </div>

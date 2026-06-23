@@ -123,7 +123,7 @@ CRITICAL RULES:
 - Be specific — use the coach's name, school name, and conference
 - End with ONE clear, specific ask (a call, ID camp info, or film review)
 - Include academics naturally only if GPA ≥ 3.5 or test scores are provided
-- Do NOT mention Player AI or any platform by name
+- Do NOT mention Footy Mentor or any platform by name
 - NEVER use placeholder brackets like [Club Name], [High School Name], [Phone Number], [Email Address] — if data is missing, omit that detail entirely rather than leaving a bracket placeholder
 - Output ONLY valid JSON — no preamble, no markdown fences
 

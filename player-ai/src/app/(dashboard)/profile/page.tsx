@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import ProfileEditForm from '@/components/profile/ProfileEditForm';
 import ChangePasswordForm from '@/components/profile/ChangePasswordForm';
 import DangerZone from '@/components/profile/DangerZone';
+import AvatarUpload from '@/components/profile/AvatarUpload';
 import type { AthleteProfile } from '@/lib/types/player';
 
 export const metadata = {
@@ -19,7 +20,10 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  const profile = await getUserData<AthleteProfile>(username, 'athlete_profile');
+  const [profile, avatarData] = await Promise.all([
+    getUserData<AthleteProfile>(username, 'athlete_profile'),
+    getUserData<{ dataUrl: string }>(username, 'avatar'),
+  ]);
 
   if (!profile) {
     return (
@@ -73,6 +77,11 @@ export default async function ProfilePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 divide-y md:divide-y-0 md:divide-x divide-border/50">
             {/* Left Column — Player Info */}
             <div className="space-y-4 pb-6 md:pb-0">
+              <AvatarUpload
+                currentDataUrl={avatarData?.dataUrl ?? null}
+                displayName={profile.name}
+                username={username}
+              />
               <div className="space-y-2">
                 <h2 className="text-3xl font-black text-white tracking-tight">
                   {profile.name}

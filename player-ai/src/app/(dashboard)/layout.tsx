@@ -11,12 +11,15 @@ export default async function DashboardLayout({
   const username = await getCurrentUser();
   if (!username) redirect('/login');
 
-  const profile = await getUserData<{ name: string }>(username, 'athlete_profile');
+  const [profile, avatarData] = await Promise.all([
+    getUserData<{ name: string }>(username, 'athlete_profile'),
+    getUserData<{ dataUrl: string }>(username, 'avatar'),
+  ]);
   if (!profile) redirect('/onboarding');
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      <Sidebar username={username} displayName={profile?.name} />
+      <Sidebar username={username} displayName={profile?.name} avatarUrl={avatarData?.dataUrl ?? null} />
       <main className="flex-1 overflow-y-auto p-6 lg:p-8 pt-14 md:pt-6 lg:pt-8">
         {children}
       </main>
