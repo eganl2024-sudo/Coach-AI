@@ -210,7 +210,7 @@ export default function SignupForm() {
 
               <Button
                 type="submit"
-                className="w-full font-semibold cursor-pointer"
+                className="w-full min-h-[44px] font-semibold cursor-pointer"
                 disabled={loading}
               >
                 {loading ? 'Creating account...' : 'Create Account'}
@@ -229,7 +229,7 @@ export default function SignupForm() {
             <Button
               variant="outline"
               type="button"
-              className="w-full border-border/50 hover:bg-secondary/40 font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200"
+              className="w-full min-h-[44px] border-border/50 hover:bg-secondary/40 font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all duration-200"
               onClick={() => {
                 router.push('/api/auth/google');
               }}
