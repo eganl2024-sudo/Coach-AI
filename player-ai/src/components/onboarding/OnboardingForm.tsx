@@ -22,7 +22,7 @@ function FormSelect({ className, children, ...props }: React.ComponentProps<"sel
     <div className="relative w-full">
       <select
         className={cn(
-          "h-8 w-full rounded-lg border border-input bg-card/50 px-2.5 py-1 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:pointer-events-none disabled:opacity-50 text-foreground cursor-pointer appearance-none pr-8",
+          "min-h-[44px] w-full rounded-lg border border-input bg-card/50 px-2.5 py-1 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 disabled:pointer-events-none disabled:opacity-50 text-foreground cursor-pointer appearance-none pr-8",
           className
         )}
         {...props}
@@ -285,7 +285,7 @@ export function OnboardingForm() {
                   placeholder="Your first name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="bg-card/50 border-input h-8 px-2.5 text-sm rounded-lg"
+                  className="bg-card/50 border-input min-h-[44px] px-2.5 text-sm rounded-lg"
                 />
                 {validationErrors.name && (
                   <p className="text-destructive text-xs mt-1.5 font-medium">{validationErrors.name}</p>
@@ -300,7 +300,7 @@ export function OnboardingForm() {
                   placeholder="you@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="bg-card/50 border-input h-8 px-2.5 text-sm rounded-lg"
+                  className="bg-card/50 border-input min-h-[44px] px-2.5 text-sm rounded-lg"
                 />
                 {validationErrors.email && (
                   <p className="text-destructive text-xs mt-1.5 font-medium">{validationErrors.email}</p>
@@ -317,7 +317,7 @@ export function OnboardingForm() {
                     max="40"
                     value={formData.age}
                     onChange={(e) => setFormData(prev => ({ ...prev, age: parseInt(e.target.value) || 0 }))}
-                    className="bg-card/50 border-input h-8 px-2.5 text-sm rounded-lg"
+                    className="bg-card/50 border-input min-h-[44px] px-2.5 text-sm rounded-lg"
                   />
                   {validationErrors.age && (
                     <p className="text-destructive text-xs mt-1.5 font-medium">{validationErrors.age}</p>
@@ -389,7 +389,7 @@ export function OnboardingForm() {
                       type="button"
                       onClick={() => setFormData(prev => ({ ...prev, gender: val, league: '' }))}
                       className={cn(
-                        'flex-1 h-9 text-sm font-semibold rounded-lg border transition-all duration-150',
+                        'flex-1 min-h-[44px] text-sm font-semibold rounded-lg border transition-all duration-150',
                         formData.gender === val
                           ? 'bg-primary text-primary-foreground border-primary'
                           : 'bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground'
@@ -447,7 +447,7 @@ export function OnboardingForm() {
                   placeholder="e.g. FC Dallas, Jefferson High School"
                   value={formData.club_name}
                   onChange={(e) => setFormData(prev => ({ ...prev, club_name: e.target.value }))}
-                  className="bg-card/50 border-input h-8 px-2.5 text-sm rounded-lg"
+                  className="bg-card/50 border-input min-h-[44px] px-2.5 text-sm rounded-lg"
                 />
               </div>
 
@@ -521,7 +521,7 @@ export function OnboardingForm() {
                           }
                         }}
                         className={cn(
-                          "w-full h-9 justify-center text-xs font-semibold py-2 px-3 rounded-full border transition-all duration-200 truncate cursor-pointer",
+                          "w-full min-h-[44px] justify-center text-xs font-semibold py-2 px-3 rounded-full border transition-all duration-200 truncate cursor-pointer",
                           isSelected
                             ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:scale-[1.02]"
                             : "bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground"
@@ -554,7 +554,7 @@ export function OnboardingForm() {
                             : [...prev.game_days, idx],
                         }))}
                         className={cn(
-                          "flex-1 h-9 text-xs font-bold rounded-lg border transition-all duration-200 cursor-pointer",
+                          "flex-1 min-h-[44px] text-xs font-bold rounded-lg border transition-all duration-200 cursor-pointer",
                           isSelected
                             ? "bg-primary text-primary-foreground border-primary"
                             : "bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70"
@@ -609,7 +609,7 @@ export function OnboardingForm() {
                           }
                         }}
                         className={cn(
-                          "h-8 text-xs font-semibold py-1.5 px-3.5 rounded-full border transition-all duration-200 cursor-pointer",
+                          "min-h-[44px] text-xs font-semibold py-1.5 px-3.5 rounded-full border transition-all duration-200 cursor-pointer",
                           isSelected
                             ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
                             : "bg-secondary/40 text-muted-foreground border-border/40 hover:bg-secondary/70 hover:text-foreground"
@@ -779,7 +779,7 @@ export function OnboardingForm() {
               variant="outline"
               disabled={loading}
               onClick={handleBack}
-              className="flex-1 h-9 rounded-lg border-border hover:bg-muted text-foreground cursor-pointer"
+              className="flex-1 min-h-[44px] rounded-lg border-border hover:bg-muted text-foreground cursor-pointer"
             >
               Back
             </Button>
@@ -788,7 +788,7 @@ export function OnboardingForm() {
             type="button"
             disabled={loading}
             onClick={handleNext}
-            className="flex-1 h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold cursor-pointer shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200"
+            className="flex-1 min-h-[44px] rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold cursor-pointer shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-200"
           >
             {loading ? (
               <span className="flex items-center justify-center gap-1.5">

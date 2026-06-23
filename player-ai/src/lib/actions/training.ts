@@ -307,6 +307,61 @@ export async function generateNextWeekAction(): Promise<{ success: boolean; erro
   }
 }
 
+export async function regenerateCurrentWeekAction(): Promise<{ success: boolean; error?: string }> {
+  try {
+    const username = await getCurrentUser();
+    if (!username) return { success: false, error: 'User session not found.' };
+
+    const [profile, plan] = await Promise.all([
+      getUserData<AthleteProfile>(username, 'athlete_profile'),
+      getUserData<WeeklyTrainingPlan>(username, 'weekly_training_plan'),
+    ]);
+
+    if (!profile || !plan) return { success: false, error: 'Profile or training plan not found.' };
+
+    const currentWeekNum = plan.current_week_number ?? 1;
+    const currentWeek = plan.weeks?.find(w => w.week_number === currentWeekNum);
+    if (!currentWeek) return { success: false, error: 'Current week not found.' };
+
+    const completedSessions = currentWeek.sessions?.filter(s => s.completed) ?? [];
+
+    const drills = await getAllDrills();
+    const freshWeekPlan = generateTrainingPlan(profile, drills, currentWeekNum, undefined);
+    const freshSessions = freshWeekPlan.weeks[0]?.sessions ?? [];
+
+    // Keep completed sessions; fill remaining slots with fresh ones
+    const completedDays = new Set(completedSessions.map(s => s.day_number));
+    const mergedSessions: TrainingSession[] = [...completedSessions];
+    for (const session of freshSessions) {
+      if (mergedSessions.length >= profile.sessions_per_week) break;
+      if (!completedDays.has(session.day_number)) mergedSessions.push(session);
+    }
+
+    const updatedWeeks = plan.weeks.map(w =>
+      w.week_number === currentWeekNum
+        ? { ...w, sessions: mergedSessions, generated_date: new Date().toISOString() }
+        : w
+    );
+    const updatedPlan: WeeklyTrainingPlan = { ...plan, weeks: updatedWeeks };
+
+    const supabase = await createServerClient();
+    const { error: upsertError } = await supabase.from('user_data').upsert({
+      username,
+      data_key: 'weekly_training_plan',
+      data_value: JSON.stringify(updatedPlan),
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'username,data_key' });
+
+    if (upsertError) throw new Error(upsertError.message);
+
+    revalidatePath('/training');
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to regenerate plan.' };
+  }
+}
+
 export async function updateProfileAction(
   updates: Partial<AthleteProfile>,
   regeneratePlan: boolean

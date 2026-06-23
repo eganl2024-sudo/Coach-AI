@@ -6,6 +6,18 @@ import { TrainingWeek } from '@/lib/types/player';
 import { SessionCard } from './SessionCard';
 import { cn } from '@/lib/utils';
 
+function timeAgo(dateStr: string): string {
+  const diffDays = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86_400_000);
+  if (diffDays <= 0) return 'today';
+  if (diffDays === 1) return 'yesterday';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  const weeks = Math.floor(diffDays / 7);
+  if (weeks === 1) return '1 week ago';
+  if (weeks < 5) return `${weeks} weeks ago`;
+  const months = Math.floor(diffDays / 30);
+  return months === 1 ? '1 month ago' : `${months} months ago`;
+}
+
 interface PastWeeksAccordionProps {
   weeks: TrainingWeek[];
 }
@@ -44,7 +56,7 @@ export function PastWeeksAccordion({ weeks }: PastWeeksAccordionProps) {
                   • {totalSessions} {totalSessions === 1 ? 'session' : 'sessions'}
                 </span>
                 <span className="text-xs text-muted-foreground hidden sm:inline">
-                  • Generated on {new Date(week.generated_date).toLocaleDateString()}
+                  • {timeAgo(week.generated_date)}
                 </span>
               </div>
               <div>

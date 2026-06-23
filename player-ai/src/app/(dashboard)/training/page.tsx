@@ -6,6 +6,7 @@ import { getCurrentWeek, getNextSession } from '@/lib/utils/training';
 import { SessionCard } from '@/components/training/SessionCard';
 import { PastWeeksAccordion } from '@/components/training/PastWeeksAccordion';
 import GenerateNextWeekButton from '@/components/training/GenerateNextWeekButton';
+import RegeneratePlanButton from '@/components/training/RegeneratePlanButton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { AthleteProfile, WeeklyTrainingPlan, CompletionLog } from '@/lib/types/player';
@@ -54,7 +55,10 @@ export default async function TrainingPlanPage() {
 
       {/* 2. Current Week Sessions */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground tracking-tight">Current Week</h3>
+        <div className="flex items-center justify-between gap-4">
+          <h3 className="text-lg font-semibold text-foreground tracking-tight">Current Week</h3>
+          {plan && currentWeek && !allSessionsComplete && <RegeneratePlanButton />}
+        </div>
         {!plan ? (
           <Card className="border-border/50 border-dashed bg-card/10">
             <CardContent className="py-10 text-center space-y-4">
