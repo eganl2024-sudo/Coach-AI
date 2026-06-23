@@ -137,7 +137,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
 
       {/* Position Filter Dropdown */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider shrink-0">
+        <span className="text-xs font-semibold text-muted-foreground shrink-0">
           Filter by position:
         </span>
         <div className="relative w-full sm:w-auto min-w-[180px]">
