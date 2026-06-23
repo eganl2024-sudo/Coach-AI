@@ -168,18 +168,18 @@ export default function LoginForm() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <div className="flex items-center justify-center min-h-[44px] text-xs text-muted-foreground text-center">
           New here?{' '}
-          <Link href="/signup" className="text-primary hover:underline font-medium">
+          <Link href="/signup" className="text-primary hover:underline font-medium ml-1">
             Create a free account →
           </Link>
-        </p>
+        </div>
 
-        <p className="text-center text-xs text-muted-foreground/60">
-          <Link href="/terms" className="hover:text-muted-foreground underline">Terms</Link>
-          {' · '}
-          <Link href="/privacy" className="hover:text-muted-foreground underline">Privacy</Link>
-        </p>
+        <div className="flex items-center justify-center gap-3 min-h-[44px] text-xs text-muted-foreground/60">
+          <Link href="/terms" className="hover:text-muted-foreground underline py-2">Terms</Link>
+          <span>·</span>
+          <Link href="/privacy" className="hover:text-muted-foreground underline py-2">Privacy</Link>
+        </div>
       </div>
     </div>
   );

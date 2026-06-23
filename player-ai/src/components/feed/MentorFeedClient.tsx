@@ -179,7 +179,8 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
             return (
               <Card
                 key={post.post_id}
-                className="border border-border/50 bg-card/40 hover:border-border hover:bg-card/65 transition-colors duration-150 backdrop-blur-sm overflow-hidden"
+                onClick={() => post.body && !post.coming_soon && togglePost(post.post_id)}
+                className={`border border-border/50 bg-card/40 hover:border-border hover:bg-card/65 transition-colors duration-150 backdrop-blur-sm overflow-hidden${post.body && !post.coming_soon ? ' cursor-pointer' : ''}`}
               >
                 <CardContent className="p-5 space-y-4">
                   {/* Top Row: Presenter Info + Date */}
@@ -227,7 +228,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
                     {/* Read more / Read less toggle */}
                     {post.body && !post.coming_soon && (
                       <button
-                        onClick={() => togglePost(post.post_id)}
+                        onClick={(e) => { e.stopPropagation(); togglePost(post.post_id); }}
                         className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors mt-1 block"
                       >
                         {expandedPosts.has(post.post_id) ? '↑ Read less' : 'Read more →'}
@@ -269,6 +270,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
                   {/* Bottom Row: Positions + Status */}
                   <div className="flex items-center justify-between gap-4 pt-3 border-t border-border/30">
                     <div className="text-[11px] text-muted-foreground/70 font-medium truncate">
+                      {posTags.length > 0 && <span className="text-muted-foreground/40 mr-1">For:</span>}
                       {posTags.join(' · ')}
                     </div>
                     
