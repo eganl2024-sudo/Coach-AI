@@ -144,7 +144,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
           <select
             value={selectedPosition}
             onChange={e => setSelectedPosition(e.target.value)}
-            className="h-8 w-full rounded-lg border border-border/50 bg-secondary/20 px-2.5 py-1 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 text-foreground cursor-pointer appearance-none pr-8"
+            className="min-h-[44px] w-full rounded-lg border border-border/50 bg-secondary/20 px-2.5 py-1 text-sm outline-none transition-all focus-visible:border-primary focus-visible:ring-2 focus-visible:ring-primary/20 text-foreground cursor-pointer appearance-none pr-8"
           >
             {POSITION_OPTIONS.map(pos => (
               <option key={pos} value={pos} className="bg-card text-foreground">{pos}</option>
@@ -194,7 +194,7 @@ export function MentorFeedClient({ posts, presenterMap, playerPosition }: Mentor
                         <p className="font-semibold text-sm text-foreground leading-tight">
                           {presenterName}
                         </p>
-                        <p className="text-xs text-muted-foreground mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5 truncate max-w-[160px]">
                           {presenterRole}
                         </p>
                       </div>
