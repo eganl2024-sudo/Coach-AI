@@ -72,11 +72,10 @@ Central Connecticut State University,Andrew,Sullivan,Assistant Coach,Asullivan1@
 Chicago State University,Norris,Howze,Head Coach,nhowze@csu.edu,773-995-2312,,,scrape
 Chicago State University,Thabiso,Khumalo,Assistant Coach,tkhumalo@csu.edu,,,,scrape
 Clemson University,Mike,Noonan,Head Coach,msoccer@clemson.edu,,,,manual
-Clemson University,Strategic,Analytics,Director of Operations,,,,,gap_scrape
-Clemson University,Assistant,Coach,Assistant Coach,,,,,gap_scrape
-Clemson University,Soccer,Coaching,Director of Operations,,,,,gap_scrape
-Clemson University,Associate,Head,Assistant Coach,,,,,gap_scrape
-Clemson University,Phil,Jones,Assistant Coach,msoccer@clemson.edu,,,,manual
+Clemson University,Rob,Thompson,Director of Strategic Analytics and Operations,rthomp5@clemson.edu,864-643-8648,,,manual_fix
+Clemson University,Gaye,Diadie,Assistant Coach,,,,,manual_fix
+Clemson University,Michal,Gorszczaryk,Assistant Coach,,,,,manual_fix
+Clemson University,Phil,Jones,Associate Head Coach,msoccer@clemson.edu,,,,manual
 Cleveland State University,Sinisa,Ubiparipovic,Head Coach,s.ubiparipovic81@csuohio.edu,,,,scrape
 Cleveland State University,Toby,Frohlich,Assistant Coach,t.j.frohlich@csuohio.edu,,GK Coach,,scrape
 Cleveland State University,Charlie,Krus,Assistant Coach,,,,,scrape
@@ -360,11 +359,10 @@ Oregon State University,Janie,Kearl,Assistant Coach,janie.kearl@oregonstate.edu,
 Oregon State University,Adrian,Molina-Diaz,Assistant Coach,adrian.molinadiaz@oregonstate.edu,,,,scrape
 Oregon State University,Alex,Suprise,Assistant Coach,alex.suprise@oregonstate.edu,,,,scrape
 Pennsylvania State University,Rob,Dow,Head Coach,msoc@athletics.psu.edu,,,,manual
-Pennsylvania State University,Soccer,Coaching,Assistant Coach,,,,,gap_scrape
-Pennsylvania State University,Brad,Cole,Assistant Coach,msoc@athletics.psu.edu,,,,manual
-Pennsylvania State University,Associate,Head,Assistant Coach,,,,,gap_scrape
-Pennsylvania State University,Umar,View,Assistant Coach,,,,,gap_scrape
-Pennsylvania State University,Jack,View,Assistant Coach,,,,,gap_scrape
+Pennsylvania State University,Brad,Cole,Associate Head Coach,msoc@athletics.psu.edu,,,,manual
+Pennsylvania State University,Oscar,Umar,Assistant Coach,msoc@athletics.psu.edu,,,,manual_fix
+Pennsylvania State University,Owen,Jack,Assistant Coach,msoc@athletics.psu.edu,,,,manual_fix
+Pennsylvania State University,Davis,Faulkner,Director of Operations,dkf5401@psu.edu,,,,manual_fix
 Presbyterian College,Nick,Finotti,Head Coach,nafinotti@presby.edu,864-833-8255,,,scrape
 Presbyterian College,Paul,Jones,Assistant Coach,pjones@presby.edu,,,,scrape
 Presbyterian College,Siwoo,Jung,Assistant Coach,sjung@presby.edu,,,,scrape
@@ -421,20 +419,16 @@ San Diego State University,Ryan,Hopkins,Head Coach,rhopkins2@sdsu.edu,,,,manual
 San Diego State University,David,Diaz,Assistant Coach,dediaz@sdsu.edu,,,,manual
 San Diego State University,Jamie,Reid,Assistant Coach,jreid2@sdsu.edu,,,,manual
 San Jose State University,Simon,Tobin,Head Coach,simon.tobin@sjsu.edu,924-1261,,,manual
-San Jose State University,Assistant,Coach,Assistant Coach,,,,,gap_scrape
-San Jose State University,Soccer,Coaching,Assistant Coach,,,,simontobin7,gap_scrape
-San Jose State University,Associate,Head,Assistant Coach,,,,,gap_scrape
-San Jose State University,Jesus,Sanchez,Assistant Coach,jesus.a.sanchez@sjsu.edu,924-1301,,,manual
+San Jose State University,Jesus,Sanchez,Associate Head Coach,jesus.a.sanchez@sjsu.edu,924-1301,,,manual
 San Jose State University,David,Sweeney,Assistant Coach,david.sweeney@sjsu.edu,,,,manual
-San Jose State University,Tobin,Twitter,Assistant Coach,,,,simontobin7,gap_scrape
 San Jose State University,Jota,Yamaguchi,Assistant Coach,jota.yamaguchi@sjsu.edu,,,,manual
 Santa Clara University,Cameron,Rast,Head Coach,msoccer@scu.edu,408-554-4784,,,scrape
 Santa Clara University,Riley,Hanley,Assistant Coach,msoccer@scu.edu,408-554-4003,,,scrape
 Santa Clara University,Jack,Murphy,Director of Operations,msoccer@scu.edu,408-551-3807,,,scrape
 Santa Clara University,Eric,Yamamoto,Assistant Coach,msoccer@scu.edu,408-551-1988,,,scrape
-Seattle University,Nate,Daligcon,Head Coach,msoccer@seattleu.edu,,,,manual
-Seattle University,Assistant,Coach,Assistant Coach,,,,,gap_scrape
-Seattle University,Soccer,Coaching,Assistant Coach,,,,,gap_scrape
+Seattle University,Nate,Daligcon,Head Coach,daligcon@seattleu.edu,,,,manual
+Seattle University,Jason,McGlothern,Assistant Coach,,,,,manual_fix
+Seattle University,Vince,Volpe,Player Development Coordinator,vvolpe2@seattleu.edu,,,,manual_fix
 Seattle University,Jason,Farrell,Assistant Coach,jfarrell2@seattleu.edu,,,,manual
 Seattle University,Brooks,Hopp,Assistant Coach,bhopp@seattleu.edu,,,,manual
 Siena University,Graciano,Brito,Head Coach,gbrito@siena.edu,(518) 786-5042,,,scrape
@@ -659,14 +653,11 @@ University of Vermont,Eric,Bissell,Director of Operations,,802.656.3131,,,scrape
 University of Vermont,Travis,Brent,Assistant Coach,mens.soccer@uvm.edu,802.656.3131,,,scrape
 University of Vermont,Rory,Twomey,Assistant Coach,mens.soccer@uvm.edu,802.656.3131,,,scrape
 University of Vermont,Edgar,Vargas,Assistant Coach,Edgar.Vargas@uvm.edu,802.656.3131,,,scrape
-University of Virginia,Head,Coach,Head Coach,,,,,gap_scrape
 University of Virginia,George,Gelnovatch,Head Coach,Vrp9as@virginia.edu,434-982-5701,,,manual
 University of Virginia,Jermaine,Birriel,Assistant Coach,vrp9as@virginia.edu,434-982-5125,,,manual
-University of Virginia,Matt,Chulis,Assistant Coach,mrc5r@virginia.edu,434-982-5702,,,manual
-University of Virginia,Assistant,Coach,Assistant Coach,,,,,gap_scrape
-University of Virginia,Soccer,Coaching,Assistant Coach,,,,,gap_scrape
+University of Virginia,Matt,Chulis,Associate Head Coach,mrc5r@virginia.edu,434-982-5702,,,manual
 University of Virginia,Johnny,Fenwick,Assistant Coach,jfenwick@virginia.edu,,,,manual
-University of Virginia,Associate,Head,Assistant Coach,,,,,gap_scrape
+University of Virginia,Adam,Perron,Associate Head Coach,,,,,manual_fix
 University of Washington,Jamie,Clark,Head Coach,huskysoccer@uw.edu,(206) 543-4209,,,scrape
 University of Washington,Mark,Collings,Assistant Coach,markcoll@uw.edu,,,,scrape
 University of Washington,Ryan,Fahey,Assistant Coach,rwfahey@uw.edu,,,,scrape
