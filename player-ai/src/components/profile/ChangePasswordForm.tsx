@@ -91,7 +91,7 @@ export default function ChangePasswordForm() {
           <Button
             type="submit"
             disabled={status === 'loading'}
-            className="font-semibold cursor-pointer"
+            className="min-h-[44px] font-semibold cursor-pointer"
           >
             {status === 'loading' ? 'Updating...' : 'Update Password'}
           </Button>

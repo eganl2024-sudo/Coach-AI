@@ -44,9 +44,8 @@ export default function DangerZone({ username }: { username: string }) {
         {!showConfirm ? (
           <Button
             variant="destructive"
-            size="sm"
             onClick={() => setShowConfirm(true)}
-            className="font-semibold cursor-pointer"
+            className="min-h-[44px] font-semibold cursor-pointer"
           >
             Delete My Account
           </Button>

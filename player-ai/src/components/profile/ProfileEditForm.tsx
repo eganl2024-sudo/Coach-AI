@@ -731,7 +731,7 @@ export default function ProfileEditForm({ profile, username }: ProfileEditFormPr
         <Button
           type="submit"
           disabled={saving || saved}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-10 rounded-xl"
+          className="w-full min-h-[44px] bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl"
         >
           {saving ? 'Saving...' : saved ? '✓ Profile updated!' : 'Save Changes'}
         </Button>
