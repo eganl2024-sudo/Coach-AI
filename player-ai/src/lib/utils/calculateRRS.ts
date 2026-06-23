@@ -511,10 +511,10 @@ export function calculateRRS(
     }
 
     if (nextActions.length < 2) {
-      nextActions.push('Keep completing your scheduled sessions to maintain consistency');
+      nextActions.push('Stick to your plan this week — consistency is your highest-impact pillar');
     }
     if (nextActions.length < 2) {
-      nextActions.push('Review your athlete profile to ensure focus areas are up to date');
+      nextActions.push('Update your focus areas in your profile so your plan targets the right skills');
     }
   } else {
     nextActions = ['Complete at least 5 sessions to unlock actions and see recommendations'];

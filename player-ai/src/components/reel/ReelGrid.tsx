@@ -18,7 +18,7 @@ export default function ReelGrid({ reels, signedUrls }: ReelGridProps) {
           {[
             { icon: '⏱', title: 'Keep it 2–4 minutes', body: 'Coaches watch dozens of reels. Get to your best moments fast — no intros, no filler.' },
             { icon: '🎯', title: 'Lead with your best clip', body: 'Put your strongest 30 seconds first. If a coach stops watching, make sure they saw your peak.' },
-            { icon: '📐', title: 'Show range', body: 'Include game footage, training drills, and set pieces. Variety shows coachability and versatility.' },
+            { icon: '🎬', title: 'Show range', body: 'Include game footage, training drills, and set pieces. Variety shows coachability and versatility.' },
             { icon: '🎥', title: 'Landscape, steady, clear', body: 'Horizontal video from the sideline or end line. Coaches need to see your positioning and runs off the ball.' },
           ].map(tip => (
             <div key={tip.title} className="flex gap-3 p-4 rounded-xl border border-border/40 bg-card/20">

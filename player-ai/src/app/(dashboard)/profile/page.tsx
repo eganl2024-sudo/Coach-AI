@@ -151,7 +151,7 @@ export default async function ProfilePage() {
       <div className="space-y-3">
         <div>
           <h2 className="text-lg font-bold text-white tracking-tight">Focus Areas</h2>
-          <p className="text-xs text-muted-foreground">What you are actively developing this cycle</p>
+          <p className="text-xs text-muted-foreground">Skills you are actively building this training block</p>
         </div>
         {profile.focus_areas && profile.focus_areas.length > 0 ? (
           <div className="flex flex-wrap gap-2.5">
@@ -196,7 +196,7 @@ export default async function ProfilePage() {
         <div className="space-y-3">
           <div>
             <h2 className="text-lg font-bold text-white tracking-tight">Academic Profile</h2>
-            <p className="text-xs text-muted-foreground">Included in your AI-drafted recruiting emails</p>
+            <p className="text-xs text-muted-foreground">Sent to coaches as part of your recruiting outreach</p>
           </div>
           <div className="flex flex-wrap gap-3">
             {profile.gpa && (

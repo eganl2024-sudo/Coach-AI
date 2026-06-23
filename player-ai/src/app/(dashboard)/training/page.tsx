@@ -39,6 +39,8 @@ export default async function TrainingPlanPage() {
   const allSessionsComplete = currentWeek
     ? currentWeek.sessions.every(s => s.completed)
     : false;
+  const sessionsThisWeek = currentWeek?.sessions?.length ?? 0;
+  const sessionsCompletedThisWeek = currentWeek?.sessions?.filter(s => s.completed).length ?? 0;
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
@@ -49,7 +51,7 @@ export default async function TrainingPlanPage() {
           {activeProfileName}'s Week {currentWeekNumber}
         </h2>
         <p className="text-muted-foreground text-xs mt-0.5">
-          Your personalized development sessions
+          {sessionsCompletedThisWeek} of {sessionsThisWeek} sessions complete this week
         </p>
       </div>
 

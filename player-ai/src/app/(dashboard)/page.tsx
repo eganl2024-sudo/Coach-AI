@@ -113,7 +113,7 @@ export default async function DashboardPage() {
             Welcome back, {activeProfile.name}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
-            Here's where you stand today.
+            Week {currentWeekNumber} · {sessionsCompletedThisWeek} of {sessionsThisWeek} sessions done
           </p>
         </div>
         <div className="shrink-0">
@@ -352,7 +352,7 @@ export default async function DashboardPage() {
             {nextActions.length > 0 && (
               <div className="space-y-2 pt-3 border-t border-border/20">
                 <p className="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
-                  Recommended Actions
+                  To Move Up
                 </p>
                 <div className="space-y-1.5">
                   {nextActions.slice(0, 2).map((action, i) => (
@@ -488,7 +488,7 @@ export default async function DashboardPage() {
           </Badge>
         </div>
         <p className="text-xs text-muted-foreground leading-relaxed">
-          Search 212 D1 programs, find coaching staff contact info, draft personalized recruiting emails with AI, and track your entire outreach pipeline in one place.
+          Search 212 D1 programs, find coaching staff contact info, build personalized recruiting emails, and track your entire outreach in one place.
         </p>
         <Link
           href="/recruiting"
