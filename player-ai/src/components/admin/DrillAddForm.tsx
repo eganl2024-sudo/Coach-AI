@@ -104,10 +104,17 @@ export default function DrillAddForm() {
     key: keyof Drill,
     value: string | number | boolean
   ) => {
-    setFormData(prev => ({
-      ...prev,
-      [key]: value,
-    }));
+    setFormData(prev => {
+      const next = { ...prev, [key]: value };
+      // Auto-generate drill_id from name when drill_id hasn't been manually edited
+      if (key === 'drill_name' && typeof value === 'string') {
+        const suggested = 'DRILL_' + value.toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 30);
+        if (!prev.drill_id || prev.drill_id === ('DRILL_' + String(prev.drill_name).toUpperCase().replace(/[^A-Z0-9]+/g, '_').replace(/^_|_$/g, '').slice(0, 30))) {
+          next.drill_id = suggested;
+        }
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
