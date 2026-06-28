@@ -91,6 +91,8 @@ export async function loginAction(formData: FormData) {
     .from('h2s_kids')
     .select('id, name')
     .eq('parent_id', parent.id)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
 
   const session = await getSession()

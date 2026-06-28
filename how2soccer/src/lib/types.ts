@@ -43,6 +43,24 @@ export interface Track {
   challenges: Challenge[]
 }
 
+export interface Streak {
+  id: string
+  kid_id: string
+  current_streak: number
+  longest_streak: number
+  last_practice_date: string | null
+  timezone: string
+}
+
+export interface DailyMission {
+  id: string
+  kid_id: string
+  challenge_id: string
+  track: string
+  date: string
+  completed_at: string | null
+}
+
 export interface SessionData {
   parentId?: string
   parentUsername?: string

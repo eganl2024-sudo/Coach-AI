@@ -4,6 +4,8 @@ import { revalidatePath } from 'next/cache'
 import { createServerClient } from '../supabase/server'
 import { getSession } from '../session'
 import { Progress } from '../types'
+import { getStreak, updateStreak } from './streaks'
+import { completeDailyMission } from './missions'
 
 export async function markChallengeComplete(challengeId: string, track: string) {
   const session = await getSession()
@@ -18,7 +20,17 @@ export async function markChallengeComplete(challengeId: string, track: string) 
 
   if (error) return { error: error.message }
 
+  // Resolve timezone from existing streak record (default if none yet)
+  const existing = await getStreak(session.kidId)
+  const timezone = existing?.timezone ?? 'America/New_York'
+
+  await Promise.all([
+    updateStreak(session.kidId, timezone),
+    completeDailyMission(session.kidId, challengeId, timezone),
+  ])
+
   revalidatePath(`/skills/${track}`)
+  revalidatePath('/home')
   revalidatePath('/')
   return { success: true }
 }

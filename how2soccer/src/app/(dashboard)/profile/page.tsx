@@ -11,6 +11,7 @@ export default async function ProfilePage() {
   const session = await getSession()
   const progress = await getKidProgress(session.kidId!)
   const completedIds = new Set(progress.map((p) => p.challenge_id))
+  const totalChallenges = TRACK_IDS.reduce((sum, id) => sum + TRACKS[id].challenges.length, 0)
   const totalStars = completedIds.size
 
   return (
@@ -39,7 +40,7 @@ export default async function ProfilePage() {
             <p className="text-xs text-gray-500 font-semibold">Stars Earned</p>
           </div>
           <div className="bg-green-50 rounded-xl p-3 text-center">
-            <p className="text-3xl font-black text-green-600">{20 - totalStars}</p>
+            <p className="text-3xl font-black text-green-600">{totalChallenges - totalStars}</p>
             <p className="text-xs text-gray-500 font-semibold">Left to Go</p>
           </div>
         </div>
@@ -51,6 +52,7 @@ export default async function ProfilePage() {
         <div className="space-y-3">
           {TRACK_IDS.map((trackId) => {
             const track = TRACKS[trackId]
+            const trackTotal = track.challenges.length
             const count = track.challenges.filter((c) => completedIds.has(c.id)).length
             return (
               <div key={trackId} className="flex items-center gap-3">
@@ -58,7 +60,7 @@ export default async function ProfilePage() {
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-sm font-semibold text-gray-700">{track.name}</p>
-                    <p className="text-sm text-gray-500">{count}/5</p>
+                    <p className="text-sm text-gray-500">{count}/{trackTotal}</p>
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
@@ -68,7 +70,7 @@ export default async function ProfilePage() {
                         trackId === 'dribbling' ? 'bg-orange-500' :
                         trackId === 'passing' ? 'bg-blue-500' : 'bg-red-500',
                       ].join(' ')}
-                      style={{ width: `${(count / 5) * 100}%` }}
+                      style={{ width: `${(count / trackTotal) * 100}%` }}
                     />
                   </div>
                 </div>

@@ -28,7 +28,7 @@ export default async function SkillsPage() {
 
       <div className="bg-white rounded-2xl border-2 border-gray-100 p-4 text-center">
         <p className="text-gray-500 text-sm">
-          Complete all 20 challenges to become a{' '}
+          Complete all {TRACK_IDS.reduce((sum, id) => sum + TRACKS[id].challenges.length, 0)} challenges to become a{' '}
           <span className="font-bold text-yellow-500">⭐ Soccer Star!</span>
         </p>
       </div>

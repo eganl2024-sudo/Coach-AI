@@ -7,9 +7,10 @@ interface TrackCardProps {
   completedCount: number
 }
 
-const totalChallenges = 5
+// computed per track below
 
 export function TrackCard({ track, completedCount }: TrackCardProps) {
+  const totalChallenges = track.challenges.length
   const pct = Math.round((completedCount / totalChallenges) * 100)
   const allDone = completedCount === totalChallenges
 
