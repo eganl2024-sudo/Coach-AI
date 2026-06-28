@@ -40,7 +40,7 @@ export default async function HomePage() {
       <div>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-xl font-black text-gray-900">Your Skills</h2>
-          <Link href="/skills" className="text-green-600 font-semibold text-sm hover:underline">
+          <Link href="/skills" className="text-green-600 font-semibold text-sm hover:underline py-2 px-1">
             See all →
           </Link>
         </div>

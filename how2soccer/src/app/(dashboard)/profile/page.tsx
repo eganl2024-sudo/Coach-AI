@@ -62,7 +62,12 @@ export default async function ProfilePage() {
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-green-500 rounded-full"
+                      className={[
+                        'h-full rounded-full',
+                        trackId === 'juggling' ? 'bg-green-500' :
+                        trackId === 'dribbling' ? 'bg-orange-500' :
+                        trackId === 'passing' ? 'bg-blue-500' : 'bg-red-500',
+                      ].join(' ')}
                       style={{ width: `${(count / 5) * 100}%` }}
                     />
                   </div>
