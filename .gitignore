@@ -61,3 +61,12 @@ scratch/
 
 # ===== Scraper outputs (generated) =====
 scraper/output/
+
+# ===== how2soccer Next.js app =====
+how2soccer/.env.local
+how2soccer/.next/
+how2soccer/node_modules/
+how2soccer/*.tsbuildinfo
+
+# ===== Design audit screenshots (gstack artifacts, not project files) =====
+.screenshots/
