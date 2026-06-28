@@ -39,7 +39,7 @@ export default async function HomePage() {
       {/* Track progress */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lg font-black text-gray-900">Your Skills</h2>
+          <h2 className="text-xl font-black text-gray-900">Your Skills</h2>
           <Link href="/skills" className="text-green-600 font-semibold text-sm hover:underline">
             See all →
           </Link>
