@@ -9,8 +9,8 @@ interface HeaderProps {
 
 export function Header({ title, showBack, backHref = '/skills' }: HeaderProps) {
   return (
-    <header className="sticky top-0 z-40 bg-white border-b-2 border-gray-100">
-      <div className="flex items-center h-14 px-4 max-w-lg mx-auto gap-3">
+    <header className="sticky top-0 z-40 bg-white border-b-2 border-gray-100 flex justify-center">
+      <div className="flex items-center h-14 px-4 max-w-lg w-full gap-3">
         {showBack && (
           <Link
             href={backHref}
