@@ -1,0 +1,19 @@
+{
+  "name": "How 2 Soccer",
+  "short_name": "How2Soccer",
+  "description": "Learn soccer skills step by step — for kids ages 5–12.",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#22c55e",
+  "orientation": "portrait",
+  "categories": ["sports", "education", "kids"],
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

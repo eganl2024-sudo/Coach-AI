@@ -3,6 +3,7 @@ import { getSession } from '@/lib/session'
 import { getKidProgress } from '@/lib/actions/progress'
 import { TRACKS, TRACK_IDS } from '@/lib/data/curriculum'
 import { TrackCard } from '@/components/skills/TrackCard'
+import { ChallengeSearch } from '@/components/skills/ChallengeSearch'
 
 export const metadata: Metadata = { title: 'Skills' }
 
@@ -15,8 +16,10 @@ export default async function SkillsPage() {
     <div className="py-6 space-y-4">
       <div>
         <h1 className="text-2xl font-black text-gray-900">Pick a Skill</h1>
-        <p className="text-gray-500 mt-1">Tap a track to start practicing!</p>
+        <p className="text-gray-500 mt-1">Tap a track or search a challenge!</p>
       </div>
+
+      <ChallengeSearch completedIds={[...completedIds]} />
 
       <div className="space-y-3">
         {TRACK_IDS.map((trackId) => {

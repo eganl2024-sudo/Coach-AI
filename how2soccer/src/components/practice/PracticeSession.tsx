@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { markChallengeComplete, UnlockInfo } from '@/lib/actions/progress'
+import { markChallengeComplete, UnlockInfo, TrackCompleteInfo } from '@/lib/actions/progress'
 import { ChallengeRating } from '@/lib/types'
 import { RatingPicker } from './RatingPicker'
 import { UnlockCelebration } from '@/components/skills/UnlockCelebration'
+import { TrackCompleteCelebration } from '@/components/skills/TrackCompleteCelebration'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/posthog'
 
 interface PracticeChallenge {
   missionId: string
@@ -71,6 +73,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const [pendingUnlock, setPendingUnlock] = useState<UnlockInfo | null>(null)
+  const [pendingTrackComplete, setPendingTrackComplete] = useState<TrackCompleteInfo | null>(null)
 
   const current = challenges[currentIndex]
   const isLast = currentIndex === challenges.length - 1
@@ -78,7 +81,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
 
   function handleStart() {
     if (allAlreadyDone) return
-    // Skip already-completed challenges at the front
+    trackEvent('practice_session_started', { challengeCount: total })
     const firstIncomplete = challenges.findIndex((c) => !c.alreadyCompleted)
     setCurrentIndex(firstIncomplete >= 0 ? firstIncomplete : 0)
     setPhase('challenge')
@@ -97,8 +100,18 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
         return
       }
       setCompletedInSession((n) => n + 1)
-      if (result.unlockInfo) {
+      trackEvent('challenge_completed', {
+        challengeId: current.challengeId,
+        track: current.track,
+        difficulty: current.difficulty,
+        source: 'practice_session',
+      })
+      if (result.trackComplete) {
+        setPendingTrackComplete(result.trackComplete)
+        trackEvent('track_mastered', { track: current.track, trackName: result.trackComplete.trackName })
+      } else if (result.unlockInfo) {
         setPendingUnlock(result.unlockInfo)
+        trackEvent('tier_unlocked', { tier: result.unlockInfo.tier, track: current.track })
       } else {
         setPhase('rating')
       }
@@ -114,7 +127,20 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
     }
   }
 
-  // ── UNLOCK OVERLAY (renders on top of any phase) ──────────────────
+  // ── TRACK COMPLETE OVERLAY ────────────────────────────────────────
+  if (pendingTrackComplete) {
+    return (
+      <TrackCompleteCelebration
+        info={pendingTrackComplete}
+        onDismiss={() => {
+          setPendingTrackComplete(null)
+          setPhase('rating')
+        }}
+      />
+    )
+  }
+
+  // ── UNLOCK OVERLAY ────────────────────────────────────────────────
   if (pendingUnlock) {
     return (
       <UnlockCelebration
@@ -129,6 +155,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
 
   // ── COMPLETE (client-reached — takes priority over allAlreadyDone) ──
   if (phase === 'complete') {
+    trackEvent('practice_session_completed', { completedInSession, totalChallenges: total })
     const newStreak = currentStreak > 0 ? currentStreak : completedInSession > 0 ? 1 : 0
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 py-8 text-center">

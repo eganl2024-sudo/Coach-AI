@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from 'react'
 import { Challenge, ChallengeRating, Track } from '@/lib/types'
-import { markChallengeComplete, UnlockInfo } from '@/lib/actions/progress'
+import { markChallengeComplete, UnlockInfo, TrackCompleteInfo } from '@/lib/actions/progress'
 import { RatingPicker } from '@/components/practice/RatingPicker'
 import { UnlockCelebration } from '@/components/skills/UnlockCelebration'
+import { TrackCompleteCelebration } from '@/components/skills/TrackCompleteCelebration'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/posthog'
 
 interface ChallengeDetailProps {
   challenge: Challenge
@@ -34,6 +36,7 @@ export function ChallengeDetail({
   const [showCelebration, setShowCelebration] = useState(false)
   const [showRating, setShowRating] = useState(initialCompleted)
   const [pendingUnlock, setPendingUnlock] = useState<UnlockInfo | null>(null)
+  const [pendingTrackComplete, setPendingTrackComplete] = useState<TrackCompleteInfo | null>(null)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -46,13 +49,26 @@ export function ChallengeDetail({
         setCompleted(true)
         setShowCelebration(true)
         setShowRating(true)
-        if (result.unlockInfo) setPendingUnlock(result.unlockInfo)
+        trackEvent('challenge_completed', { challengeId: challenge.id, track, difficulty: challenge.difficulty })
+        if (result.trackComplete) {
+          setPendingTrackComplete(result.trackComplete)
+          trackEvent('track_mastered', { track, trackName: result.trackComplete.trackName })
+        } else if (result.unlockInfo) {
+          setPendingUnlock(result.unlockInfo)
+          trackEvent('tier_unlocked', { tier: result.unlockInfo.tier, track, trackName: result.unlockInfo.trackName })
+        }
       }
     })
   }
 
   return (
     <>
+      {pendingTrackComplete && (
+        <TrackCompleteCelebration
+          info={pendingTrackComplete}
+          onDismiss={() => setPendingTrackComplete(null)}
+        />
+      )}
       {pendingUnlock && (
         <UnlockCelebration
           unlock={pendingUnlock}

@@ -17,8 +17,14 @@ export interface UnlockInfo {
   newChallengeCount: number
 }
 
+export interface TrackCompleteInfo {
+  trackName: string
+  trackEmoji: string
+  totalChallenges: number
+}
+
 export async function markChallengeComplete(challengeId: string, track: string): Promise<
-  { success: true; unlockInfo: UnlockInfo | null } | { error: string }
+  { success: true; unlockInfo: UnlockInfo | null; trackComplete: TrackCompleteInfo | null } | { error: string }
 > {
   const session = await getSession()
   if (!session.kidId) return { error: 'Not authenticated' }
@@ -33,28 +39,42 @@ export async function markChallengeComplete(challengeId: string, track: string):
 
   const alreadyDone = (currentProgress || []).some((p: any) => p.challenge_id === challengeId)
 
-  // Compute unlock delta before saving
+  // Compute unlock delta and track completion before saving
   let unlockInfo: UnlockInfo | null = null
+  let trackComplete: TrackCompleteInfo | null = null
   if (!alreadyDone) {
     const trackData = getTrack(track)
     if (trackData) {
       const completedBefore = new Set((currentProgress || []).map((p: any) => p.challenge_id))
-      const unlockedBefore = getUnlockedChallengeIds(trackData, completedBefore)
-
       const completedAfter = new Set([...completedBefore, challengeId])
-      const unlockedAfter = getUnlockedChallengeIds(trackData, completedAfter)
 
-      if (unlockedAfter.size > unlockedBefore.size) {
-        const newlyUnlocked = [...unlockedAfter].filter((id) => !unlockedBefore.has(id))
-        const firstNew = trackData.challenges.find((c) => newlyUnlocked.includes(c.id))
-        if (firstNew && firstNew.difficulty > 1) {
-          const tier = firstNew.difficulty as 2 | 3
-          unlockInfo = {
-            tier,
-            tierName: tier === 2 ? 'Intermediate' : 'Advanced',
-            trackName: trackData.name,
-            trackEmoji: trackData.emoji,
-            newChallengeCount: newlyUnlocked.length,
+      // Track complete check (all challenges done)
+      const wasComplete = trackData.challenges.every((c) => completedBefore.has(c.id))
+      const nowComplete = trackData.challenges.every((c) => completedAfter.has(c.id))
+      if (!wasComplete && nowComplete) {
+        trackComplete = {
+          trackName: trackData.name,
+          trackEmoji: trackData.emoji,
+          totalChallenges: trackData.challenges.length,
+        }
+      }
+
+      // Tier unlock check (only if track isn't fully done — they're mutually exclusive)
+      if (!trackComplete) {
+        const unlockedBefore = getUnlockedChallengeIds(trackData, completedBefore)
+        const unlockedAfter = getUnlockedChallengeIds(trackData, completedAfter)
+        if (unlockedAfter.size > unlockedBefore.size) {
+          const newlyUnlocked = [...unlockedAfter].filter((id) => !unlockedBefore.has(id))
+          const firstNew = trackData.challenges.find((c) => newlyUnlocked.includes(c.id))
+          if (firstNew && firstNew.difficulty > 1) {
+            const tier = firstNew.difficulty as 2 | 3
+            unlockInfo = {
+              tier,
+              tierName: tier === 2 ? 'Intermediate' : 'Advanced',
+              trackName: trackData.name,
+              trackEmoji: trackData.emoji,
+              newChallengeCount: newlyUnlocked.length,
+            }
           }
         }
       }
@@ -79,7 +99,7 @@ export async function markChallengeComplete(challengeId: string, track: string):
   revalidatePath(`/skills/${track}`)
   revalidatePath('/home')
   revalidatePath('/')
-  return { success: true, unlockInfo }
+  return { success: true, unlockInfo, trackComplete }
 }
 
 export async function saveRating(challengeId: string, track: string, rating: 'easy' | 'got_it' | 'tough') {

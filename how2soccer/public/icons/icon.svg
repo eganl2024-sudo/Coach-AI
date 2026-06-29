@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#22c55e"/>
+  <!-- Soccer ball panels -->
+  <circle cx="256" cy="256" r="150" fill="white"/>
+  <!-- Central pentagon -->
+  <polygon points="256,156 309,194 289,255 223,255 203,194" fill="#1a1a1a"/>
+  <!-- Surrounding pentagons (partial) -->
+  <polygon points="256,106 295,135 309,194 256,156 203,194 217,135" fill="#1a1a1a" opacity="0.15"/>
+  <polygon points="362,222 362,292 309,255 289,255 309,194" fill="#1a1a1a" opacity="0.15"/>
+  <polygon points="330,358 270,380 289,317 289,255 362,292" fill="#1a1a1a" opacity="0.15"/>
+  <polygon points="182,358 150,292 223,255 223,317 242,380" fill="#1a1a1a" opacity="0.15"/>
+  <polygon points="150,222 203,194 223,255 203,317 150,292" fill="#1a1a1a" opacity="0.15"/>
+  <!-- Stitching lines -->
+  <line x1="256" y1="156" x2="309" y2="194" stroke="white" stroke-width="4" opacity="0.6"/>
+  <line x1="309" y1="194" x2="289" y2="255" stroke="white" stroke-width="4" opacity="0.6"/>
+  <line x1="289" y1="255" x2="223" y2="255" stroke="white" stroke-width="4" opacity="0.6"/>
+  <line x1="223" y1="255" x2="203" y2="194" stroke="white" stroke-width="4" opacity="0.6"/>
+  <line x1="203" y1="194" x2="256" y2="156" stroke="white" stroke-width="4" opacity="0.6"/>
+  <!-- Outer seams -->
+  <line x1="309" y1="194" x2="362" y2="222" stroke="white" stroke-width="4" opacity="0.4"/>
+  <line x1="289" y1="255" x2="362" y2="292" stroke="white" stroke-width="4" opacity="0.4"/>
+  <line x1="223" y1="255" x2="150" y2="292" stroke="white" stroke-width="4" opacity="0.4"/>
+  <line x1="203" y1="194" x2="150" y2="222" stroke="white" stroke-width="4" opacity="0.4"/>
+  <line x1="256" y1="156" x2="256" y2="106" stroke="white" stroke-width="4" opacity="0.4"/>
+</svg>
