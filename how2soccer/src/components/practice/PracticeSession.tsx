@@ -1,0 +1,316 @@
+'use client'
+
+import { useState, useTransition } from 'react'
+import Link from 'next/link'
+import { markChallengeComplete } from '@/lib/actions/progress'
+import { cn } from '@/lib/utils'
+
+interface PracticeChallenge {
+  missionId: string
+  challengeId: string
+  track: string
+  trackName: string
+  trackEmoji: string
+  trackColorClass: string
+  trackBgClass: string
+  title: string
+  description: string
+  tip: string
+  difficulty: 1 | 2 | 3
+  alreadyCompleted: boolean
+}
+
+interface Props {
+  kidName: string
+  challenges: PracticeChallenge[]
+  currentStreak: number
+  allAlreadyDone: boolean
+}
+
+type Phase = 'ready' | 'challenge' | 'celebrating' | 'complete'
+
+const DIFFICULTY_LABEL = ['Beginner', 'Intermediate', 'Advanced']
+const DIFFICULTY_COLOR = [
+  'text-green-700 bg-green-100',
+  'text-orange-700 bg-orange-100',
+  'text-red-700 bg-red-100',
+]
+
+function StepDots({ total, current, completedInSession }: { total: number; current: number; completedInSession: number }) {
+  return (
+    <div className="flex items-center justify-center gap-2">
+      {Array.from({ length: total }).map((_, i) => {
+        const done = i < completedInSession
+        const active = i === current
+        return (
+          <div
+            key={i}
+            className={cn(
+              'rounded-full transition-all duration-300',
+              done
+                ? 'w-8 h-3 bg-green-500'
+                : active
+                ? 'w-8 h-3 bg-green-300'
+                : 'w-3 h-3 bg-gray-200',
+            )}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+export function PracticeSession({ kidName, challenges, currentStreak, allAlreadyDone }: Props) {
+  const [phase, setPhase] = useState<Phase>('ready')
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [completedInSession, setCompletedInSession] = useState(0)
+  const [error, setError] = useState<string | null>(null)
+  const [isPending, startTransition] = useTransition()
+
+  const current = challenges[currentIndex]
+  const isLast = currentIndex === challenges.length - 1
+  const total = challenges.length
+
+  function handleStart() {
+    if (allAlreadyDone) return
+    // Skip already-completed challenges at the front
+    const firstIncomplete = challenges.findIndex((c) => !c.alreadyCompleted)
+    setCurrentIndex(firstIncomplete >= 0 ? firstIncomplete : 0)
+    setPhase('challenge')
+  }
+
+  function handleDone() {
+    if (current.alreadyCompleted) {
+      advance()
+      return
+    }
+    setError(null)
+    startTransition(async () => {
+      const result = await markChallengeComplete(current.challengeId, current.track)
+      if (result.error) {
+        setError(result.error)
+        return
+      }
+      setCompletedInSession((n) => n + 1)
+      setPhase('celebrating')
+    })
+  }
+
+  function advance() {
+    if (isLast) {
+      setPhase('complete')
+    } else {
+      setCurrentIndex((i) => i + 1)
+      setPhase('challenge')
+    }
+  }
+
+  // ── COMPLETE (client-reached — takes priority over allAlreadyDone) ──
+  if (phase === 'complete') {
+    const newStreak = currentStreak > 0 ? currentStreak : completedInSession > 0 ? 1 : 0
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 py-8 text-center">
+        <div className="text-6xl">🎉</div>
+        <div>
+          <h1 className="text-2xl font-black text-gray-900">Practice Complete!</h1>
+          <p className="text-gray-500 mt-1">Great work today, {kidName}!</p>
+        </div>
+
+        <div className="w-full space-y-3">
+          {completedInSession > 0 && (
+            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-6 py-4">
+              <p className="text-2xl font-black text-yellow-700">+{completedInSession} ⭐</p>
+              <p className="text-yellow-600 text-sm">star{completedInSession === 1 ? '' : 's'} earned today</p>
+            </div>
+          )}
+          {newStreak > 0 && (
+            <div className="bg-orange-50 border-2 border-orange-100 rounded-2xl px-6 py-4">
+              <p className="text-2xl font-black text-orange-500">🔥 {newStreak} day streak</p>
+              <p className="text-orange-400 text-sm">Keep showing up!</p>
+            </div>
+          )}
+        </div>
+
+        <Link
+          href="/home"
+          className="w-full bg-green-500 text-white font-black text-lg py-4 rounded-2xl text-center hover:bg-green-600 transition-colors"
+        >
+          Back to Home
+        </Link>
+      </div>
+    )
+  }
+
+  // ── ALREADY DONE (server says all done before session started) ──
+  if (allAlreadyDone) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 py-8 text-center">
+        <div className="text-6xl">🎉</div>
+        <div>
+          <h1 className="text-2xl font-black text-gray-900">Practice Complete!</h1>
+          <p className="text-gray-500 mt-1">You already finished today's session. Come back tomorrow!</p>
+        </div>
+        {currentStreak > 0 && (
+          <div className="bg-orange-50 border-2 border-orange-100 rounded-2xl px-6 py-3">
+            <p className="text-orange-600 font-bold">🔥 {currentStreak} day streak — keep it up!</p>
+          </div>
+        )}
+        <Link
+          href="/home"
+          className="w-full max-w-xs bg-green-500 text-white font-bold text-lg py-4 rounded-2xl text-center hover:bg-green-600 transition-colors"
+        >
+          Back to Home
+        </Link>
+      </div>
+    )
+  }
+
+  // ── READY ─────────────────────────────────────────────────────
+  if (phase === 'ready') {
+    return (
+      <div className="py-6 space-y-6">
+        <div className="text-center space-y-2">
+          <p className="text-green-600 font-bold text-sm uppercase tracking-wide">Hey {kidName}!</p>
+          <h1 className="text-3xl font-black text-gray-900">Today&apos;s Practice</h1>
+          <p className="text-gray-500">{total} challenges · about 15 minutes</p>
+        </div>
+
+        <div className="space-y-3">
+          {challenges.map((c, i) => (
+            <div
+              key={c.missionId}
+              className={cn(
+                'flex items-center gap-4 rounded-2xl border-2 p-4',
+                c.alreadyCompleted ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-white',
+              )}
+            >
+              <div className={cn('w-10 h-10 rounded-full flex items-center justify-center text-xl font-black shrink-0', c.alreadyCompleted ? 'bg-green-200 text-green-700' : 'bg-gray-100 text-gray-500')}>
+                {c.alreadyCompleted ? '⭐' : i + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-bold text-gray-900 truncate">{c.title}</p>
+                <p className="text-xs text-gray-400">{c.trackEmoji} {c.trackName}</p>
+              </div>
+              {c.alreadyCompleted && (
+                <span className="text-xs font-bold text-green-600 bg-green-100 px-2 py-1 rounded-full shrink-0">Done</span>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button
+          onClick={handleStart}
+          className="w-full bg-green-500 hover:bg-green-600 active:scale-[0.98] text-white font-black text-xl py-5 rounded-2xl transition-all shadow-lg shadow-green-200"
+        >
+          ▶ Start Practice
+        </button>
+
+        <Link href="/home" className="block text-center text-sm text-gray-400 hover:text-gray-600">
+          ← Back to home
+        </Link>
+      </div>
+    )
+  }
+
+  // ── CELEBRATING ───────────────────────────────────────────────
+  if (phase === 'celebrating') {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 py-8 text-center">
+        <StepDots total={total} current={currentIndex} completedInSession={completedInSession} />
+
+        <div className="text-7xl animate-bounce">⭐</div>
+        <div>
+          <h2 className="text-2xl font-black text-gray-900">Challenge done!</h2>
+          <p className="text-gray-500 mt-1">
+            {isLast ? 'That was the last one!' : `${total - currentIndex - 1} more to go`}
+          </p>
+        </div>
+
+        <button
+          onClick={advance}
+          className="w-full max-w-xs bg-green-500 hover:bg-green-600 text-white font-black text-lg py-4 rounded-2xl transition-colors"
+        >
+          {isLast ? 'See Results →' : 'Next Challenge →'}
+        </button>
+      </div>
+    )
+  }
+
+  // ── CHALLENGE ─────────────────────────────────────────────────
+  return (
+    <div className="py-6 space-y-4">
+      {/* Progress */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-bold text-gray-500">Challenge {currentIndex + 1} of {total}</span>
+          <Link href="/home" className="text-gray-400 hover:text-gray-600 text-xs">✕ Exit</Link>
+        </div>
+        <StepDots total={total} current={currentIndex} completedInSession={completedInSession} />
+      </div>
+
+      {/* Challenge card */}
+      <div className={cn('rounded-3xl border-2 p-6', current.trackBgClass)}>
+        <div className="flex items-center justify-between mb-3">
+          <span className={cn('text-xs font-bold px-3 py-1 rounded-full', DIFFICULTY_COLOR[current.difficulty - 1])}>
+            {DIFFICULTY_LABEL[current.difficulty - 1]}
+          </span>
+          <span className="text-sm font-bold text-gray-400">{current.trackEmoji} {current.trackName}</span>
+        </div>
+        <h2 className={cn('text-2xl font-black mb-2', current.trackColorClass)}>{current.title}</h2>
+        <p className="text-gray-700 text-base leading-relaxed">{current.description}</p>
+      </div>
+
+      {/* Coach tip */}
+      <div className="bg-white rounded-2xl border-2 border-amber-200 p-5">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-xl">💡</span>
+          <p className="font-bold text-amber-700 text-sm">Coach Tip</p>
+        </div>
+        <p className="text-gray-700 text-sm leading-relaxed">{current.tip}</p>
+      </div>
+
+      {/* Steps */}
+      <div className="bg-white rounded-2xl border-2 border-gray-200 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xl">📋</span>
+          <p className="font-bold text-gray-900 text-sm">How to Practice</p>
+        </div>
+        <ol className="space-y-2 text-sm text-gray-600">
+          {['Find an open space outside or in a gym.', 'Read the challenge and the coach tip.', 'Practice until you can do it — then tap the button!'].map(
+            (step, i) => (
+              <li key={i} className="flex gap-2">
+                <span className="w-5 h-5 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
+                  {i + 1}
+                </span>
+                {step}
+              </li>
+            ),
+          )}
+        </ol>
+      </div>
+
+      {/* Already completed notice */}
+      {current.alreadyCompleted && (
+        <div className="bg-green-50 border-2 border-green-200 rounded-2xl p-4 text-center">
+          <p className="text-green-700 font-bold text-sm">⭐ You already earned a star for this one!</p>
+        </div>
+      )}
+
+      {error && <p className="text-red-600 text-sm text-center font-medium">{error}</p>}
+
+      <button
+        onClick={handleDone}
+        disabled={isPending}
+        className="w-full bg-green-500 hover:bg-green-600 active:scale-[0.98] disabled:opacity-60 text-white font-black text-xl py-5 rounded-2xl transition-all shadow-lg shadow-green-200"
+      >
+        {isPending
+          ? 'Saving…'
+          : current.alreadyCompleted
+          ? `Next Challenge →`
+          : isLast
+          ? '✅ Done! Finish Practice'
+          : '✅ Done! Next Challenge →'}
+      </button>
+    </div>
+  )
+}
