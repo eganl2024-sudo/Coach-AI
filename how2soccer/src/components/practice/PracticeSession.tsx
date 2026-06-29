@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import Link from 'next/link'
 import { markChallengeComplete, UnlockInfo, TrackCompleteInfo } from '@/lib/actions/progress'
 import { ChallengeRating } from '@/lib/types'
+import { DIFFICULTY_LABELS, DIFFICULTY_COLORS } from '@/lib/data/curriculum'
 import { RatingPicker } from './RatingPicker'
 import { UnlockCelebration } from '@/components/skills/UnlockCelebration'
 import { TrackCompleteCelebration } from '@/components/skills/TrackCompleteCelebration'
@@ -34,13 +35,6 @@ interface Props {
 }
 
 type Phase = 'ready' | 'challenge' | 'rating' | 'celebrating' | 'complete'
-
-const DIFFICULTY_LABEL = ['Beginner', 'Intermediate', 'Advanced']
-const DIFFICULTY_COLOR = [
-  'text-green-700 bg-green-100',
-  'text-orange-700 bg-orange-100',
-  'text-red-700 bg-red-100',
-]
 
 function StepDots({ total, current, completedInSession }: { total: number; current: number; completedInSession: number }) {
   return (
@@ -153,9 +147,14 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
     )
   }
 
+  useEffect(() => {
+    if (phase === 'complete') {
+      trackEvent('practice_session_completed', { completedInSession, totalChallenges: total })
+    }
+  }, [phase]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── COMPLETE (client-reached — takes priority over allAlreadyDone) ──
   if (phase === 'complete') {
-    trackEvent('practice_session_completed', { completedInSession, totalChallenges: total })
     const newStreak = currentStreak > 0 ? currentStreak : completedInSession > 0 ? 1 : 0
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 py-8 text-center">
@@ -221,7 +220,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
         <div className="text-center space-y-2">
           <p className="text-green-600 font-bold text-sm uppercase tracking-wide">Hey {kidName}!</p>
           <h1 className="text-3xl font-black text-gray-900">Today&apos;s Practice</h1>
-          <p className="text-gray-500">{total} challenges · about 15 minutes</p>
+          <p className="text-gray-500">{total} challenge{total === 1 ? '' : 's'} · about {total * 5} min</p>
         </div>
 
         <div className="space-y-3">
@@ -325,8 +324,8 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
       {/* Challenge card */}
       <div className={cn('rounded-3xl border-2 p-6', current.trackBgClass)}>
         <div className="flex items-center justify-between mb-3">
-          <span className={cn('text-xs font-bold px-3 py-1 rounded-full', DIFFICULTY_COLOR[current.difficulty - 1])}>
-            {DIFFICULTY_LABEL[current.difficulty - 1]}
+          <span className={cn('text-xs font-bold px-3 py-1 rounded-full', DIFFICULTY_COLORS[current.difficulty - 1])}>
+            {DIFFICULTY_LABELS[current.difficulty - 1]}
           </span>
           <span className="text-sm font-bold text-gray-400">{current.trackEmoji} {current.trackName}</span>
         </div>
@@ -341,26 +340,6 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
           <p className="font-bold text-amber-700 text-sm">Coach Tip</p>
         </div>
         <p className="text-gray-700 text-sm leading-relaxed">{current.tip}</p>
-      </div>
-
-      {/* Steps */}
-      <div className="bg-white rounded-2xl border-2 border-gray-200 p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <span className="text-xl">📋</span>
-          <p className="font-bold text-gray-900 text-sm">How to Practice</p>
-        </div>
-        <ol className="space-y-2 text-sm text-gray-600">
-          {['Find an open space outside or in a gym.', 'Read the challenge and the coach tip.', 'Practice until you can do it — then tap the button!'].map(
-            (step, i) => (
-              <li key={i} className="flex gap-2">
-                <span className="w-5 h-5 bg-green-100 text-green-700 rounded-full flex items-center justify-center text-xs font-bold shrink-0">
-                  {i + 1}
-                </span>
-                {step}
-              </li>
-            ),
-          )}
-        </ol>
       </div>
 
       {/* Already completed notice */}

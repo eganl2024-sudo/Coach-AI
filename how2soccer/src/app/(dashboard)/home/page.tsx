@@ -94,7 +94,7 @@ export default async function HomePage() {
             className="flex items-center justify-between w-full bg-green-500 hover:bg-green-600 active:scale-[0.99] text-white font-black text-lg px-5 py-4 rounded-2xl mb-3 transition-all shadow-md shadow-green-200"
           >
             <span>▶ Start Today&apos;s Practice</span>
-            <span className="text-green-200 text-sm font-semibold">~15 min</span>
+            <span className="text-green-200 text-sm font-semibold">~{missionsLeft * 5} min</span>
           </Link>
         )}
 

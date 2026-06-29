@@ -596,8 +596,15 @@ export function getChallenge(trackId: string, challengeId: string): Challenge | 
   return track?.challenges.find((c) => c.id === challengeId)
 }
 
+export const DIFFICULTY_LABELS = ['Beginner', 'Intermediate', 'Advanced'] as const
+export const DIFFICULTY_COLORS = [
+  'text-green-700 bg-green-100',
+  'text-orange-700 bg-orange-100',
+  'text-red-700 bg-red-100',
+] as const
+
 export function getDifficultyLabel(difficulty: 1 | 2 | 3): string {
-  return ['Beginner', 'Intermediate', 'Advanced'][difficulty - 1]
+  return DIFFICULTY_LABELS[difficulty - 1]
 }
 
 export function getUnlockedChallengeIds(track: Track, completedIds: Set<string>): Set<string> {
