@@ -57,7 +57,7 @@ export default async function TrackPage({ params }: Props) {
 
       <div className={cn('rounded-2xl border-2 p-4', trackData.bgClass)}>
         <p className="text-gray-600 text-sm">{trackData.description}</p>
-        <p className={cn('font-black text-lg mt-1', trackData.colorClass)}>
+        <p className="font-black text-lg mt-1 text-gray-900">
           {completedCount}/{trackData.challenges.length} completed
         </p>
       </div>

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { Lock, Check } from 'lucide-react'
 import { Challenge } from '@/lib/types'
 import { cn } from '@/lib/utils'
 
@@ -21,7 +22,7 @@ export function ChallengeCard({ challenge, trackId, index, isCompleted, isLocked
         isLocked
           ? 'border-gray-100 bg-gray-50 opacity-50 cursor-not-allowed'
           : isCompleted
-          ? 'border-yellow-300 bg-yellow-50 hover:shadow-md active:scale-98'
+          ? 'border-green-200 bg-green-50 hover:shadow-md active:scale-98'
           : 'border-gray-200 bg-white hover:shadow-md active:scale-98',
       )}
     >
@@ -31,11 +32,11 @@ export function ChallengeCard({ challenge, trackId, index, isCompleted, isLocked
           isLocked
             ? 'bg-gray-200 text-gray-400'
             : isCompleted
-            ? 'bg-yellow-400 text-white'
+            ? 'bg-green-500 text-white'
             : 'bg-gray-100 text-gray-500',
         )}
       >
-        {isLocked ? '🔒' : isCompleted ? '⭐' : index + 1}
+        {isLocked ? <Lock size={16} /> : isCompleted ? <Check size={16} strokeWidth={3} /> : index + 1}
       </div>
 
       <div className="flex-1 min-w-0">
