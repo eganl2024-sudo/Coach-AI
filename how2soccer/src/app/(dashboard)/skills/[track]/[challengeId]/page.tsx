@@ -70,6 +70,11 @@ export default async function ChallengePage({ params }: Props) {
     )
   }
 
+  const challengeIndex = trackData.challenges.findIndex((c) => c.id === challengeId)
+  const nextChallenge = trackData.challenges
+    .slice(challengeIndex + 1)
+    .find((c) => unlockedIds.has(c.id))
+
   return (
     <div className="py-6 space-y-4">
       <div className="flex items-center gap-2">
@@ -90,6 +95,24 @@ export default async function ChallengePage({ params }: Props) {
         existingRating={existingRating}
         trackData={trackData}
       />
+      {nextChallenge && (
+        <Link
+          href={`/skills/${track}/${nextChallenge.id}`}
+          className="flex items-center justify-between w-full bg-gray-50 hover:bg-gray-100 border-2 border-gray-200 rounded-2xl px-4 py-3 transition-colors"
+        >
+          <div>
+            <p className="text-xs text-gray-400 font-semibold">Up next</p>
+            <p className="font-bold text-gray-800">{nextChallenge.title}</p>
+          </div>
+          <span className="text-gray-400 text-xl">›</span>
+        </Link>
+      )}
+      <Link
+        href={`/skills/${track}`}
+        className="block text-center text-sm text-gray-400 hover:text-gray-600 py-2"
+      >
+        ← All {trackData.name} challenges
+      </Link>
     </div>
   )
 }
