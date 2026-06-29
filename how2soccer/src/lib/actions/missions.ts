@@ -1,11 +1,15 @@
 'use server'
 
 import { createServerClient } from '../supabase/server'
+import { getSession } from '../session'
 import { TRACKS, TRACK_IDS, getUnlockedChallengeIds } from '../data/curriculum'
 import { DailyMission } from '../types'
 import { getLocalDate } from '../utils/date'
 
 export async function getTodaysMissions(kidId: string, timezone = 'America/New_York'): Promise<DailyMission[]> {
+  const session = await getSession()
+  if (!session.kidId || session.kidId !== kidId) return []
+
   const supabase = await createServerClient()
   const today = getLocalDate(timezone)
 
@@ -85,6 +89,9 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
 }
 
 export async function completeDailyMission(kidId: string, challengeId: string, timezone = 'America/New_York') {
+  const session = await getSession()
+  if (!session.kidId || session.kidId !== kidId) return
+
   const supabase = await createServerClient()
   const today = getLocalDate(timezone)
 

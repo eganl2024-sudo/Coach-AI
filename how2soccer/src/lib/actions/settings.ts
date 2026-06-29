@@ -8,6 +8,9 @@ import { Kid, Parent } from '../types'
 import { VALID_TIMEZONE_VALUES } from '../constants/timezones'
 
 export async function getParentWithKids(parentId: string): Promise<Parent & { kids: Kid[] }> {
+  const session = await getSession()
+  if (!session.parentId || session.parentId !== parentId) throw new Error('Unauthorized')
+
   const supabase = await createServerClient()
   const [{ data: parent }, { data: kids }] = await Promise.all([
     supabase.from('h2s_parents').select('id, username, email, created_at').eq('id', parentId).single(),

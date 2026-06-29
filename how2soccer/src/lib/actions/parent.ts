@@ -1,6 +1,7 @@
 'use server'
 
 import { createServerClient } from '../supabase/server'
+import { getSession } from '../session'
 import { TRACKS, TRACK_IDS } from '../data/curriculum'
 import { getLocalDate } from '../utils/date'
 
@@ -17,6 +18,9 @@ export interface KidStats {
 }
 
 export async function getParentDashboard(parentId: string): Promise<KidStats[]> {
+  const session = await getSession()
+  if (!session.parentId || session.parentId !== parentId) return []
+
   const supabase = await createServerClient()
 
   const { data: kids } = await supabase
@@ -50,7 +54,7 @@ export async function getParentDashboard(parentId: string): Promise<KidStats[]> 
   ])
 
   const streaksByKid = Object.fromEntries(
-    (streaksRes.data || []).map((s: { kid_id: string }) => [s.kid_id, s])
+    (streaksRes.data || []).map((s: any) => [s.kid_id, s])
   ) as Record<string, { current_streak: number; longest_streak: number; last_practice_date: string | null; timezone: string }>
 
   const progressByKid: Record<string, { track: string }[]> = {}

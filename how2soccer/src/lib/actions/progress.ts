@@ -29,6 +29,12 @@ export async function markChallengeComplete(challengeId: string, track: string):
   const session = await getSession()
   if (!session.kidId) return { error: 'Not authenticated' }
 
+  // Validate challengeId and track against the static curriculum
+  const trackData = getTrack(track)
+  if (!trackData) return { error: 'Invalid track' }
+  const validChallenge = trackData.challenges.find((c) => c.id === challengeId)
+  if (!validChallenge) return { error: 'Invalid challenge' }
+
   const supabase = await createServerClient()
 
   // Fetch current progress for unlock detection
@@ -43,9 +49,7 @@ export async function markChallengeComplete(challengeId: string, track: string):
   let unlockInfo: UnlockInfo | null = null
   let trackComplete: TrackCompleteInfo | null = null
   if (!alreadyDone) {
-    const trackData = getTrack(track)
-    if (trackData) {
-      const completedBefore = new Set((currentProgress || []).map((p: any) => p.challenge_id))
+    const completedBefore = new Set((currentProgress || []).map((p: any) => p.challenge_id))
       const completedAfter = new Set([...completedBefore, challengeId])
 
       // Track complete check (all challenges done)
@@ -78,8 +82,7 @@ export async function markChallengeComplete(challengeId: string, track: string):
           }
         }
       }
-    }
-  }
+  } // end if (!alreadyDone)
 
   const { error } = await supabase.from('h2s_progress').upsert(
     { kid_id: session.kidId, challenge_id: challengeId, track, stars: 1 },
@@ -119,6 +122,9 @@ export async function saveRating(challengeId: string, track: string, rating: 'ea
 }
 
 export async function getKidProgress(kidId: string): Promise<Progress[]> {
+  const session = await getSession()
+  if (!session.kidId || session.kidId !== kidId) return []
+
   const supabase = await createServerClient()
   const { data } = await supabase
     .from('h2s_progress')
@@ -130,6 +136,14 @@ export async function getKidProgress(kidId: string): Promise<Progress[]> {
 }
 
 export async function getWeekActivity(kidId: string, timezone = 'America/New_York') {
+  const session = await getSession()
+  if (!session.kidId || session.kidId !== kidId) {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - (6 - i))
+      return { date: d.toISOString().split('T')[0], active: false, isToday: i === 6 }
+    })
+  }
+
   const supabase = await createServerClient()
   const today = getLocalDate(timezone)
 

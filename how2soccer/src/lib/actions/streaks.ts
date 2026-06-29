@@ -1,10 +1,14 @@
 'use server'
 
 import { createServerClient } from '../supabase/server'
+import { getSession } from '../session'
 import { Streak } from '../types'
 import { getLocalDate, getLocalYesterday } from '../utils/date'
 
 export async function getStreak(kidId: string): Promise<Streak | null> {
+  const session = await getSession()
+  if (!session.kidId || session.kidId !== kidId) return null
+
   const supabase = await createServerClient()
   const { data } = await supabase
     .from('h2s_streaks')
@@ -15,6 +19,9 @@ export async function getStreak(kidId: string): Promise<Streak | null> {
 }
 
 export async function updateStreak(kidId: string, timezone = 'America/New_York'): Promise<Streak> {
+  const session = await getSession()
+  if (!session.kidId || session.kidId !== kidId) throw new Error('Unauthorized')
+
   const supabase = await createServerClient()
   const today = getLocalDate(timezone)
   const yesterday = getLocalYesterday(timezone)
