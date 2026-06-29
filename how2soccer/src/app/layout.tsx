@@ -1,6 +1,14 @@
 import type { Metadata, Viewport } from 'next'
+import { Nunito } from 'next/font/google'
 import './globals.css'
 import { PostHogProvider } from '@/components/PostHogProvider'
+
+const nunito = Nunito({
+  subsets: ['latin'],
+  variable: '--font-nunito',
+  display: 'swap',
+  weight: ['400', '600', '700', '800', '900'],
+})
 
 export const metadata: Metadata = {
   title: {
@@ -30,7 +38,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <body className={nunito.variable}>
         <PostHogProvider>{children}</PostHogProvider>
       </body>
     </html>

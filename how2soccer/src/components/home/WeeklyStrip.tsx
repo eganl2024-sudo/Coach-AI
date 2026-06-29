@@ -15,7 +15,7 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 export function WeeklyStrip({ days }: Props) {
   return (
     <div className="bg-white rounded-2xl border-2 border-gray-100 p-4">
-      <p className="text-xs font-black text-gray-400 uppercase tracking-wide mb-3">This Week</p>
+      <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3">This Week</p>
       <div className="flex items-end justify-between gap-1">
         {days.map(({ date, active, isToday }) => {
           const dayName = DAY_LABELS[new Date(date + 'T12:00:00').getDay()]
@@ -43,9 +43,14 @@ export function WeeklyStrip({ days }: Props) {
           )
         })}
       </div>
-      <p className="text-xs text-gray-400 text-center mt-2">
-        {days.filter((d) => d.active).length} of 7 days practiced
-      </p>
+      {(() => {
+        const count = days.filter((d) => d.active).length
+        const label =
+          count === 0 ? 'Start your streak today!' :
+          count === 7 ? 'Perfect week!' :
+          `${count} day${count === 1 ? '' : 's'} this week — keep it up!`
+        return <p className="text-xs text-gray-400 text-center mt-2">{label}</p>
+      })()}
     </div>
   )
 }

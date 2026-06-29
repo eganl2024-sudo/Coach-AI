@@ -17,30 +17,30 @@ export function MissionCard({ mission, challenge, trackData }: MissionCardProps)
         className={cn(
           'flex items-center gap-4 rounded-2xl border-2 p-4 transition-all active:scale-98',
           done
-            ? 'border-yellow-300 bg-yellow-50'
+            ? 'border-green-200 bg-green-50'
             : 'border-gray-200 bg-white hover:shadow-md',
         )}
       >
         <div
           className={cn(
             'w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0',
-            done ? 'bg-yellow-400' : trackData.bgClass.split(' ')[0],
+            done ? 'bg-green-100' : trackData.bgClass.split(' ')[0],
           )}
         >
-          {done ? '⭐' : trackData.emoji}
+          {done ? '✓' : trackData.emoji}
         </div>
 
         <div className="flex-1 min-w-0">
           <p className={cn('font-bold text-base leading-tight', done ? 'text-gray-500 line-through' : 'text-gray-900')}>
             {challenge.title}
           </p>
-          <p className={cn('text-xs mt-0.5 font-semibold', trackData.colorClass)}>
-            {trackData.name}
+          <p className="text-xs mt-0.5 font-semibold text-gray-400">
+            {trackData.emoji} {trackData.name}
           </p>
         </div>
 
         {done ? (
-          <span className="text-xs font-bold text-yellow-600 bg-yellow-100 px-2 py-1 rounded-full shrink-0">Done!</span>
+          <span className="text-xs font-bold text-green-700 bg-green-100 px-2 py-1 rounded-full shrink-0">Done</span>
         ) : (
           <span className="text-gray-300 text-lg shrink-0">›</span>
         )}

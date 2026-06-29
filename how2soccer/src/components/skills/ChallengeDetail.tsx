@@ -85,18 +85,15 @@ export function ChallengeDetail({
             {completed && <span className="text-2xl">⭐</span>}
           </div>
 
-          <h2 className={cn('text-2xl font-black mb-2', trackData.colorClass)}>
+          <h2 className="text-2xl font-black mb-2 text-gray-900">
             {challenge.title}
           </h2>
           <p className="text-gray-700 text-base leading-relaxed">{challenge.description}</p>
         </div>
 
         {/* Coach Tip */}
-        <div className="bg-white rounded-2xl border-2 border-amber-200 p-5">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-xl">💡</span>
-            <p className="font-bold text-amber-700 text-sm">Coach Tip</p>
-          </div>
+        <div className="bg-gray-50 rounded-2xl p-5">
+          <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Coach Tip</p>
           <p className="text-gray-700 text-sm leading-relaxed">{challenge.tip}</p>
         </div>
 
@@ -130,7 +127,7 @@ export function ChallengeDetail({
           size="lg"
           className={cn('w-full text-lg', completed && 'bg-yellow-400 hover:bg-yellow-400 text-yellow-900')}
         >
-          {completed ? '⭐ Challenge Complete!' : isPending ? 'Saving…' : '✅ Mark as Complete!'}
+          {completed ? 'Challenge Complete!' : isPending ? 'Saving…' : 'Mark as Complete'}
         </Button>
 
         {completed && !showCelebration && (

@@ -35,12 +35,14 @@ export default async function HomePage() {
     <div className="py-6 space-y-5">
       {/* Greeting hero */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-3xl p-6 text-white">
-        <p className="text-green-100 text-sm font-semibold tracking-wide">Welcome back</p>
-        <h1 className="text-3xl font-black mt-1">{session.kidName}! 👋</h1>
-        <p className="text-green-100 mt-1">
+        <p className="text-green-200 text-xs font-bold uppercase tracking-widest">Hey {session.kidName}!</p>
+        <h1 className="text-3xl font-black mt-0.5">
+          {missionsLeft === 0 ? 'All Done Today!' : 'Time to Practice'}
+        </h1>
+        <p className="text-green-100 text-sm mt-1">
           {missionsLeft === 0
-            ? "Amazing — today's practice done! 🎉"
-            : `${missionsLeft} practice drill${missionsLeft === 1 ? '' : 's'} waiting for you today`}
+            ? 'Amazing work — come back tomorrow!'
+            : `${missionsLeft} challenge${missionsLeft === 1 ? '' : 's'} waiting for you`}
         </p>
 
         {/* Level card */}

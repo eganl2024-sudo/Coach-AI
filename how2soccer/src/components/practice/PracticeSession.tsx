@@ -218,7 +218,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
     return (
       <div className="py-6 space-y-6">
         <div className="text-center space-y-2">
-          <p className="text-green-600 font-bold text-sm uppercase tracking-wide">Hey {kidName}!</p>
+          <p className="text-green-600 font-bold text-sm">Ready, {kidName}?</p>
           <h1 className="text-3xl font-black text-gray-900">Today&apos;s Practice</h1>
           <p className="text-gray-500">{total} challenge{total === 1 ? '' : 's'} · about {total * 5} min</p>
         </div>
@@ -329,16 +329,13 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
           </span>
           <span className="text-sm font-bold text-gray-400">{current.trackEmoji} {current.trackName}</span>
         </div>
-        <h2 className={cn('text-2xl font-black mb-2', current.trackColorClass)}>{current.title}</h2>
+        <h2 className="text-2xl font-black mb-2 text-gray-900">{current.title}</h2>
         <p className="text-gray-700 text-base leading-relaxed">{current.description}</p>
       </div>
 
       {/* Coach tip */}
-      <div className="bg-white rounded-2xl border-2 border-amber-200 p-5">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xl">💡</span>
-          <p className="font-bold text-amber-700 text-sm">Coach Tip</p>
-        </div>
+      <div className="bg-gray-50 rounded-2xl p-5">
+        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Coach Tip</p>
         <p className="text-gray-700 text-sm leading-relaxed">{current.tip}</p>
       </div>
 
@@ -361,8 +358,8 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
           : current.alreadyCompleted
           ? `Next Challenge →`
           : isLast
-          ? '✅ Done! Finish Practice'
-          : '✅ Done! Next Challenge →'}
+          ? 'Finish Practice'
+          : 'Done! Next Challenge →'}
       </button>
     </div>
   )

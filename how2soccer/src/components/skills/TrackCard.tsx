@@ -33,15 +33,15 @@ export function TrackCard({ track, completedCount }: TrackCardProps) {
         <div className="flex items-start justify-between mb-3">
           <div>
             <div className="text-3xl mb-1">{track.emoji}</div>
-            <h3 className={cn('text-xl font-black', track.colorClass)}>{track.name}</h3>
-            <p className="text-gray-600 text-sm mt-0.5">{track.description}</p>
+            <h3 className="text-xl font-black text-gray-900">{track.name}</h3>
+            <p className="text-gray-500 text-sm mt-0.5">{track.description}</p>
           </div>
           <div className="text-right">
-            <span className={cn('text-2xl font-black', track.colorClass)}>
+            <span className="text-2xl font-black text-gray-900">
               {completedCount}
               <span className="text-lg text-gray-400">/{totalChallenges}</span>
             </span>
-            {allDone && <div className="text-yellow-500 text-lg">⭐</div>}
+            {allDone && <div className="text-yellow-400 text-xl mt-0.5">★</div>}
           </div>
         </div>
 
@@ -52,8 +52,8 @@ export function TrackCard({ track, completedCount }: TrackCardProps) {
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-xs text-gray-500 mt-1.5">
-          {allDone ? 'Track complete! 🎉' : `${pct}% complete`}
+        <p className="text-xs text-gray-400 mt-1.5">
+          {allDone ? 'Track complete!' : pct > 0 ? `${pct}% done` : 'Not started'}
         </p>
       </div>
     </Link>
