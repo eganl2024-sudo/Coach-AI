@@ -166,15 +166,15 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
 
         <div className="w-full space-y-3">
           {completedInSession > 0 && (
-            <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl px-6 py-4">
-              <p className="text-2xl font-black text-yellow-700">+{completedInSession} ⭐</p>
-              <p className="text-yellow-600 text-sm">star{completedInSession === 1 ? '' : 's'} earned today</p>
+            <div className="bg-white border-2 border-gray-100 rounded-2xl px-6 py-4">
+              <p className="text-2xl font-black text-gray-900">+{completedInSession} ⭐</p>
+              <p className="text-gray-500 text-sm">star{completedInSession === 1 ? '' : 's'} earned today</p>
             </div>
           )}
           {newStreak > 0 && (
-            <div className="bg-orange-50 border-2 border-orange-100 rounded-2xl px-6 py-4">
-              <p className="text-2xl font-black text-orange-500">🔥 {newStreak} day streak</p>
-              <p className="text-orange-400 text-sm">Keep showing up!</p>
+            <div className="bg-white border-2 border-gray-100 rounded-2xl px-6 py-4">
+              <p className="text-2xl font-black text-gray-900">🔥 {newStreak} day streak</p>
+              <p className="text-gray-500 text-sm">Keep showing up!</p>
             </div>
           )}
         </div>
@@ -190,7 +190,10 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
   }
 
   // ── ALREADY DONE (server says all done before session started) ──
-  if (allAlreadyDone) {
+  // Guard with phase === 'ready' so an in-progress session (rating/celebrating/challenge)
+  // isn't overridden when revalidatePath causes the server to pass allAlreadyDone=true
+  // after the last challenge is marked complete.
+  if (allAlreadyDone && phase === 'ready') {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-6 py-8 text-center">
         <div className="text-6xl">🎉</div>
@@ -250,7 +253,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
           onClick={handleStart}
           className="w-full bg-green-500 hover:bg-green-600 active:scale-[0.98] text-white font-black text-xl py-5 rounded-2xl transition-all shadow-lg shadow-green-200"
         >
-          ▶ Start Practice
+          Start Practice
         </button>
 
         <Link href="/home" className="block text-center text-sm text-gray-400 hover:text-gray-600">

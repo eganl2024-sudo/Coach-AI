@@ -55,7 +55,7 @@ export default async function ProfilePage() {
             <div className="text-right shrink-0">
               <p className="text-xs text-green-200 whitespace-nowrap">Next level</p>
               <p className="text-lg font-black whitespace-nowrap">{level.nextLevel.emoji} {level.nextLevel.name}</p>
-              <p className="text-xs text-green-100 whitespace-nowrap">{level.starsToNext} stars away</p>
+              <p className="text-xs text-green-100 whitespace-nowrap">{level.starsToNext} {level.starsToNext === 1 ? 'star' : 'stars'} away</p>
             </div>
           ) : (
             <div className="text-4xl shrink-0">👑</div>

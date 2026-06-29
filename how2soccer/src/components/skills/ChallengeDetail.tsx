@@ -99,10 +99,10 @@ export function ChallengeDetail({
 
         {/* Celebration */}
         {showCelebration && (
-          <div className="bg-yellow-50 border-2 border-yellow-300 rounded-2xl p-5 text-center">
-            <div className="text-4xl mb-2">🎉⭐🎉</div>
-            <p className="text-xl font-black text-yellow-700">Amazing work!</p>
-            <p className="text-yellow-600 text-sm mt-1">You earned a star for completing this challenge!</p>
+          <div className="bg-white border-2 border-gray-100 rounded-2xl p-5 text-center">
+            <div className="text-4xl mb-2">⭐</div>
+            <p className="text-xl font-black text-gray-900">Amazing work!</p>
+            <p className="text-gray-500 text-sm mt-1">You earned a star for completing this challenge!</p>
           </div>
         )}
 
