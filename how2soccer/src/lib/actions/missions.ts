@@ -28,17 +28,16 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
     .select('challenge_id, rating')
     .eq('kid_id', kidId)
 
+  type ProgressRow = { challenge_id: string; rating: string | null }
+  const rows_p = (progress || []) as ProgressRow[]
+
   // All completed challenge IDs (used for unlock gate — even 'tough' completes unlock next tier)
-  const completedIds = new Set((progress || []).map((p: any) => p.challenge_id))
+  const completedIds = new Set(rows_p.map((p) => p.challenge_id))
 
   // 'tough' rated = needs more practice → resurface in rotation
   // everything else (no rating, 'easy', 'got_it') = mastered → skip
-  const masteredIds = new Set(
-    (progress || []).filter((p: any) => p.rating !== 'tough').map((p: any) => p.challenge_id)
-  )
-  const toughIds = new Set(
-    (progress || []).filter((p: any) => p.rating === 'tough').map((p: any) => p.challenge_id)
-  )
+  const masteredIds = new Set(rows_p.filter((p) => p.rating !== 'tough').map((p) => p.challenge_id))
+  const toughIds = new Set(rows_p.filter((p) => p.rating === 'tough').map((p) => p.challenge_id))
 
   const shuffled = [...TRACK_IDS].sort(() => Math.random() - 0.5)
   const picks: Array<{ challenge_id: string; track: string }> = []
@@ -80,12 +79,16 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
 
   const rows = picks.map((p) => ({ kid_id: kidId, challenge_id: p.challenge_id, track: p.track, date: today }))
 
-  const { data: inserted, error: insertError } = await supabase
-    .from('h2s_daily_missions')
-    .insert(rows)
-    .select('*')
+  // INSERT and ignore duplicates (concurrent tab race). Always re-SELECT after.
+  await supabase.from('h2s_daily_missions').insert(rows)
 
-  return insertError ? [] : (inserted as DailyMission[]) || []
+  const { data: final } = await supabase
+    .from('h2s_daily_missions')
+    .select('*')
+    .eq('kid_id', kidId)
+    .eq('date', today)
+
+  return (final as DailyMission[]) || []
 }
 
 export async function completeDailyMission(kidId: string, challengeId: string, timezone = 'America/New_York') {

@@ -53,9 +53,10 @@ export async function getParentDashboard(parentId: string): Promise<KidStats[]> 
       .gte('date', sevenDaysAgo),
   ])
 
+  type StreakRow = { kid_id: string; current_streak: number; longest_streak: number; last_practice_date: string | null; timezone: string }
   const streaksByKid = Object.fromEntries(
-    (streaksRes.data || []).map((s: any) => [s.kid_id, s])
-  ) as Record<string, { current_streak: number; longest_streak: number; last_practice_date: string | null; timezone: string }>
+    ((streaksRes.data || []) as StreakRow[]).map((s) => [s.kid_id, s])
+  ) as Record<string, StreakRow>
 
   const progressByKid: Record<string, { track: string }[]> = {}
   for (const p of progressRes.data || []) {
