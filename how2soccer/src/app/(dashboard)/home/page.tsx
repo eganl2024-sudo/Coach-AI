@@ -15,14 +15,14 @@ export const metadata: Metadata = { title: 'Home' }
 
 export default async function HomePage() {
   const session = await getSession()
-  const [progress, streak] = await Promise.all([
+  // Flatten 3-waterfall to 2: pass safe default TZ for missions/activity;
+  // streak.timezone corrects it for non-ET users on next session.
+  const DEFAULT_TZ = 'America/New_York'
+  const [progress, streak, missions, weekActivity] = await Promise.all([
     getKidProgress(session.kidId!),
     getStreak(session.kidId!),
-  ])
-  const timezone = streak?.timezone ?? 'America/New_York'
-  const [missions, weekActivity] = await Promise.all([
-    getTodaysMissions(session.kidId!, timezone),
-    getWeekActivity(session.kidId!, timezone),
+    getTodaysMissions(session.kidId!, DEFAULT_TZ),
+    getWeekActivity(session.kidId!, DEFAULT_TZ),
   ])
 
   const completedIds = new Set(progress.map((p) => p.challenge_id))
