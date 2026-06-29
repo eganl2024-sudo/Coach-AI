@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Challenge, Track } from '@/lib/types'
+import { Challenge, ChallengeRating, Track } from '@/lib/types'
 import { markChallengeComplete } from '@/lib/actions/progress'
+import { RatingPicker } from '@/components/practice/RatingPicker'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
@@ -10,6 +11,7 @@ interface ChallengeDetailProps {
   challenge: Challenge
   track: string
   isCompleted: boolean
+  existingRating?: ChallengeRating | null
   trackData: Track
 }
 
@@ -24,10 +26,12 @@ export function ChallengeDetail({
   challenge,
   track,
   isCompleted: initialCompleted,
+  existingRating,
   trackData,
 }: ChallengeDetailProps) {
   const [completed, setCompleted] = useState(initialCompleted)
   const [showCelebration, setShowCelebration] = useState(false)
+  const [showRating, setShowRating] = useState(initialCompleted)
   const [isPending, startTransition] = useTransition()
   const [error, setError] = useState<string | null>(null)
 
@@ -39,6 +43,7 @@ export function ChallengeDetail({
       } else {
         setCompleted(true)
         setShowCelebration(true)
+        setShowRating(true)
       }
     })
   }
@@ -102,6 +107,17 @@ export function ChallengeDetail({
           <div className="text-4xl mb-2">🎉⭐🎉</div>
           <p className="text-xl font-black text-yellow-700">Amazing work!</p>
           <p className="text-yellow-600 text-sm mt-1">You earned a star for completing this challenge!</p>
+        </div>
+      )}
+
+      {/* Rating */}
+      {showRating && (
+        <div className="bg-white rounded-2xl border-2 border-gray-100 p-5">
+          <RatingPicker
+            challengeId={challenge.id}
+            track={track}
+            existingRating={existingRating}
+          />
         </div>
       )}
 

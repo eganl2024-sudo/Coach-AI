@@ -18,27 +18,41 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
   if (fetchError || !existing) return []
   if (existing.length > 0) return existing as DailyMission[]
 
-  // Build pool of incomplete challenges first
+  // Get progress with ratings to drive smart mission selection
   const { data: progress } = await supabase
     .from('h2s_progress')
-    .select('challenge_id')
+    .select('challenge_id, rating')
     .eq('kid_id', kidId)
 
-  const completedIds = new Set((progress || []).map((p: { challenge_id: string }) => p.challenge_id))
+  // 'tough' rated = needs more practice → resurface in rotation
+  // everything else (no rating, 'easy', 'got_it') = mastered → skip
+  const masteredIds = new Set(
+    (progress || []).filter((p: any) => p.rating !== 'tough').map((p: any) => p.challenge_id)
+  )
+  const toughIds = new Set(
+    (progress || []).filter((p: any) => p.rating === 'tough').map((p: any) => p.challenge_id)
+  )
 
-  // Shuffle track order for variety
   const shuffled = [...TRACK_IDS].sort(() => Math.random() - 0.5)
-
   const picks: Array<{ challenge_id: string; track: string }> = []
 
-  // One incomplete challenge per track, up to 3
+  // Priority 1: one tough-rated challenge per track (kid flagged these as hard)
   for (const trackId of shuffled) {
     if (picks.length >= 3) break
-    const incomplete = TRACKS[trackId].challenges.find((c) => !completedIds.has(c.id))
-    if (incomplete) picks.push({ challenge_id: incomplete.id, track: trackId })
+    const tough = TRACKS[trackId].challenges.find((c) => toughIds.has(c.id))
+    if (tough) picks.push({ challenge_id: tough.id, track: trackId })
   }
 
-  // If still need more (kid finished some tracks), fill from any track
+  // Priority 2: one new (never attempted) challenge per track
+  for (const trackId of shuffled) {
+    if (picks.length >= 3) break
+    const fresh = TRACKS[trackId].challenges.find(
+      (c) => !masteredIds.has(c.id) && !toughIds.has(c.id) && !picks.some((p) => p.challenge_id === c.id)
+    )
+    if (fresh) picks.push({ challenge_id: fresh.id, track: trackId })
+  }
+
+  // Fallback: fill from any track if still short
   if (picks.length < 3) {
     for (const trackId of shuffled) {
       for (const challenge of TRACKS[trackId].challenges) {

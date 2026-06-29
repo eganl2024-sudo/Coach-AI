@@ -3,6 +3,8 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { markChallengeComplete } from '@/lib/actions/progress'
+import { ChallengeRating } from '@/lib/types'
+import { RatingPicker } from './RatingPicker'
 import { cn } from '@/lib/utils'
 
 interface PracticeChallenge {
@@ -18,6 +20,7 @@ interface PracticeChallenge {
   tip: string
   difficulty: 1 | 2 | 3
   alreadyCompleted: boolean
+  existingRating?: ChallengeRating | null
 }
 
 interface Props {
@@ -27,7 +30,7 @@ interface Props {
   allAlreadyDone: boolean
 }
 
-type Phase = 'ready' | 'challenge' | 'celebrating' | 'complete'
+type Phase = 'ready' | 'challenge' | 'rating' | 'celebrating' | 'complete'
 
 const DIFFICULTY_LABEL = ['Beginner', 'Intermediate', 'Advanced']
 const DIFFICULTY_COLOR = [
@@ -92,7 +95,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
         return
       }
       setCompletedInSession((n) => n + 1)
-      setPhase('celebrating')
+      setPhase('rating')
     })
   }
 
@@ -208,6 +211,31 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
         <Link href="/home" className="block text-center text-sm text-gray-400 hover:text-gray-600">
           ← Back to home
         </Link>
+      </div>
+    )
+  }
+
+  // ── RATING ────────────────────────────────────────────────────
+  if (phase === 'rating') {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center gap-8 py-8">
+        <StepDots total={total} current={currentIndex} completedInSession={completedInSession} />
+
+        <div className="text-center space-y-1">
+          <div className="text-5xl mb-3">⭐</div>
+          <h2 className="text-xl font-black text-gray-900">Nice work on {current.title}!</h2>
+          <p className="text-gray-500 text-sm">Rate it so your coach can help you improve</p>
+        </div>
+
+        <div className="w-full">
+          <RatingPicker
+            challengeId={current.challengeId}
+            track={current.track}
+            existingRating={current.existingRating}
+            onRated={() => setPhase('celebrating')}
+            onSkip={() => setPhase('celebrating')}
+          />
+        </div>
       </div>
     )
   }

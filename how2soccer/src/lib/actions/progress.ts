@@ -35,6 +35,22 @@ export async function markChallengeComplete(challengeId: string, track: string) 
   return { success: true }
 }
 
+export async function saveRating(challengeId: string, track: string, rating: 'easy' | 'got_it' | 'tough') {
+  const session = await getSession()
+  if (!session.kidId) return { error: 'Not authenticated' }
+
+  const supabase = await createServerClient()
+  const { error } = await supabase
+    .from('h2s_progress')
+    .update({ rating })
+    .eq('kid_id', session.kidId)
+    .eq('challenge_id', challengeId)
+
+  if (error) return { error: error.message }
+  revalidatePath('/home')
+  return { success: true }
+}
+
 export async function getKidProgress(kidId: string): Promise<Progress[]> {
   const supabase = await createServerClient()
   const { data } = await supabase

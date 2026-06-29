@@ -14,6 +14,8 @@ export interface Kid {
   created_at: string
 }
 
+export type ChallengeRating = 'easy' | 'got_it' | 'tough'
+
 export interface Progress {
   id: string
   kid_id: string
@@ -21,6 +23,7 @@ export interface Progress {
   track: string
   completed_at: string
   stars: number
+  rating: ChallengeRating | null
 }
 
 export type TrackId = 'juggling' | 'dribbling' | 'passing' | 'shooting'

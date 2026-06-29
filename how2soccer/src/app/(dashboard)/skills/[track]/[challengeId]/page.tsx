@@ -25,7 +25,9 @@ export default async function ChallengePage({ params }: Props) {
 
   const session = await getSession()
   const progress = await getKidProgress(session.kidId!)
-  const isCompleted = progress.some((p) => p.challenge_id === challengeId)
+  const progressEntry = progress.find((p) => p.challenge_id === challengeId)
+  const isCompleted = !!progressEntry
+  const existingRating = progressEntry?.rating ?? null
 
   return (
     <div className="py-6 space-y-4">
@@ -44,6 +46,7 @@ export default async function ChallengePage({ params }: Props) {
         challenge={challenge}
         track={track}
         isCompleted={isCompleted}
+        existingRating={existingRating}
         trackData={trackData}
       />
     </div>
