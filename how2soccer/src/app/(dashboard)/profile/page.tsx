@@ -76,8 +76,8 @@ export default async function ProfilePage() {
       <div className="bg-white rounded-2xl border-2 border-gray-200 p-5">
         <h2 className="font-bold text-gray-900 mb-3">Stats</h2>
         <div className="grid grid-cols-2 gap-3">
-          <div className="bg-yellow-50 rounded-xl p-3 text-center">
-            <p className="text-3xl font-black text-yellow-600">{totalStars}</p>
+          <div className="bg-white rounded-xl p-3 text-center border border-gray-100">
+            <p className="text-3xl font-black text-gray-900">{totalStars}</p>
             <p className="text-xs text-gray-500 font-semibold">Stars Earned</p>
           </div>
           <div className="bg-green-50 rounded-xl p-3 text-center">

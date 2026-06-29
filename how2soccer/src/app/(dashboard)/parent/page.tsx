@@ -13,7 +13,6 @@ export default async function ParentDashboardPage() {
   const kids = await getParentDashboard(session.parentId!)
 
   const totalStars = kids.reduce((s, k) => s + k.totalStars, 0)
-  const activeDaysThisWeek = Math.max(...kids.map((k) => k.weeklyDates.length), 0)
 
   return (
     <div className="py-6 space-y-4">
@@ -33,7 +32,7 @@ export default async function ParentDashboardPage() {
 
       {/* Summary strip */}
       {kids.length > 1 && (
-        <div className="bg-slate-800 rounded-2xl p-4 grid grid-cols-3 gap-2 text-center">
+        <div className="bg-slate-800 rounded-2xl p-4 grid grid-cols-2 gap-2 text-center">
           <div>
             <p className="text-xl font-black text-white">{kids.length}</p>
             <p className="text-xs text-slate-400">players</p>
@@ -41,10 +40,6 @@ export default async function ParentDashboardPage() {
           <div>
             <p className="text-xl font-black text-yellow-400">{totalStars}</p>
             <p className="text-xs text-slate-400">total stars</p>
-          </div>
-          <div>
-            <p className="text-xl font-black text-green-400">{activeDaysThisWeek}</p>
-            <p className="text-xs text-slate-400">active days</p>
           </div>
         </div>
       )}

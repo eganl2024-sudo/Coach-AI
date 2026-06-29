@@ -43,13 +43,14 @@ export async function markChallengeComplete(challengeId: string, track: string):
     .select('challenge_id')
     .eq('kid_id', session.kidId)
 
-  const alreadyDone = (currentProgress || []).some((p: any) => p.challenge_id === challengeId)
+  const progressRows = (currentProgress || []) as Pick<Progress, 'challenge_id'>[]
+  const alreadyDone = progressRows.some((p) => p.challenge_id === challengeId)
 
   // Compute unlock delta and track completion before saving
   let unlockInfo: UnlockInfo | null = null
   let trackComplete: TrackCompleteInfo | null = null
   if (!alreadyDone) {
-    const completedBefore = new Set((currentProgress || []).map((p: any) => p.challenge_id))
+    const completedBefore = new Set(progressRows.map((p) => p.challenge_id))
       const completedAfter = new Set([...completedBefore, challengeId])
 
       // Track complete check (all challenges done)
@@ -101,7 +102,7 @@ export async function markChallengeComplete(challengeId: string, track: string):
 
   revalidatePath(`/skills/${track}`)
   revalidatePath('/home')
-  revalidatePath('/')
+  revalidatePath('/practice')
   return { success: true, unlockInfo, trackComplete }
 }
 
@@ -161,7 +162,7 @@ export async function getWeekActivity(kidId: string, timezone = 'America/New_Yor
     .gte('date', days[0])
     .not('completed_at', 'is', null)
 
-  const activeDates = new Set((data || []).map((m: any) => m.date))
+  const activeDates = new Set((data || []).map((m: { date: string }) => m.date))
 
   return days.map((date) => ({
     date,
