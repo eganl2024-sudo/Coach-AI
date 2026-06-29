@@ -27,7 +27,7 @@ export function LoginForm() {
         <div className="text-center mb-8">
           <div className="text-6xl mb-3">⚽</div>
           <h1 className="text-3xl font-black text-green-600 tracking-tight">How 2 Soccer</h1>
-          <p className="text-gray-500 mt-1">Welcome back, coach!</p>
+          <p className="text-gray-500 mt-1">Sign in to your account</p>
         </div>
 
         <div className="bg-white rounded-3xl border-2 border-gray-100 p-6 shadow-sm">
