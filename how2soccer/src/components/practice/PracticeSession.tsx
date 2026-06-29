@@ -90,7 +90,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
     startTransition(async () => {
       const result = await markChallengeComplete(current.challengeId, current.track)
       if ('error' in result) {
-        setError(result.error)
+        setError('Something went wrong saving your progress. Try again!')
         return
       }
       setCompletedInSession((n) => n + 1)

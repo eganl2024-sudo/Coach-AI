@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS h2s_progress (
   id           UUID        PRIMARY KEY DEFAULT gen_random_uuid(),
   kid_id       UUID        NOT NULL REFERENCES h2s_kids(id) ON DELETE CASCADE,
   challenge_id TEXT        NOT NULL,
-  track        TEXT        NOT NULL CHECK (track IN ('juggling', 'dribbling', 'passing', 'shooting')),
+  track        TEXT        NOT NULL CHECK (track IN ('juggling', 'dribbling', 'passing', 'shooting', 'control', 'tricks')),
   completed_at TIMESTAMPTZ DEFAULT NOW(),
   stars        INTEGER     NOT NULL DEFAULT 1 CHECK (stars >= 1 AND stars <= 3),
   UNIQUE (kid_id, challenge_id)
