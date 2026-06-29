@@ -61,3 +61,33 @@ Captured during /plan-eng-review on 2026-06-28. Each item has a why and context 
 **Context:** No DESIGN.md currently exists. Phase 1 adds `MissionCard`, an extended hero block (rounded-bottom-only, 3 stat chips), and a new progress bar sub-component. The `/plan-design-review` had to document tokens inline in the design doc as a workaround — DESIGN.md is the right permanent home.
 
 **Depends on / blocked by:** Phase 1 must ship first (so real component code exists to document).
+
+---
+
+## T5 — Parent "delete my child's data" flow (COPPA required)
+
+**What:** Add a "Delete [kid name]'s account and all data" button to parent account settings. Hard-deletes `h2s_kids`, `h2s_progress`, `h2s_daily_missions`, `h2s_streaks` rows for that kid.
+
+**Why:** COPPA requires a data deletion pathway. The signup flow creates kid data before email confirmation is implemented; once COPPA email confirmation ships, the deletion flow completes the required parental control loop. Without it, a parent has no way to remove their child's data.
+
+**Pros:** Legal compliance. Builds parent trust. Required before real cohort.
+**Cons:** Irreversible — needs a confirmation dialog to prevent accidents.
+
+**Context:** Detected during 2026-06-29 /plan-eng-review. The design doc (ljega-main-design-20260628-145953.md) section "Account & COPPA Flow" calls for "Delete my child's account and all data" in parent account settings. Not implemented or tracked until now. The settings page at `/settings` is the right location. Add a red "Delete player account" button at the bottom of the "Your Players" section, behind a confirmation modal.
+
+**Depends on / blocked by:** COPPA email confirmation (ARCH-3) should ship first, but this can be built in parallel.
+
+---
+
+## T6 — Auto-detect + remember browser timezone at signup (regression guard)
+
+**What:** In the signup form, capture `Intl.DateTimeFormat().resolvedOptions().timeZone` as a hidden field. Pass to `addKidAction`. Use as the initial `timezone` for the kid's streak record.
+
+**Why:** Onboarding doesn't capture timezone — all kids default to `America/New_York`. A kid in California practicing at 9pm PST has their streak credited to "tomorrow" from ET perspective, breaking the streak on the next real practice day.
+
+**Pros:** Correct streak behavior for non-ET users from day 1. One-line browser-side addition.
+**Cons:** Browser timezone can be spoofed or wrong (VPN, misconfigured device). Settings page TimezoneSelector already exists as the manual override.
+
+**Context:** Detected during 2026-06-29 /plan-eng-review outside voice. `updateStreak` in `streaks.ts` uses `getLocalDate(timezone)` correctly with the stored timezone — the bug is only in the initial default. This TODO exists as a regression guard: even after T4 (auto-detect at onboarding) ships, keep this note so future refactors to the onboarding flow don't accidentally strip the hidden timezone field.
+
+**Depends on / blocked by:** None — can ship with or before Phase 1.
