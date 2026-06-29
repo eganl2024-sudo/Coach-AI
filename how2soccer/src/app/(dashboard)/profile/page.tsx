@@ -44,21 +44,21 @@ export default async function ProfilePage() {
 
       {/* Level card */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-5 text-white">
-        <div className="flex items-center justify-between mb-3">
-          <div>
+        <div className="flex items-center justify-between gap-2 mb-3">
+          <div className="min-w-0">
             <p className="text-xs text-green-200 font-semibold uppercase tracking-wide">Current Level</p>
-            <p className="text-3xl font-black flex items-center gap-2 mt-0.5">
+            <p className="text-3xl font-black flex items-center gap-2 mt-0.5 truncate">
               {level.emoji} {level.name}
             </p>
           </div>
           {level.nextLevel ? (
-            <div className="text-right">
-              <p className="text-xs text-green-200">Next level</p>
-              <p className="text-lg font-black">{level.nextLevel.emoji} {level.nextLevel.name}</p>
-              <p className="text-xs text-green-100">{level.starsToNext} stars away</p>
+            <div className="text-right shrink-0">
+              <p className="text-xs text-green-200 whitespace-nowrap">Next level</p>
+              <p className="text-lg font-black whitespace-nowrap">{level.nextLevel.emoji} {level.nextLevel.name}</p>
+              <p className="text-xs text-green-100 whitespace-nowrap">{level.starsToNext} stars away</p>
             </div>
           ) : (
-            <div className="text-4xl">👑</div>
+            <div className="text-4xl shrink-0">👑</div>
           )}
         </div>
         <div className="h-3 bg-white/20 rounded-full overflow-hidden">
