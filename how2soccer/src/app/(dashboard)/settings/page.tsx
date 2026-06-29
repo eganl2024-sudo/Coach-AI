@@ -71,6 +71,15 @@ export default async function SettingsPage() {
         <TimezoneSelector currentTimezone={streak?.timezone ?? 'America/New_York'} />
       </div>
 
+      {/* Parent Dashboard */}
+      <Link
+        href="/parent"
+        className="flex items-center justify-between w-full bg-slate-800 text-white rounded-2xl px-5 py-4 font-bold hover:bg-slate-700 transition-colors"
+      >
+        <span>📊 Parent Dashboard</span>
+        <span className="text-slate-400 text-sm">View progress →</span>
+      </Link>
+
       {/* Sign out */}
       <form action={logoutAction}>
         <Button variant="outline" className="w-full border-red-200 text-red-500 hover:bg-red-50">
