@@ -1,7 +1,7 @@
 'use server'
 
 import { createServerClient } from '../supabase/server'
-import { TRACKS, TRACK_IDS } from '../data/curriculum'
+import { TRACKS, TRACK_IDS, getUnlockedChallengeIds } from '../data/curriculum'
 import { DailyMission } from '../types'
 import { getLocalDate } from '../utils/date'
 
@@ -24,6 +24,9 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
     .select('challenge_id, rating')
     .eq('kid_id', kidId)
 
+  // All completed challenge IDs (used for unlock gate — even 'tough' completes unlock next tier)
+  const completedIds = new Set((progress || []).map((p: any) => p.challenge_id))
+
   // 'tough' rated = needs more practice → resurface in rotation
   // everything else (no rating, 'easy', 'got_it') = mastered → skip
   const masteredIds = new Set(
@@ -36,28 +39,34 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
   const shuffled = [...TRACK_IDS].sort(() => Math.random() - 0.5)
   const picks: Array<{ challenge_id: string; track: string }> = []
 
-  // Priority 1: one tough-rated challenge per track (kid flagged these as hard)
+  // Priority 1: one tough-rated unlocked challenge per track
   for (const trackId of shuffled) {
     if (picks.length >= 3) break
-    const tough = TRACKS[trackId].challenges.find((c) => toughIds.has(c.id))
+    const track = TRACKS[trackId]
+    const unlockedIds = getUnlockedChallengeIds(track, completedIds)
+    const tough = track.challenges.find((c) => unlockedIds.has(c.id) && toughIds.has(c.id))
     if (tough) picks.push({ challenge_id: tough.id, track: trackId })
   }
 
-  // Priority 2: one new (never attempted) challenge per track
+  // Priority 2: one new (never attempted) unlocked challenge per track
   for (const trackId of shuffled) {
     if (picks.length >= 3) break
-    const fresh = TRACKS[trackId].challenges.find(
-      (c) => !masteredIds.has(c.id) && !toughIds.has(c.id) && !picks.some((p) => p.challenge_id === c.id)
+    const track = TRACKS[trackId]
+    const unlockedIds = getUnlockedChallengeIds(track, completedIds)
+    const fresh = track.challenges.find(
+      (c) => unlockedIds.has(c.id) && !masteredIds.has(c.id) && !toughIds.has(c.id) && !picks.some((p) => p.challenge_id === c.id)
     )
     if (fresh) picks.push({ challenge_id: fresh.id, track: trackId })
   }
 
-  // Fallback: fill from any track if still short
+  // Fallback: fill from any unlocked challenge across all tracks
   if (picks.length < 3) {
     for (const trackId of shuffled) {
-      for (const challenge of TRACKS[trackId].challenges) {
+      const track = TRACKS[trackId]
+      const unlockedIds = getUnlockedChallengeIds(track, completedIds)
+      for (const challenge of track.challenges) {
         if (picks.length >= 3) break
-        if (!picks.some((p) => p.challenge_id === challenge.id)) {
+        if (unlockedIds.has(challenge.id) && !picks.some((p) => p.challenge_id === challenge.id)) {
           picks.push({ challenge_id: challenge.id, track: trackId })
         }
       }

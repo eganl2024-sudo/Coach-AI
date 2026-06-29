@@ -26,7 +26,7 @@ export interface Progress {
   rating: ChallengeRating | null
 }
 
-export type TrackId = 'juggling' | 'dribbling' | 'passing' | 'shooting'
+export type TrackId = 'juggling' | 'dribbling' | 'passing' | 'shooting' | 'control' | 'tricks'
 
 export interface Challenge {
   id: string

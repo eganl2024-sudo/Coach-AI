@@ -7,6 +7,8 @@ const TRACK_BAR_COLORS: Record<string, string> = {
   'text-orange-600': 'bg-orange-600',
   'text-blue-600': 'bg-blue-600',
   'text-red-600': 'bg-red-600',
+  'text-purple-600': 'bg-purple-600',
+  'text-pink-600': 'bg-pink-600',
 }
 
 function NudgeBanner({ days, name }: { days: number | null; name: string }) {

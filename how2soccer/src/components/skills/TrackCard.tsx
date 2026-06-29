@@ -7,12 +7,20 @@ interface TrackCardProps {
   completedCount: number
 }
 
-// computed per track below
+const TRACK_BAR_COLORS: Record<string, string> = {
+  juggling: 'bg-green-500',
+  dribbling: 'bg-orange-500',
+  passing: 'bg-blue-500',
+  shooting: 'bg-red-500',
+  control: 'bg-purple-500',
+  tricks: 'bg-pink-500',
+}
 
 export function TrackCard({ track, completedCount }: TrackCardProps) {
   const totalChallenges = track.challenges.length
   const pct = Math.round((completedCount / totalChallenges) * 100)
   const allDone = completedCount === totalChallenges
+  const barColor = TRACK_BAR_COLORS[track.id] ?? 'bg-gray-500'
 
   return (
     <Link href={`/skills/${track.id}`} className="block">
@@ -40,12 +48,7 @@ export function TrackCard({ track, completedCount }: TrackCardProps) {
         {/* Progress bar */}
         <div className="h-2.5 bg-white/60 rounded-full overflow-hidden">
           <div
-            className={cn('h-full rounded-full transition-all duration-500', {
-              'bg-green-500': track.id === 'juggling',
-              'bg-orange-500': track.id === 'dribbling',
-              'bg-blue-500': track.id === 'passing',
-              'bg-red-500': track.id === 'shooting',
-            })}
+            className={`h-full rounded-full transition-all duration-500 ${barColor}`}
             style={{ width: `${pct}%` }}
           />
         </div>

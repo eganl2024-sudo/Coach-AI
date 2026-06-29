@@ -7,6 +7,15 @@ import { Button } from '@/components/ui/button'
 
 export const metadata: Metadata = { title: 'Profile' }
 
+const TRACK_BAR_COLORS: Record<string, string> = {
+  'text-green-600': 'bg-green-500',
+  'text-orange-600': 'bg-orange-500',
+  'text-blue-600': 'bg-blue-500',
+  'text-red-600': 'bg-red-500',
+  'text-purple-600': 'bg-purple-500',
+  'text-pink-600': 'bg-pink-500',
+}
+
 export default async function ProfilePage() {
   const session = await getSession()
   const progress = await getKidProgress(session.kidId!)
@@ -54,6 +63,7 @@ export default async function ProfilePage() {
             const track = TRACKS[trackId]
             const trackTotal = track.challenges.length
             const count = track.challenges.filter((c) => completedIds.has(c.id)).length
+            const barColor = TRACK_BAR_COLORS[track.colorClass] ?? 'bg-gray-500'
             return (
               <div key={trackId} className="flex items-center gap-3">
                 <span className="text-xl w-8">{track.emoji}</span>
@@ -64,12 +74,7 @@ export default async function ProfilePage() {
                   </div>
                   <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
                     <div
-                      className={[
-                        'h-full rounded-full',
-                        trackId === 'juggling' ? 'bg-green-500' :
-                        trackId === 'dribbling' ? 'bg-orange-500' :
-                        trackId === 'passing' ? 'bg-blue-500' : 'bg-red-500',
-                      ].join(' ')}
+                      className={`h-full rounded-full ${barColor}`}
                       style={{ width: `${(count / trackTotal) * 100}%` }}
                     />
                   </div>
