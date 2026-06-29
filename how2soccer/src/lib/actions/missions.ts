@@ -15,8 +15,8 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
     .eq('kid_id', kidId)
     .eq('date', today)
 
-  if (fetchError) console.error('[missions] fetch error:', fetchError)
-  if (existing && existing.length > 0) return existing as DailyMission[]
+  if (fetchError || !existing) return []
+  if (existing.length > 0) return existing as DailyMission[]
 
   // Build pool of incomplete challenges first
   const { data: progress } = await supabase
@@ -58,9 +58,7 @@ export async function getTodaysMissions(kidId: string, timezone = 'America/New_Y
     .insert(rows)
     .select('*')
 
-  if (insertError) console.error('[missions] insert error:', insertError)
-
-  return (inserted as DailyMission[]) || []
+  return insertError ? [] : (inserted as DailyMission[]) || []
 }
 
 export async function completeDailyMission(kidId: string, challengeId: string, timezone = 'America/New_York') {
