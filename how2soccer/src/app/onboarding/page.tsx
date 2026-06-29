@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { addKidAction } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,12 +17,18 @@ export default function OnboardingPage() {
   const [skillLevel, setSkillLevel] = useState('beginner')
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [timezone, setTimezone] = useState('America/New_York')
+
+  useEffect(() => {
+    setTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  }, [])
 
   function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setError(null)
     const formData = new FormData(e.currentTarget)
     formData.set('skill_level', skillLevel)
+    formData.set('timezone', timezone)
     startTransition(async () => {
       const result = await addKidAction(formData)
       if (result?.error) setError(result.error)
