@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { getSession } from '@/lib/session'
 import { getKidProgress } from '@/lib/actions/progress'
 import { TRACK_IDS, TRACKS } from '@/lib/data/curriculum'
+import { getLevel } from '@/lib/utils/levels'
 import { logoutAction } from '@/lib/actions/auth'
 import { Button } from '@/components/ui/button'
 
@@ -22,6 +23,7 @@ export default async function ProfilePage() {
   const completedIds = new Set(progress.map((p) => p.challenge_id))
   const totalChallenges = TRACK_IDS.reduce((sum, id) => sum + TRACKS[id].challenges.length, 0)
   const totalStars = completedIds.size
+  const level = getLevel(totalStars)
 
   return (
     <div className="py-6 space-y-4">
@@ -38,6 +40,36 @@ export default async function ProfilePage() {
             <p className="text-gray-500 text-sm">Parent: @{session.parentUsername}</p>
           </div>
         </div>
+      </div>
+
+      {/* Level card */}
+      <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-2xl p-5 text-white">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-xs text-green-200 font-semibold uppercase tracking-wide">Current Level</p>
+            <p className="text-3xl font-black flex items-center gap-2 mt-0.5">
+              {level.emoji} {level.name}
+            </p>
+          </div>
+          {level.nextLevel ? (
+            <div className="text-right">
+              <p className="text-xs text-green-200">Next level</p>
+              <p className="text-lg font-black">{level.nextLevel.emoji} {level.nextLevel.name}</p>
+              <p className="text-xs text-green-100">{level.starsToNext} stars away</p>
+            </div>
+          ) : (
+            <div className="text-4xl">👑</div>
+          )}
+        </div>
+        <div className="h-3 bg-white/20 rounded-full overflow-hidden">
+          <div
+            className="h-full bg-white rounded-full transition-all duration-700"
+            style={{ width: `${level.pct}%` }}
+          />
+        </div>
+        {level.nextLevel && (
+          <p className="text-xs text-green-100 mt-1.5 text-right">{level.pct}% to {level.nextLevel.name}</p>
+        )}
       </div>
 
       {/* Stats */}

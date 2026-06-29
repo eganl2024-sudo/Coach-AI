@@ -1,12 +1,14 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { getSession } from '@/lib/session'
-import { getKidProgress } from '@/lib/actions/progress'
+import { getKidProgress, getWeekActivity } from '@/lib/actions/progress'
 import { getStreak } from '@/lib/actions/streaks'
 import { getTodaysMissions } from '@/lib/actions/missions'
 import { TRACKS, TRACK_IDS } from '@/lib/data/curriculum'
+import { getLevel } from '@/lib/utils/levels'
 import { TrackCard } from '@/components/skills/TrackCard'
 import { StreakBanner } from '@/components/home/StreakBanner'
+import { WeeklyStrip } from '@/components/home/WeeklyStrip'
 import { MissionCard } from '@/components/home/MissionCard'
 
 export const metadata: Metadata = { title: 'Home' }
@@ -17,12 +19,17 @@ export default async function HomePage() {
     getKidProgress(session.kidId!),
     getStreak(session.kidId!),
   ])
-  const missions = await getTodaysMissions(session.kidId!, streak?.timezone ?? 'America/New_York')
+  const timezone = streak?.timezone ?? 'America/New_York'
+  const [missions, weekActivity] = await Promise.all([
+    getTodaysMissions(session.kidId!, timezone),
+    getWeekActivity(session.kidId!, timezone),
+  ])
 
   const completedIds = new Set(progress.map((p) => p.challenge_id))
   const totalStars = completedIds.size
   const totalChallenges = TRACK_IDS.reduce((sum, id) => sum + TRACKS[id].challenges.length, 0)
   const missionsLeft = missions.filter((m) => !m.completed_at).length
+  const level = getLevel(totalStars)
 
   return (
     <div className="py-6 space-y-5">
@@ -36,21 +43,41 @@ export default async function HomePage() {
             : `${missionsLeft} practice drill${missionsLeft === 1 ? '' : 's'} waiting for you today`}
         </p>
 
-        <div className="flex items-center gap-3 mt-4 bg-white/20 rounded-2xl px-4 py-3">
-          <span className="text-3xl">⭐</span>
-          <div>
-            <p className="text-2xl font-black">
-              {totalStars} {totalStars === 1 ? 'star' : 'stars'} earned
-            </p>
-            <p className="text-green-100 text-sm">
-              {totalChallenges - totalStars} challenge{totalChallenges - totalStars === 1 ? '' : 's'} left to master
-            </p>
+        {/* Level card */}
+        <div className="mt-4 bg-white/20 rounded-2xl px-4 py-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{level.emoji}</span>
+              <div>
+                <p className="text-lg font-black leading-none">{level.name}</p>
+                <p className="text-green-100 text-xs mt-0.5">⭐ {totalStars} star{totalStars === 1 ? '' : 's'} earned</p>
+              </div>
+            </div>
+            {level.nextLevel ? (
+              <div className="text-right">
+                <p className="text-xs text-green-200 font-semibold">
+                  {level.starsToNext} more → {level.nextLevel.name} {level.nextLevel.emoji}
+                </p>
+                <p className="text-xs text-green-100">{totalChallenges - totalStars} challenges left</p>
+              </div>
+            ) : (
+              <span className="text-2xl">👑</span>
+            )}
+          </div>
+          <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-white rounded-full transition-all duration-700"
+              style={{ width: `${level.pct}%` }}
+            />
           </div>
         </div>
       </div>
 
       {/* Streak */}
       <StreakBanner streak={streak} />
+
+      {/* Weekly activity */}
+      <WeeklyStrip days={weekActivity} />
 
       {/* Today's Practice */}
       <div>

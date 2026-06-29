@@ -2,9 +2,10 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
-import { markChallengeComplete } from '@/lib/actions/progress'
+import { markChallengeComplete, UnlockInfo } from '@/lib/actions/progress'
 import { ChallengeRating } from '@/lib/types'
 import { RatingPicker } from './RatingPicker'
+import { UnlockCelebration } from '@/components/skills/UnlockCelebration'
 import { cn } from '@/lib/utils'
 
 interface PracticeChallenge {
@@ -69,6 +70,7 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
   const [completedInSession, setCompletedInSession] = useState(0)
   const [error, setError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
+  const [pendingUnlock, setPendingUnlock] = useState<UnlockInfo | null>(null)
 
   const current = challenges[currentIndex]
   const isLast = currentIndex === challenges.length - 1
@@ -90,12 +92,16 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
     setError(null)
     startTransition(async () => {
       const result = await markChallengeComplete(current.challengeId, current.track)
-      if (result.error) {
+      if ('error' in result) {
         setError(result.error)
         return
       }
       setCompletedInSession((n) => n + 1)
-      setPhase('rating')
+      if (result.unlockInfo) {
+        setPendingUnlock(result.unlockInfo)
+      } else {
+        setPhase('rating')
+      }
     })
   }
 
@@ -106,6 +112,19 @@ export function PracticeSession({ kidName, challenges, currentStreak, allAlready
       setCurrentIndex((i) => i + 1)
       setPhase('challenge')
     }
+  }
+
+  // ── UNLOCK OVERLAY (renders on top of any phase) ──────────────────
+  if (pendingUnlock) {
+    return (
+      <UnlockCelebration
+        unlock={pendingUnlock}
+        onDismiss={() => {
+          setPendingUnlock(null)
+          setPhase('rating')
+        }}
+      />
+    )
   }
 
   // ── COMPLETE (client-reached — takes priority over allAlreadyDone) ──
