@@ -38,7 +38,7 @@ export function ChallengeDetail({
     startTransition(async () => {
       const result = await markChallengeComplete(challenge.id, track)
       if ('error' in result) {
-        setError(result.error)
+        setError('Something went wrong. Please try again!')
       } else {
         setCompleted(true)
         setShowCelebration(true)
