@@ -35,7 +35,7 @@ export default async function HomePage() {
     <div className="py-6 space-y-5">
       {/* Greeting hero */}
       <div className="bg-gradient-to-r from-green-500 to-green-600 rounded-3xl p-6 text-white">
-        <p className="text-green-100 text-sm font-semibold uppercase tracking-wide">Welcome back</p>
+        <p className="text-green-100 text-sm font-semibold tracking-wide">Welcome back</p>
         <h1 className="text-3xl font-black mt-1">{session.kidName}! 👋</h1>
         <p className="text-green-100 mt-1">
           {missionsLeft === 0
@@ -45,23 +45,23 @@ export default async function HomePage() {
 
         {/* Level card */}
         <div className="mt-4 bg-white/20 rounded-2xl px-4 py-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{level.emoji}</span>
-              <div>
-                <p className="text-lg font-black leading-none">{level.name}</p>
-                <p className="text-green-100 text-xs mt-0.5">⭐ {totalStars} star{totalStars === 1 ? '' : 's'} earned</p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-2xl shrink-0">{level.emoji}</span>
+              <div className="min-w-0">
+                <p className="text-lg font-black leading-none truncate">{level.name}</p>
+                <p className="text-green-100 text-xs mt-0.5">{totalStars} star{totalStars === 1 ? '' : 's'} earned</p>
               </div>
             </div>
             {level.nextLevel ? (
-              <div className="text-right">
-                <p className="text-xs text-green-200 font-semibold">
-                  {level.starsToNext} more → {level.nextLevel.name} {level.nextLevel.emoji}
+              <div className="text-right shrink-0">
+                <p className="text-xs text-green-200 font-semibold whitespace-nowrap">
+                  {level.starsToNext} to {level.nextLevel.name}
                 </p>
-                <p className="text-xs text-green-100">{totalChallenges - totalStars} challenges left</p>
+                <p className="text-xs text-green-100 whitespace-nowrap">{totalChallenges - totalStars} left</p>
               </div>
             ) : (
-              <span className="text-2xl">👑</span>
+              <span className="text-2xl shrink-0">👑</span>
             )}
           </div>
           <div className="h-2 bg-white/20 rounded-full overflow-hidden">
